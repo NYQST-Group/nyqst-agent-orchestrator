@@ -1,0 +1,367 @@
+{
+  "$schema": "../event.schema.json",
+  "id": "cre.lease_events",
+  "name": "CRE Lease Event Types",
+  "version": "1.0.0",
+  "description": "Event type configurations for commercial lease management",
+
+  "event_types": [
+    {
+      "id": "tenant_break_option",
+      "name": "Tenant Break Option",
+      "description": "Tenant's right to terminate the lease early",
+      "trigger_source": {
+        "extraction_schema_id": "uk_commercial_lease_v1",
+        "extraction_field": "break_options",
+        "filter": { "party": ["tenant", "mutual"] }
+      },
+      "deadline_rules": [
+        {
+          "name": "notice_deadline",
+          "calculation": "trigger_date - notice_period",
+          "action_required": "Serve break notice if exercising option",
+          "calendar": "calendar_days"
+        },
+        {
+          "name": "strategy_decision",
+          "calculation": "notice_deadline - P90D",
+          "action_required": "Decide retention strategy - do we want tenant to stay?",
+          "calendar": "business_days"
+        },
+        {
+          "name": "tenant_approach",
+          "calculation": "notice_deadline - P180D",
+          "action_required": "Consider proactive tenant engagement if retention desired",
+          "calendar": "business_days"
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "early_planning",
+          "trigger": "strategy_decision - P30D",
+          "priority": "medium",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] }
+          ],
+          "message_template": "Break option strategy decision needed for {{tenant_name}} at {{property_address}} in 30 days"
+        },
+        {
+          "name": "strategy_due",
+          "trigger": "strategy_decision",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "portfolio_manager", "channels": ["email"] }
+          ],
+          "message_template": "DECISION REQUIRED: Break option strategy for {{tenant_name}} at {{property_address}}",
+          "escalation": {
+            "after": "P7D",
+            "to_role": "portfolio_manager"
+          }
+        },
+        {
+          "name": "notice_warning",
+          "trigger": "notice_deadline - P30D",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app", "sms"] },
+            { "role": "legal", "channels": ["email"] }
+          ],
+          "message_template": "Break notice deadline in 30 days for {{tenant_name}} at {{property_address}}"
+        },
+        {
+          "name": "notice_critical",
+          "trigger": "notice_deadline - P7D",
+          "priority": "critical",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app", "sms"] },
+            { "role": "portfolio_manager", "channels": ["email", "sms"] },
+            { "role": "legal", "channels": ["email"] }
+          ],
+          "message_template": "URGENT: Break notice deadline in 7 days for {{tenant_name}}",
+          "escalation": {
+            "after": "P2D",
+            "to_role": "fund_manager"
+          }
+        }
+      ],
+      "context_template": {
+        "tenant_name": "{{extraction.parties.tenant.name}}",
+        "property_address": "{{extraction.premises.address}}",
+        "current_rent": "{{extraction.rent.current_rent}}",
+        "break_conditions": "{{extraction.break_options[].conditions}}",
+        "break_penalty": "{{extraction.break_options[].penalty}}"
+      },
+      "outcome_types": [
+        "break_exercised",
+        "break_not_exercised",
+        "break_negotiated_away",
+        "break_invalid"
+      ]
+    },
+
+    {
+      "id": "landlord_break_option",
+      "name": "Landlord Break Option",
+      "description": "Landlord's right to terminate the lease early",
+      "trigger_source": {
+        "extraction_schema_id": "uk_commercial_lease_v1",
+        "extraction_field": "break_options",
+        "filter": { "party": ["landlord", "mutual"] }
+      },
+      "deadline_rules": [
+        {
+          "name": "notice_deadline",
+          "calculation": "trigger_date - notice_period",
+          "action_required": "Serve break notice if exercising",
+          "calendar": "calendar_days"
+        },
+        {
+          "name": "strategy_decision",
+          "calculation": "notice_deadline - P180D",
+          "action_required": "Decide if break should be exercised (repositioning, redevelopment, tenant issues)",
+          "calendar": "business_days"
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "strategy_required",
+          "trigger": "strategy_decision - P30D",
+          "priority": "medium",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] }
+          ],
+          "message_template": "Landlord break option strategy decision needed for {{property_address}}"
+        },
+        {
+          "name": "notice_warning",
+          "trigger": "notice_deadline - P60D",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "legal", "channels": ["email"] }
+          ],
+          "message_template": "Landlord break notice deadline in 60 days for {{property_address}}"
+        }
+      ],
+      "outcome_types": [
+        "break_exercised",
+        "break_lapsed",
+        "break_negotiated"
+      ]
+    },
+
+    {
+      "id": "rent_review",
+      "name": "Rent Review",
+      "description": "Scheduled rent review date",
+      "trigger_source": {
+        "extraction_schema_id": "uk_commercial_lease_v1",
+        "extraction_field": "rent_review.review_dates"
+      },
+      "deadline_rules": [
+        {
+          "name": "valuation_commission",
+          "calculation": "trigger_date - P9M",
+          "action_required": "Commission rent review valuation",
+          "calendar": "business_days"
+        },
+        {
+          "name": "trigger_notice",
+          "calculation": "trigger_date - P6M",
+          "action_required": "Serve trigger notice (if required by lease)",
+          "calendar": "calendar_days"
+        },
+        {
+          "name": "negotiation_start",
+          "calculation": "trigger_date - P4M",
+          "action_required": "Begin rent review negotiations",
+          "calendar": "business_days"
+        },
+        {
+          "name": "dispute_referral",
+          "calculation": "trigger_date + P2M",
+          "action_required": "Refer to third party if no agreement",
+          "calendar": "business_days"
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "valuation_reminder",
+          "trigger": "valuation_commission - P14D",
+          "priority": "medium",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] }
+          ],
+          "message_template": "Commission rent review valuation for {{tenant_name}} at {{property_address}}"
+        },
+        {
+          "name": "trigger_notice_due",
+          "trigger": "trigger_notice - P14D",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "legal", "channels": ["email"] }
+          ],
+          "message_template": "Rent review trigger notice due in 14 days for {{tenant_name}}"
+        },
+        {
+          "name": "review_date_approaching",
+          "trigger": "trigger_date - P30D",
+          "priority": "medium",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] }
+          ],
+          "message_template": "Rent review date approaching for {{tenant_name}} - ensure negotiations on track"
+        }
+      ],
+      "context_template": {
+        "tenant_name": "{{extraction.parties.tenant.name}}",
+        "property_address": "{{extraction.premises.address}}",
+        "current_rent": "{{extraction.rent.current_rent}}",
+        "review_mechanism": "{{extraction.rent_review.mechanism}}",
+        "upward_only": "{{extraction.rent_review.upward_only}}",
+        "trigger_notice_required": "{{extraction.rent_review.trigger_notice_required}}"
+      },
+      "outcome_types": [
+        "agreed_increase",
+        "agreed_no_change",
+        "referred_to_expert",
+        "referred_to_arbitrator",
+        "review_missed"
+      ]
+    },
+
+    {
+      "id": "lease_expiry",
+      "name": "Lease Expiry",
+      "description": "End of lease term",
+      "trigger_source": {
+        "extraction_schema_id": "uk_commercial_lease_v1",
+        "extraction_field": "term.end_date"
+      },
+      "deadline_rules": [
+        {
+          "name": "strategic_planning",
+          "calculation": "trigger_date - P24M",
+          "action_required": "Begin lease expiry strategic planning",
+          "calendar": "business_days"
+        },
+        {
+          "name": "section_25_26",
+          "calculation": "trigger_date - P12M",
+          "action_required": "Consider s25/s26 notice requirements (if 1954 Act applies)",
+          "calendar": "business_days"
+        },
+        {
+          "name": "marketing_decision",
+          "calculation": "trigger_date - P18M",
+          "action_required": "Decide: renew with tenant, re-let, redevelop, or sell",
+          "calendar": "business_days"
+        },
+        {
+          "name": "dilapidations_survey",
+          "calculation": "trigger_date - P6M",
+          "action_required": "Commission terminal dilapidations survey",
+          "calendar": "business_days"
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "strategic_planning_start",
+          "trigger": "strategic_planning - P30D",
+          "priority": "medium",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "portfolio_manager", "channels": ["email"] }
+          ],
+          "message_template": "Lease expiry strategic planning due to start for {{tenant_name}} at {{property_address}}"
+        },
+        {
+          "name": "section_notice_reminder",
+          "trigger": "section_25_26 - P30D",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "legal", "channels": ["email"] }
+          ],
+          "message_template": "Consider 1954 Act notice requirements for {{tenant_name}} - deadline approaching"
+        }
+      ],
+      "outcome_types": [
+        "renewed",
+        "vacated",
+        "holding_over",
+        "surrendered_early",
+        "statutory_continuation"
+      ]
+    },
+
+    {
+      "id": "guarantee_expiry",
+      "name": "Guarantee Expiry",
+      "description": "Expiry of tenant guarantee",
+      "trigger_source": {
+        "extraction_schema_id": "uk_commercial_lease_v1",
+        "extraction_field": "security.guarantee.expiry_date"
+      },
+      "deadline_rules": [
+        {
+          "name": "review_security",
+          "calculation": "trigger_date - P6M",
+          "action_required": "Review tenant covenant strength and security requirements",
+          "calendar": "business_days"
+        },
+        {
+          "name": "renewal_negotiation",
+          "calculation": "trigger_date - P4M",
+          "action_required": "Negotiate guarantee renewal if required",
+          "calendar": "business_days"
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "security_review",
+          "trigger": "review_security",
+          "priority": "high",
+          "recipients": [
+            { "role": "asset_manager", "channels": ["email", "in_app"] },
+            { "role": "credit", "channels": ["email"] }
+          ],
+          "message_template": "Guarantee expiring for {{tenant_name}} - review tenant covenant and security"
+        }
+      ],
+      "outcome_types": [
+        "renewed",
+        "replaced",
+        "released",
+        "lapsed"
+      ]
+    }
+  ],
+
+  "business_calendars": {
+    "uk_business_days": {
+      "exclude_weekends": true,
+      "holidays": ["uk_bank_holidays"]
+    },
+    "calendar_days": {
+      "exclude_weekends": false,
+      "holidays": []
+    }
+  },
+
+  "default_recipients": {
+    "asset_manager": {
+      "lookup": "entity.property.assigned_asset_manager",
+      "fallback": "team.asset_management"
+    },
+    "portfolio_manager": {
+      "lookup": "entity.fund.portfolio_manager"
+    },
+    "legal": {
+      "lookup": "entity.property.external_legal_advisor",
+      "fallback": "team.in_house_legal"
+    }
+  }
+}

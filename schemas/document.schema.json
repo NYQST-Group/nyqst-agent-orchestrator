@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/schemas/document.schema.json",
+  "title": "Document Intelligence Primitive",
+  "description": "Schema for document ingestion, structure extraction, and relationship management",
+
+  "definitions": {
+    "DocumentSource": {
+      "type": "object",
+      "description": "An ingested source document",
+      "required": ["id", "content_hash", "media_type", "ingested_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique document identifier"
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of document content for deduplication"
+        },
+        "media_type": {
+          "type": "string",
+          "description": "MIME type of the document",
+          "examples": ["application/pdf", "image/png", "application/vnd.ms-excel"]
+        },
+        "original_filename": {
+          "type": "string"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_context": {
+          "type": "object",
+          "description": "Where this document came from",
+          "properties": {
+            "data_room_id": { "type": "string" },
+            "data_room_path": { "type": "string" },
+            "upload_session_id": { "type": "string" },
+            "original_url": { "type": "string", "format": "uri" }
+          }
+        },
+        "artifact_ref": {
+          "type": "string",
+          "description": "Reference to artifact in substrate storage"
+        }
+      }
+    },
+
+    "DocumentStructure": {
+      "type": "object",
+      "description": "Parsed structure of a document (DocIR)",
+      "required": ["document_id", "version", "pages"],
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "description": "Structure extraction version (re-extraction increments)"
+        },
+        "extraction_model": {
+          "type": "string",
+          "description": "Model/tool version used for extraction"
+        },
+        "extracted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "pages": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Page" }
+        },
+        "table_of_contents": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TOCEntry" }
+        }
+      }
+    },
+
+    "Page": {
+      "type": "object",
+      "required": ["page_number", "blocks"],
+      "properties": {
+        "page_number": { "type": "integer", "minimum": 1 },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "blocks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Block" }
+        }
+      }
+    },
+
+    "Block": {
+      "type": "object",
+      "required": ["id", "type", "content"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["heading", "paragraph", "table", "list", "figure", "footer", "header", "other"]
+        },
+        "content": { "type": "string" },
+        "bounding_box": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "width": { "type": "number" },
+            "height": { "type": "number" }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "table_data": {
+          "$ref": "#/definitions/TableData"
+        }
+      }
+    },
+
+    "TableData": {
+      "type": "object",
+      "properties": {
+        "rows": { "type": "integer" },
+        "columns": { "type": "integer" },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "row": { "type": "integer" },
+              "column": { "type": "integer" },
+              "row_span": { "type": "integer", "default": 1 },
+              "col_span": { "type": "integer", "default": 1 },
+              "content": { "type": "string" },
+              "is_header": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+
+    "TOCEntry": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "level": { "type": "integer" },
+        "page": { "type": "integer" },
+        "block_id": { "type": "string" }
+      }
+    },
+
+    "Extraction": {
+      "type": "object",
+      "description": "A fact extracted from a document",
+      "required": ["id", "document_id", "schema_id", "field_name", "value", "confidence"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_id": {
+          "type": "string",
+          "description": "Reference to the extraction schema used"
+        },
+        "field_name": {
+          "type": "string",
+          "description": "Field name from the schema"
+        },
+        "value": {
+          "description": "Extracted value (type depends on schema)"
+        },
+        "raw_text": {
+          "type": "string",
+          "description": "Original text from document"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "location": {
+          "$ref": "#/definitions/DocumentLocation"
+        },
+        "extraction_method": {
+          "type": "string",
+          "enum": ["model", "rule", "hybrid", "manual"]
+        },
+        "extracted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verified_by": {
+          "type": "string",
+          "description": "User ID who verified this extraction"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "DocumentLocation": {
+      "type": "object",
+      "description": "Precise location within a document",
+      "properties": {
+        "page": { "type": "integer" },
+        "block_id": { "type": "string" },
+        "start_offset": { "type": "integer" },
+        "end_offset": { "type": "integer" },
+        "bounding_box": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "width": { "type": "number" },
+            "height": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "DocumentRelationship": {
+      "type": "object",
+      "description": "Relationship between documents",
+      "required": ["id", "source_document_id", "target_document_id", "relationship_type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "target_document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "relationship_type": {
+          "type": "string",
+          "enum": [
+            "amends",
+            "supersedes",
+            "supplements",
+            "references",
+            "exhibits",
+            "relates_to"
+          ]
+        },
+        "effective_date": {
+          "type": "string",
+          "format": "date",
+          "description": "When this relationship became effective"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "detected_by": {
+          "type": "string",
+          "enum": ["model", "rule", "manual"]
+        },
+        "evidence": {
+          "$ref": "#/definitions/DocumentLocation"
+        }
+      }
+    },
+
+    "ExtractionSchema": {
+      "type": "object",
+      "description": "Schema defining what to extract from a document type",
+      "required": ["id", "name", "version", "fields"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "document_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Document types this schema applies to"
+        },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ExtractionField" }
+        }
+      }
+    },
+
+    "ExtractionField": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "date", "boolean", "currency", "duration", "array", "object"]
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "description": {
+          "type": "string"
+        },
+        "source_hints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Hints about where to find this field"
+        },
+        "validation": {
+          "type": "object",
+          "description": "Validation rules for the field"
+        },
+        "items": {
+          "$ref": "#/definitions/ExtractionField",
+          "description": "For array types, the schema of array items"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/ExtractionField" },
+          "description": "For object types, the schema of properties"
+        }
+      }
+    },
+
+    "Gap": {
+      "type": "object",
+      "description": "Expected but missing information",
+      "required": ["id", "gap_type", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "gap_type": {
+          "type": "string",
+          "enum": [
+            "missing_document",
+            "missing_field",
+            "incomplete_extraction",
+            "unresolved_reference"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "expected_by": {
+          "type": "string",
+          "description": "Schema or rule that expected this"
+        },
+        "context_document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "important", "minor"]
+        },
+        "detected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resolved": {
+          "type": "boolean",
+          "default": false
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

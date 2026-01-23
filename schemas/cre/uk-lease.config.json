@@ -1,0 +1,285 @@
+{
+  "$schema": "../document.schema.json",
+  "id": "cre.uk_commercial_lease",
+  "name": "UK Commercial Lease",
+  "version": "1.0.0",
+  "description": "Configuration for UK commercial lease documents",
+
+  "extraction_schema": {
+    "id": "uk_commercial_lease_v1",
+    "name": "UK Commercial Lease Core Terms",
+    "version": "1.0.0",
+    "document_types": ["lease", "underlease", "agreement_for_lease"],
+    "fields": [
+      {
+        "name": "parties",
+        "type": "object",
+        "required": true,
+        "properties": {
+          "landlord": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "required": true },
+              "company_number": { "type": "string" },
+              "registered_address": { "type": "string" }
+            }
+          },
+          "tenant": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "required": true },
+              "company_number": { "type": "string" },
+              "registered_address": { "type": "string" }
+            }
+          },
+          "guarantor": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "company_number": { "type": "string" }
+            }
+          }
+        },
+        "source_hints": ["parties clause", "first page", "recitals"]
+      },
+      {
+        "name": "premises",
+        "type": "object",
+        "required": true,
+        "properties": {
+          "address": { "type": "string", "required": true },
+          "description": { "type": "string" },
+          "floor_area": {
+            "type": "object",
+            "properties": {
+              "value": { "type": "number" },
+              "unit": { "type": "string", "enum": ["sqft", "sqm"] },
+              "measurement_basis": { "type": "string", "enum": ["NIA", "GIA", "IPMS"] }
+            }
+          },
+          "demise_includes": { "type": "array", "items": { "type": "string" } },
+          "demise_excludes": { "type": "array", "items": { "type": "string" } }
+        },
+        "source_hints": ["definition of premises", "schedule of demise", "first schedule"]
+      },
+      {
+        "name": "term",
+        "type": "object",
+        "required": true,
+        "properties": {
+          "start_date": { "type": "date", "required": true },
+          "end_date": { "type": "date", "required": true },
+          "years": { "type": "number" },
+          "term_certain": { "type": "boolean" }
+        },
+        "source_hints": ["term", "habendum", "particulars"]
+      },
+      {
+        "name": "rent",
+        "type": "object",
+        "required": true,
+        "properties": {
+          "current_rent": {
+            "type": "currency",
+            "required": true
+          },
+          "payment_frequency": {
+            "type": "string",
+            "enum": ["quarterly_advance", "quarterly_arrears", "monthly_advance", "monthly_arrears", "annually_advance"]
+          },
+          "payment_dates": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Quarter days or specific dates"
+          },
+          "vat_treatment": {
+            "type": "string",
+            "enum": ["opted_to_tax", "exempt", "standard_rated"]
+          }
+        },
+        "source_hints": ["rent clause", "particulars", "rent schedule"]
+      },
+      {
+        "name": "rent_review",
+        "type": "object",
+        "properties": {
+          "review_dates": {
+            "type": "array",
+            "items": { "type": "date" }
+          },
+          "review_pattern": {
+            "type": "string",
+            "enum": ["every_5_years", "every_3_years", "annual", "mid_term_only", "custom"]
+          },
+          "mechanism": {
+            "type": "string",
+            "enum": ["open_market", "RPI", "CPI", "fixed_uplift", "turnover", "hybrid"]
+          },
+          "upward_only": { "type": "boolean" },
+          "assumptions": { "type": "array", "items": { "type": "string" } },
+          "disregards": { "type": "array", "items": { "type": "string" } },
+          "dispute_resolution": {
+            "type": "string",
+            "enum": ["expert", "arbitrator", "pact"]
+          },
+          "time_of_essence": { "type": "boolean" },
+          "trigger_notice_required": { "type": "boolean" }
+        },
+        "source_hints": ["rent review", "schedule", "fifth schedule"]
+      },
+      {
+        "name": "break_options",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "party": { "type": "string", "enum": ["tenant", "landlord", "mutual"] },
+            "date": { "type": "date", "required": true },
+            "notice_period": { "type": "duration", "required": true },
+            "notice_method": { "type": "string" },
+            "conditions": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "penalty": { "type": "currency" },
+            "rolling": { "type": "boolean" }
+          }
+        },
+        "source_hints": ["break clause", "option to determine", "schedule"]
+      },
+      {
+        "name": "service_charge",
+        "type": "object",
+        "properties": {
+          "structure": {
+            "type": "string",
+            "enum": ["fixed_percentage", "floor_area_proportion", "weighted", "capped", "other"]
+          },
+          "percentage": { "type": "number" },
+          "cap": { "type": "currency" },
+          "cap_type": { "type": "string", "enum": ["absolute", "per_sqft", "percentage_increase"] },
+          "excluded_items": { "type": "array", "items": { "type": "string" } },
+          "management_fee": { "type": "number", "description": "Percentage" },
+          "sinking_fund": { "type": "boolean" }
+        },
+        "source_hints": ["service charge", "schedule of services", "fourth schedule"]
+      },
+      {
+        "name": "alienation",
+        "type": "object",
+        "properties": {
+          "assignment_permitted": { "type": "boolean" },
+          "assignment_conditions": { "type": "array", "items": { "type": "string" } },
+          "underletting_permitted": { "type": "boolean" },
+          "underletting_conditions": { "type": "array", "items": { "type": "string" } },
+          "sharing_permitted": { "type": "boolean" },
+          "charging_permitted": { "type": "boolean" },
+          "aga_required": { "type": "boolean" }
+        },
+        "source_hints": ["alienation", "assignment", "underletting", "dealings"]
+      },
+      {
+        "name": "repair",
+        "type": "object",
+        "properties": {
+          "repairing_obligation": {
+            "type": "string",
+            "enum": ["FRI", "IRI", "landlord_structure", "schedule_of_condition"]
+          },
+          "schedule_of_condition_attached": { "type": "boolean" },
+          "yield_up_requirements": { "type": "array", "items": { "type": "string" } },
+          "dilapidations_cap": { "type": "currency" },
+          "jervis_v_harris_clause": { "type": "boolean" }
+        },
+        "source_hints": ["repair", "yield up", "reinstatement"]
+      },
+      {
+        "name": "insurance",
+        "type": "object",
+        "properties": {
+          "insuring_party": { "type": "string", "enum": ["landlord", "tenant"] },
+          "tenant_contribution": { "type": "string" },
+          "terrorism_cover": { "type": "boolean" },
+          "reinstatement_period": { "type": "duration" },
+          "rent_suspension": { "type": "boolean" }
+        },
+        "source_hints": ["insurance", "rent suspension"]
+      },
+      {
+        "name": "security",
+        "type": "object",
+        "properties": {
+          "rent_deposit": {
+            "type": "object",
+            "properties": {
+              "amount": { "type": "currency" },
+              "months_rent": { "type": "number" },
+              "deed_attached": { "type": "boolean" }
+            }
+          },
+          "guarantee": {
+            "type": "object",
+            "properties": {
+              "guarantor_name": { "type": "string" },
+              "type": { "type": "string", "enum": ["corporate", "personal", "bank"] },
+              "expiry_date": { "type": "date" },
+              "cap": { "type": "currency" }
+            }
+          },
+          "parent_company_guarantee": { "type": "boolean" }
+        },
+        "source_hints": ["security", "rent deposit", "guarantee", "surety"]
+      },
+      {
+        "name": "unusual_provisions",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": { "type": "string" },
+            "clause_reference": { "type": "string" },
+            "risk_implication": { "type": "string" }
+          }
+        },
+        "source_hints": ["entire document - AI should flag any provisions that deviate from market standard"]
+      }
+    ]
+  },
+
+  "document_relationships": [
+    {
+      "type": "amendment",
+      "indicators": ["deed of variation", "supplemental deed", "side letter", "amendment"],
+      "date_field": "effective_date"
+    },
+    {
+      "type": "supersedes",
+      "indicators": ["surrender and regrant", "new lease", "renewal"]
+    },
+    {
+      "type": "supplements",
+      "indicators": ["rent deposit deed", "licence to assign", "licence to alter", "side letter"]
+    }
+  ],
+
+  "gap_detection_rules": [
+    {
+      "name": "missing_rent_deposit_deed",
+      "condition": "security.rent_deposit.amount > 0 AND security.rent_deposit.deed_attached == false",
+      "severity": "important",
+      "message": "Rent deposit mentioned but deed not found in document set"
+    },
+    {
+      "name": "missing_schedule_of_condition",
+      "condition": "repair.schedule_of_condition_attached == true AND NOT EXISTS related_document[type='schedule_of_condition']",
+      "severity": "important",
+      "message": "Schedule of condition referenced but not found"
+    },
+    {
+      "name": "guarantor_without_guarantee",
+      "condition": "parties.guarantor.name IS NOT NULL AND security.guarantee IS NULL",
+      "severity": "critical",
+      "message": "Guarantor named in parties but no guarantee provisions found"
+    }
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/schemas/event.schema.json",
+  "title": "Event Management Primitive",
+  "description": "Schema for deadline detection, alerting, and action tracking",
+
+  "definitions": {
+    "Event": {
+      "type": "object",
+      "description": "A date-anchored occurrence requiring attention",
+      "required": ["id", "event_type_id", "trigger_date", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event_type_id": {
+          "type": "string",
+          "description": "Reference to EventType definition"
+        },
+        "source": {
+          "$ref": "#/definitions/EventSource"
+        },
+        "trigger_date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date the event occurs"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "actioned", "missed", "cancelled", "not_applicable"]
+        },
+        "context": {
+          "type": "object",
+          "description": "Domain-specific context for the event",
+          "additionalProperties": true
+        },
+        "deadlines": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Deadline" }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "EventSource": {
+      "type": "object",
+      "description": "Where this event was detected from",
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["extraction", "manual", "external", "computed"]
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "extraction_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+
+    "Deadline": {
+      "type": "object",
+      "description": "A calculated deadline derived from an event",
+      "required": ["id", "deadline_type", "deadline_date", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deadline_type": {
+          "type": "string",
+          "description": "Type of deadline from EventType definition"
+        },
+        "deadline_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "deadline_time": {
+          "type": "string",
+          "format": "time",
+          "description": "Optional time component"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["upcoming", "due_soon", "overdue", "completed", "waived"]
+        },
+        "action_required": {
+          "type": "string",
+          "description": "Human-readable description of required action"
+        },
+        "calculation": {
+          "$ref": "#/definitions/DeadlineCalculation"
+        }
+      }
+    },
+
+    "DeadlineCalculation": {
+      "type": "object",
+      "description": "How the deadline was calculated",
+      "properties": {
+        "base_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "rule": {
+          "type": "string",
+          "description": "The rule applied (e.g., 'trigger_date - 6 months')"
+        },
+        "calendar": {
+          "type": "string",
+          "description": "Business calendar used for calculation"
+        },
+        "adjustments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "reason": { "type": "string" },
+              "days_adjusted": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+
+    "Alert": {
+      "type": "object",
+      "description": "A notification about an event or deadline",
+      "required": ["id", "event_id", "alert_type", "priority", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deadline_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "alert_type": {
+          "type": "string",
+          "description": "Type from AlertRule definition"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "sent", "acknowledged", "snoozed", "dismissed"]
+        },
+        "message": {
+          "type": "string"
+        },
+        "recipients": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AlertRecipient" }
+        },
+        "scheduled_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sent_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "acknowledged_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "acknowledged_by": {
+          "type": "string"
+        },
+        "snooze_until": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "AlertRecipient": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["email", "sms", "push", "in_app", "slack", "teams"]
+        },
+        "delivery_status": {
+          "type": "string",
+          "enum": ["pending", "sent", "delivered", "failed"]
+        },
+        "delivered_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "Action": {
+      "type": "object",
+      "description": "A recorded action taken in response to an event",
+      "required": ["id", "event_id", "action_type", "performed_by", "performed_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deadline_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action_type": {
+          "type": "string"
+        },
+        "performed_by": {
+          "type": "string"
+        },
+        "performed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "document_id": { "type": "string", "format": "uuid" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "Outcome": {
+      "type": "object",
+      "description": "The final outcome of an event",
+      "required": ["id", "event_id", "outcome_type", "recorded_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "outcome_type": {
+          "type": "string",
+          "description": "Domain-specific outcome (e.g., 'break_exercised', 'break_not_exercised')"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recorded_by": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "financial_impact": {
+          "type": "object",
+          "properties": {
+            "amount": { "type": "number" },
+            "currency": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "EventType": {
+      "type": "object",
+      "description": "Configuration for a type of event",
+      "required": ["id", "name", "trigger_source"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "trigger_source": {
+          "type": "object",
+          "description": "How to detect this event",
+          "properties": {
+            "extraction_schema_id": { "type": "string" },
+            "extraction_field": { "type": "string" },
+            "filter": { "type": "object" }
+          }
+        },
+        "deadline_rules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/DeadlineRule" }
+        },
+        "alert_rules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AlertRule" }
+        },
+        "context_template": {
+          "type": "object",
+          "description": "What context to populate from extractions"
+        },
+        "outcome_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "DeadlineRule": {
+      "type": "object",
+      "required": ["name", "calculation"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "calculation": {
+          "type": "string",
+          "description": "Expression for calculating deadline (e.g., 'trigger_date - P6M')"
+        },
+        "action_required": {
+          "type": "string"
+        },
+        "calendar": {
+          "type": "string",
+          "default": "business_days"
+        }
+      }
+    },
+
+    "AlertRule": {
+      "type": "object",
+      "required": ["name", "trigger", "priority"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string",
+          "description": "Expression for when to alert (e.g., 'deadline - P30D')"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string" },
+              "channels": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "message_template": {
+          "type": "string"
+        },
+        "escalation": {
+          "type": "object",
+          "properties": {
+            "after": { "type": "string", "description": "Duration to wait" },
+            "to_role": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
