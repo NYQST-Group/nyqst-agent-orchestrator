@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/schemas/claim.schema.json",
+  "title": "Claim/Decision Primitive",
+  "description": "Schema for interpretations, evidence linking, and recorded judgments",
+
+  "definitions": {
+    "Claim": {
+      "type": "object",
+      "description": "An interpretation or assertion requiring consideration",
+      "required": ["id", "claim_type_id", "statement", "status", "created_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "claim_type_id": {
+          "type": "string",
+          "description": "Reference to ClaimType definition"
+        },
+        "statement": {
+          "type": "string",
+          "description": "The claim being made"
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level from ClaimType"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "submitted", "under_review", "decided", "superseded"]
+        },
+        "context": {
+          "type": "object",
+          "description": "Domain-specific context",
+          "additionalProperties": true
+        },
+        "source": {
+          "$ref": "#/definitions/ClaimSource"
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Evidence" }
+        },
+        "quantification": {
+          "$ref": "#/definitions/Quantification"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "ClaimSource": {
+      "type": "object",
+      "description": "Where this claim originated",
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["ai_detected", "human_identified", "external_report", "rule_triggered"]
+        },
+        "detection_model": {
+          "type": "string",
+          "description": "If AI-detected, which model"
+        },
+        "external_report": {
+          "type": "object",
+          "properties": {
+            "report_type": { "type": "string" },
+            "author": { "type": "string" },
+            "date": { "type": "string", "format": "date" },
+            "document_id": { "type": "string", "format": "uuid" }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+
+    "Evidence": {
+      "type": "object",
+      "description": "A piece of evidence supporting or refuting a claim",
+      "required": ["id", "evidence_type", "relationship"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": ["extraction", "document", "calculation", "external_data", "expert_opinion"]
+        },
+        "relationship": {
+          "type": "string",
+          "enum": ["supports", "refutes", "context"]
+        },
+        "strength": {
+          "type": "string",
+          "enum": ["strong", "moderate", "weak"]
+        },
+        "extraction_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "location": {
+          "type": "object",
+          "description": "Location within document"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable summary of the evidence"
+        },
+        "added_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "added_by": {
+          "type": "string"
+        }
+      }
+    },
+
+    "Quantification": {
+      "type": "object",
+      "description": "Financial or other quantification of claim impact",
+      "properties": {
+        "impact_type": {
+          "type": "string",
+          "enum": ["financial", "risk_score", "probability", "time"]
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "range": {
+          "type": "object",
+          "properties": {
+            "low": { "type": "number" },
+            "mid": { "type": "number" },
+            "high": { "type": "number" }
+          }
+        },
+        "calculation_method": {
+          "type": "string"
+        },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "Decision": {
+      "type": "object",
+      "description": "A recorded judgment on a claim",
+      "required": ["id", "claim_id", "decision_type", "decided_by", "decided_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "claim_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "decision_type": {
+          "type": "string",
+          "description": "Resolution type from ClaimType"
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Why this decision was made"
+        },
+        "conditions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Conditions attached to the decision"
+        },
+        "follow_up_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string" },
+              "owner": { "type": "string" },
+              "due_date": { "type": "string", "format": "date" }
+            }
+          }
+        },
+        "decided_by": {
+          "type": "string"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approval_chain": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Approval" }
+        }
+      }
+    },
+
+    "Approval": {
+      "type": "object",
+      "description": "An approval in a decision chain",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "delegated"]
+        },
+        "comments": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+
+    "ClaimType": {
+      "type": "object",
+      "description": "Configuration for a type of claim",
+      "required": ["id", "name", "severity_levels", "resolution_options"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "description": "Grouping category (e.g., 'legal', 'financial', 'technical')"
+        },
+        "severity_levels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "level": { "type": "string" },
+              "description": { "type": "string" },
+              "color": { "type": "string" }
+            }
+          }
+        },
+        "required_evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "resolution_options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": { "type": "string" },
+              "description": { "type": "string" },
+              "requires_approval": { "type": "boolean" },
+              "approval_roles": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "escalation_rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": { "type": "string" },
+              "requires_role": { "type": "string" }
+            }
+          }
+        },
+        "auto_detection_rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "Rules for automatically creating claims",
+            "properties": {
+              "name": { "type": "string" },
+              "condition": { "type": "string" },
+              "severity": { "type": "string" },
+              "statement_template": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "ClaimSet": {
+      "type": "object",
+      "description": "A collection of claims (e.g., DD issues log)",
+      "required": ["id", "name", "claims"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object",
+          "properties": {
+            "project_id": { "type": "string" },
+            "entity_id": { "type": "string" },
+            "purpose": { "type": "string" }
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" }
+        },
+        "summary": {
+          "type": "object",
+          "properties": {
+            "total": { "type": "integer" },
+            "by_severity": { "type": "object" },
+            "by_status": { "type": "object" },
+            "total_quantified_impact": { "type": "number" }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}
