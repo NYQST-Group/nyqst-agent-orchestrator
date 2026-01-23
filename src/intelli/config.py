@@ -46,6 +46,15 @@ class Settings(BaseSettings):
     mcp_transport: Literal["streamable-http", "stdio"] = Field(default="streamable-http")
     mcp_port: int = Field(default=8001)
 
+    # Security
+    secret_key: str = Field(
+        default="CHANGE-ME-IN-PRODUCTION-use-openssl-rand-hex-32",
+        description="Secret key for JWT signing. Generate with: openssl rand -hex 32"
+    )
+    jwt_expiry_hours: int = Field(default=24)
+    cors_origins: list[str] = Field(default=["http://localhost:3000"])
+    rate_limit_rpm: int = Field(default=60, description="Default rate limit requests per minute")
+
     # Observability
     langfuse_enabled: bool = Field(default=False)
     langfuse_public_key: str | None = Field(default=None)

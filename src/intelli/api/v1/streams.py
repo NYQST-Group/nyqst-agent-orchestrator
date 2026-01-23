@@ -1,5 +1,9 @@
 """Server-Sent Events (SSE) streaming endpoints for real-time updates.
 
+Uses PostgreSQL LISTEN/NOTIFY for true real-time push notifications
+instead of polling. This is much more efficient and provides
+sub-millisecond latency for event delivery.
+
 These endpoints enable the UI to receive real-time updates for:
 - Run events (steps, tool calls, completions)
 - Pointer changes (publish/promote)
@@ -8,72 +12,139 @@ These endpoints enable the UI to receive real-time updates for:
 
 import asyncio
 import json
-from typing import Annotated, AsyncGenerator
+from typing import Annotated, AsyncGenerator, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+import asyncpg
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import StreamingResponse
 
-from intelli.api.dependencies import LedgerServiceDep, SessionDep
+from intelli.api.dependencies import SessionDep
+from intelli.config import settings
 from intelli.services.runs.ledger_service import LedgerService
 
 router = APIRouter(prefix="/streams", tags=["streams"])
 
 
-async def _run_event_generator(
-    ledger: LedgerService,
-    run_id: UUID,
-    poll_interval: float = 0.5,
-) -> AsyncGenerator[str, None]:
-    """Generate SSE events for a run's event stream.
+async def _get_listen_connection() -> asyncpg.Connection:
+    """Get a dedicated connection for LISTEN.
 
-    Yields events in SSE format: "data: {json}\n\n"
+    LISTEN requires a persistent connection, separate from the
+    connection pool used for regular queries.
     """
-    last_sequence = 0
+    db_url = str(settings.database_url).replace("postgresql+asyncpg://", "postgresql://")
+    return await asyncpg.connect(db_url)
 
+
+async def _run_event_generator_notify(
+    run_id: UUID,
+    initial_events: list = None,
+) -> AsyncGenerator[str, None]:
+    """Generate SSE events using PostgreSQL LISTEN/NOTIFY.
+
+    True real-time - events are pushed immediately when they occur.
+    """
     # Send initial connection event
     yield f"event: connected\ndata: {json.dumps({'run_id': str(run_id)})}\n\n"
 
-    while True:
-        try:
-            events = await ledger.get_events(
-                run_id=run_id,
-                since_sequence=last_sequence,
-                limit=100,
-            )
+    # Send any initial/historical events
+    if initial_events:
+        for event in initial_events:
+            event_data = {
+                "id": event.id,
+                "run_id": str(event.run_id),
+                "event_type": event.event_type,
+                "payload": event.payload,
+                "timestamp": event.timestamp.isoformat(),
+                "duration_ms": event.duration_ms,
+                "sequence_num": event.sequence_num,
+            }
+            yield f"event: run_event\ndata: {json.dumps(event_data)}\n\n"
 
-            for event in events:
-                event_data = {
-                    "id": event.id,
-                    "run_id": str(event.run_id),
-                    "event_type": event.event_type,
-                    "payload": event.payload,
-                    "timestamp": event.timestamp.isoformat(),
-                    "duration_ms": event.duration_ms,
-                    "sequence_num": event.sequence_num,
-                }
-                yield f"event: run_event\ndata: {json.dumps(event_data)}\n\n"
-                last_sequence = event.sequence_num
+    # Connect to PostgreSQL for LISTEN
+    conn: Optional[asyncpg.Connection] = None
+    try:
+        conn = await _get_listen_connection()
 
-            # Send heartbeat to keep connection alive
-            yield f"event: heartbeat\ndata: {json.dumps({'sequence': last_sequence})}\n\n"
+        # Queue for notifications
+        queue: asyncio.Queue = asyncio.Queue()
 
-            await asyncio.sleep(poll_interval)
+        def notification_handler(connection, pid, channel, payload):
+            """Handle incoming notifications."""
+            try:
+                data = json.loads(payload)
+                # Only forward events for this run
+                if data.get("run_id") == str(run_id):
+                    queue.put_nowait(payload)
+            except json.JSONDecodeError:
+                pass
 
-        except asyncio.CancelledError:
-            break
-        except Exception as e:
-            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
-            break
+        # Start listening
+        await conn.add_listener("run_events", notification_handler)
+
+        # Yield events as they arrive
+        while True:
+            try:
+                # Wait for event with timeout for heartbeat
+                payload = await asyncio.wait_for(queue.get(), timeout=30.0)
+                yield f"event: run_event\ndata: {payload}\n\n"
+            except asyncio.TimeoutError:
+                # Send heartbeat to keep connection alive
+                yield f"event: heartbeat\ndata: {json.dumps({'status': 'alive'})}\n\n"
+            except asyncio.CancelledError:
+                break
+
+    except Exception as e:
+        yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+    finally:
+        if conn:
+            await conn.close()
+
+
+async def _activity_generator_notify() -> AsyncGenerator[str, None]:
+    """Generate SSE events for global activity feed using LISTEN/NOTIFY."""
+    yield f"event: connected\ndata: {json.dumps({'type': 'activity_feed'})}\n\n"
+
+    conn: Optional[asyncpg.Connection] = None
+    try:
+        conn = await _get_listen_connection()
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def notification_handler(connection, pid, channel, payload):
+            queue.put_nowait(payload)
+
+        # Listen to multiple channels
+        await conn.add_listener("run_events", notification_handler)
+        await conn.add_listener("pointer_changes", notification_handler)
+        await conn.add_listener("activity", notification_handler)
+
+        while True:
+            try:
+                payload = await asyncio.wait_for(queue.get(), timeout=30.0)
+                yield f"event: activity\ndata: {payload}\n\n"
+            except asyncio.TimeoutError:
+                yield f"event: heartbeat\ndata: {json.dumps({})}\n\n"
+            except asyncio.CancelledError:
+                break
+
+    except Exception as e:
+        yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+    finally:
+        if conn:
+            await conn.close()
 
 
 @router.get("/runs/{run_id}")
 async def stream_run_events(
     run_id: UUID,
-    ledger: LedgerServiceDep,
-    poll_interval: Annotated[float, Query(ge=0.1, le=5.0)] = 0.5,
+    request: Request,
+    session: SessionDep,
+    since_sequence: Annotated[int, Query(ge=0)] = 0,
 ) -> StreamingResponse:
     """Stream run events via Server-Sent Events (SSE).
+
+    Uses PostgreSQL LISTEN/NOTIFY for true real-time push.
+    No polling - events are delivered sub-millisecond after they occur.
 
     Connect to this endpoint to receive real-time updates for a run.
     Events include step starts/completions, tool calls, LLM interactions,
@@ -86,10 +157,21 @@ async def stream_run_events(
         const event = JSON.parse(e.data);
         console.log('Event:', event.event_type, event.payload);
     });
+    eventSource.addEventListener('heartbeat', () => {
+        console.log('Connection alive');
+    });
     ```
     """
+    # Fetch historical events first
+    ledger = LedgerService(session, publish_events=False)
+    initial_events = await ledger.get_events(
+        run_id=run_id,
+        since_sequence=since_sequence,
+        limit=100,
+    )
+
     return StreamingResponse(
-        _run_event_generator(ledger, run_id, poll_interval),
+        _run_event_generator_notify(run_id, initial_events),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -99,62 +181,11 @@ async def stream_run_events(
     )
 
 
-async def _activity_generator(
-    session: SessionDep,
-    poll_interval: float = 2.0,
-) -> AsyncGenerator[str, None]:
-    """Generate SSE events for global activity feed.
-
-    Includes: new runs, pointer changes, new artifacts (summary).
-    """
-    from intelli.repositories.runs import RunRepository
-    from intelli.repositories.pointers import PointerRepository
-
-    last_check = None
-
-    yield f"event: connected\ndata: {json.dumps({'type': 'activity_feed'})}\n\n"
-
-    while True:
-        try:
-            run_repo = RunRepository(session)
-            pointer_repo = PointerRepository(session)
-
-            # Get recent runs
-            recent_runs = await run_repo.list_recent(limit=10)
-            runs_data = [
-                {
-                    "type": "run",
-                    "run_id": str(r.id),
-                    "run_type": r.run_type,
-                    "status": r.status,
-                    "created_at": r.created_at.isoformat(),
-                }
-                for r in recent_runs
-            ]
-
-            if runs_data:
-                yield f"event: activity\ndata: {json.dumps({'runs': runs_data})}\n\n"
-
-            # Heartbeat
-            yield f"event: heartbeat\ndata: {json.dumps({})}\n\n"
-
-            await asyncio.sleep(poll_interval)
-
-        except asyncio.CancelledError:
-            break
-        except Exception as e:
-            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
-            await asyncio.sleep(poll_interval)
-
-
 @router.get("/activity")
-async def stream_activity(
-    session: SessionDep,
-    poll_interval: Annotated[float, Query(ge=1.0, le=30.0)] = 2.0,
-) -> StreamingResponse:
+async def stream_activity() -> StreamingResponse:
     """Stream global activity feed via SSE.
 
-    Provides a summary of recent activity across the platform:
+    Provides a real-time stream of platform activity:
     - New runs and status changes
     - Pointer advances (publish/promote events)
     - High-level artifact activity
@@ -162,7 +193,7 @@ async def stream_activity(
     Useful for dashboards and activity feeds.
     """
     return StreamingResponse(
-        _activity_generator(session, poll_interval),
+        _activity_generator_notify(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

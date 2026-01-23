@@ -1,7 +1,8 @@
 /**
- * Workbench header with navigation and panel toggles
+ * Workbench header with navigation, panel toggles, and auth status
  */
 
+import { useNavigate } from 'react-router-dom'
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -11,6 +12,9 @@ import {
   PanelBottomOpen,
   Settings,
   FileStack,
+  LogOut,
+  User,
+  Building,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,9 +24,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useWorkbenchStore } from '@/stores/workbench-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { Separator } from '@/components/ui/separator'
 
 export function WorkbenchHeader() {
+  const navigate = useNavigate()
   const {
     leftPanelCollapsed,
     rightPanelCollapsed,
@@ -31,6 +37,13 @@ export function WorkbenchHeader() {
     toggleRightPanel,
     toggleBottomPanel,
   } = useWorkbenchStore()
+
+  const { tenantName, role, logout } = useAuthStore()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <TooltipProvider>
@@ -42,9 +55,12 @@ export function WorkbenchHeader() {
             <span className="text-lg font-semibold">Intelli</span>
           </div>
           <Separator orientation="vertical" className="h-6" />
-          <span className="text-sm text-muted-foreground">
-            Document Intelligence Platform
-          </span>
+          {tenantName && (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Building className="h-4 w-4" />
+              <span>{tenantName}</span>
+            </div>
+          )}
         </div>
 
         {/* Center section - Activity indicator */}
@@ -55,7 +71,7 @@ export function WorkbenchHeader() {
           </div>
         </div>
 
-        {/* Right section - Panel toggles and settings */}
+        {/* Right section - Panel toggles, settings, and auth */}
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -132,6 +148,30 @@ export function WorkbenchHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>Settings</TooltipContent>
+          </Tooltip>
+
+          <Separator orientation="vertical" className="mx-2 h-6" />
+
+          {/* User info and logout */}
+          {role && (
+            <div className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span className="capitalize">{role}</span>
+            </div>
+          )}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sign out</TooltipContent>
           </Tooltip>
         </div>
       </header>

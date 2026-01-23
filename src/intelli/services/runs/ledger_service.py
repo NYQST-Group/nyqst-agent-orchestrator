@@ -12,16 +12,20 @@ class LedgerService:
     """Service for run ledger (append-only event log).
 
     Provides methods for logging various event types and
-    querying event history.
+    querying event history. Events are automatically published
+    via PostgreSQL NOTIFY for real-time streaming.
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, publish_events: bool = True):
         """Initialize ledger service.
 
         Args:
             session: Database session
+            publish_events: Whether to publish events via NOTIFY
         """
+        self.session = session
         self.repo = RunEventRepository(session)
+        self._publish_events = publish_events
 
     async def log_event(
         self,
@@ -41,11 +45,42 @@ class LedgerService:
         Returns:
             Created event
         """
-        return await self.repo.append_event(
+        event = await self.repo.append_event(
             run_id=run_id,
             event_type=event_type,
             payload=payload,
             duration_ms=duration_ms,
+        )
+
+        # Publish via PostgreSQL NOTIFY for real-time subscribers
+        if self._publish_events:
+            await self._publish_event(event)
+
+        return event
+
+    async def _publish_event(self, event: RunEvent) -> None:
+        """Publish event via PostgreSQL NOTIFY.
+
+        Uses the raw connection to send NOTIFY, which is picked up
+        by any listening SSE connections.
+        """
+        import json
+        from sqlalchemy import text
+
+        notification_payload = json.dumps({
+            "id": event.id,
+            "run_id": str(event.run_id),
+            "event_type": event.event_type,
+            "payload": event.payload,
+            "timestamp": event.timestamp.isoformat(),
+            "duration_ms": event.duration_ms,
+            "sequence_num": event.sequence_num,
+        })
+
+        # PostgreSQL NOTIFY - received by any LISTEN connections
+        await self.session.execute(
+            text("SELECT pg_notify('run_events', :payload)"),
+            {"payload": notification_payload}
         )
 
     async def log_step_start(
