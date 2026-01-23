@@ -3,14 +3,21 @@
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from intelli.config import settings
-from intelli.core.exceptions import IntelliError, NotFoundError, ConflictError, ValidationError
+from intelli.core.logging import setup_logging, get_logger
+from intelli.core.exceptions import IntelliError
+from intelli.api.middleware import (
+    CorrelationMiddleware,
+    ErrorHandlerMiddleware,
+    intelli_exception_handler,
+)
 from intelli.api.health import router as health_router
 from intelli.api.v1 import router as v1_router
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -20,10 +27,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Handles startup and shutdown events.
     """
     # Startup
+    setup_logging()
+    logger.info(
+        "application_starting",
+        app_name=settings.app_name,
+        debug=settings.debug,
+    )
     # Note: Database tables are created via Alembic migrations, not here
     yield
     # Shutdown
-    # Clean up resources if needed
+    logger.info("application_shutting_down")
 
 
 def create_app() -> FastAPI:
@@ -41,58 +54,26 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS middleware
+    # Middleware order matters: outermost runs first on request, last on response
+    # 1. Error handler - catches all exceptions and formats responses
+    app.add_middleware(ErrorHandlerMiddleware)
+
+    # 2. Correlation ID - adds tracing ID to all requests/responses
+    app.add_middleware(CorrelationMiddleware)
+
+    # 3. CORS - handles cross-origin requests
+    cors_origins = settings.cors_origins if not settings.debug else ["*"]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if settings.debug else [],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*", "X-Correlation-ID"],
+        expose_headers=["X-Correlation-ID"],
     )
 
-    # Exception handlers
-    @app.exception_handler(NotFoundError)
-    async def not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "error": exc.code,
-                "message": exc.message,
-                "resource_type": exc.resource_type,
-                "identifier": exc.identifier,
-            },
-        )
-
-    @app.exception_handler(ConflictError)
-    async def conflict_handler(request: Request, exc: ConflictError) -> JSONResponse:
-        return JSONResponse(
-            status_code=409,
-            content={
-                "error": exc.code,
-                "message": exc.message,
-            },
-        )
-
-    @app.exception_handler(ValidationError)
-    async def validation_handler(request: Request, exc: ValidationError) -> JSONResponse:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "error": exc.code,
-                "message": exc.message,
-                "field": exc.field,
-            },
-        )
-
-    @app.exception_handler(IntelliError)
-    async def intelli_error_handler(request: Request, exc: IntelliError) -> JSONResponse:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": exc.code,
-                "message": exc.message,
-            },
-        )
+    # Exception handler for IntelliError (backup for middleware)
+    app.add_exception_handler(IntelliError, intelli_exception_handler)
 
     # Include routers
     app.include_router(health_router)

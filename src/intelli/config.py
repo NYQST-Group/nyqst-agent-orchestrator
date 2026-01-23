@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default=["http://localhost:3000"])
     rate_limit_rpm: int = Field(default=60, description="Default rate limit requests per minute")
 
+    # Redis (optional - graceful fallback if not configured)
+    redis_url: str | None = Field(default=None, description="Redis URL for caching and rate limiting")
+
     # Observability
     langfuse_enabled: bool = Field(default=False)
     langfuse_public_key: str | None = Field(default=None)
