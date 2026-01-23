@@ -1,0 +1,86 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: intelli-postgres
+    environment:
+      POSTGRES_USER: intelli
+      POSTGRES_PASSWORD: intelli
+      POSTGRES_DB: intelli
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U intelli"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: intelli-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: intelli-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/intelli-artifacts --ignore-existing;
+      mc anonymous set download myminio/intelli-artifacts;
+      exit 0;
+      "
+
+  # Optional: Redis for caching/queues
+  redis:
+    image: redis:7-alpine
+    container_name: intelli-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    profiles:
+      - full
+
+  # Optional: Langfuse for observability
+  langfuse:
+    image: langfuse/langfuse:latest
+    container_name: intelli-langfuse
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://intelli:intelli@postgres:5432/langfuse
+      NEXTAUTH_SECRET: development-secret-change-in-production
+      SALT: development-salt-change-in-production
+      NEXTAUTH_URL: http://localhost:3000
+      TELEMETRY_ENABLED: "false"
+    ports:
+      - "3000:3000"
+    profiles:
+      - observability
+
+volumes:
+  postgres_data:
+  minio_data:
+  redis_data:
