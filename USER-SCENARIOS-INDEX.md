@@ -1,8 +1,8 @@
 # CRE Intelligence Platform: User Scenarios and Requirements
 
 *Date: 2026-01-23*
-*Branch: user-scenarios*
-*Status: Initial research and scenario development complete*
+*Branch: claude/cre-intelligence-workflows-8y9MD*
+*Status: Research complete, wedge strategy defined, ready to build*
 
 ---
 
@@ -27,6 +27,12 @@ External research gathered to inform scenarios and requirements.
 | [Acquisition Workflows](research/cre-workflows/acquisition-workflows.md) | Detailed acquisition workflow research | Complete |
 | [Asset Management Workflows](research/cre-workflows/asset-management-workflows.md) | Detailed asset management workflow research | Complete |
 | [AI in CRE Landscape](research/ai-tooling/ai-cre-landscape.md) | Current AI tools, successes, failures | Complete |
+| [AI Adoption Failures](research/ai-tooling/ai-adoption-failures.md) | Why 95% of AI projects fail | Complete |
+| [Trust UX Patterns](research/ai-tooling/trust-ux-patterns.md) | Calibrated trust, verification UX patterns | Complete |
+| [LegalTech Patterns](research/cross-domain/legaltech-patterns.md) | CLM architectures, trust building in legal | Complete |
+| [InsurTech Patterns](research/cross-domain/insurtech-patterns.md) | Claims processing, evidence patterns | Complete |
+| [Event-Driven Patterns](research/architecture/event-driven-patterns.md) | Temporal.io, deadline management | Complete |
+| [Document Graph Patterns](research/architecture/document-graph-patterns.md) | Relationship models, gap detection | Complete |
 
 ---
 
@@ -63,14 +69,30 @@ Detailed workflow analysis with AI intervention points.
 
 ---
 
-### 4. Requirements
+### 4. Requirements & Strategy
 
-Synthesized requirements from scenarios and research.
+Synthesized requirements and build strategy.
 
 | Document | Description |
 |----------|-------------|
-| [AI Value Opportunities](requirements/ai-specific/ai-value-opportunities.md) | Prioritized AI intervention points, trust requirements, safety |
-| [Research Consolidation Gates](requirements/research-consolidation-gates.md) | Framework for validating and consolidating research |
+| [Research Synthesis](requirements/RESEARCH-SYNTHESIS.md) | **START HERE** — Consolidated findings from all research |
+| [What to Build First](requirements/WHAT-TO-BUILD-FIRST.md) | Wedge strategy: "Never Miss a Critical Date" |
+| [Universal Abstractions](requirements/UNIVERSAL-ABSTRACTIONS.md) | The five universal primitives |
+| [Critical Analysis](requirements/CRITICAL-ANALYSIS.md) | Where we missed the point |
+| [AI Value Opportunities](requirements/ai-specific/ai-value-opportunities.md) | Prioritized AI intervention points |
+| [Research Consolidation Gates](requirements/research-consolidation-gates.md) | Framework for research validation |
+
+### 5. Schemas (Ready for Implementation)
+
+Domain-agnostic primitive schemas and CRE-specific configurations.
+
+| Schema | Description |
+|--------|-------------|
+| [Document Schema](schemas/document.schema.json) | Document Intelligence primitive |
+| [Event Schema](schemas/event.schema.json) | Event Management primitive |
+| [Claim Schema](schemas/claim.schema.json) | Claim/Decision primitive |
+| [UK Lease Config](schemas/cre/uk-lease.config.json) | CRE extraction schema |
+| [Lease Events Config](schemas/cre/lease-events.config.json) | CRE event type configurations |
 
 ---
 
@@ -192,15 +214,16 @@ Research and requirements progress through consolidation gates:
 
 ```
 /
-├── USER-SCENARIOS-INDEX.md          ← This file
+├── USER-SCENARIOS-INDEX.md          ← This file (start here)
 ├── README.md                        ← Original repo README
 │
 ├── research/                        ← External research inputs
 │   ├── rics/                        ← RICS standards research
 │   ├── inrev/                       ← INREV guidelines research
 │   ├── cre-workflows/               ← Workflow research
-│   ├── ai-tooling/                  ← AI landscape research
-│   └── market-analysis/             ← Market research (future)
+│   ├── ai-tooling/                  ← AI landscape, adoption failures, trust UX
+│   ├── cross-domain/                ← LegalTech, InsurTech patterns
+│   └── architecture/                ← Event-driven, document graph patterns
 │
 ├── scenarios/                       ← User scenarios
 │   ├── acquisition/                 ← Acquisition phase workflows
@@ -208,31 +231,52 @@ Research and requirements progress through consolidation gates:
 │   ├── personas/                    ← User personas
 │   └── journeys/                    ← Stakeholder journeys
 │
-└── requirements/                    ← Synthesized requirements
-    ├── functional/                  ← Functional requirements (future)
-    ├── non-functional/              ← Non-functional requirements (future)
-    ├── ai-specific/                 ← AI-specific requirements
-    └── research-consolidation-gates.md  ← Gate framework
+├── schemas/                         ← JSON schemas for primitives
+│   ├── document.schema.json         ← Document Intelligence primitive
+│   ├── event.schema.json            ← Event Management primitive
+│   ├── claim.schema.json            ← Claim/Decision primitive
+│   └── cre/                         ← CRE-specific configurations
+│       ├── uk-lease.config.json     ← UK commercial lease extraction
+│       └── lease-events.config.json ← Lease event types
+│
+└── requirements/                    ← Strategy and requirements
+    ├── RESEARCH-SYNTHESIS.md        ← Consolidated research findings
+    ├── WHAT-TO-BUILD-FIRST.md       ← Wedge strategy
+    ├── UNIVERSAL-ABSTRACTIONS.md    ← Five universal primitives
+    ├── CRITICAL-ANALYSIS.md         ← Gap analysis
+    └── ai-specific/                 ← AI-specific requirements
 ```
 
 ---
 
-## Next Steps
+## Next Steps: The 30-Day Build Plan
 
-### Immediate (Gate 1: Validation)
-- [ ] Review workflows with industry practitioners
-- [ ] Validate pain point priorities
-- [ ] Identify missing edge cases
+**Stop designing. Start building.**
 
-### Short-term (Gate 2: Prioritization)
-- [ ] Score AI opportunities on value/feasibility/risk
-- [ ] Identify MVP feature set
-- [ ] Define success metrics
+### Week 1: Extraction POC
+- [ ] Build PDF/Word/scanned document ingestion
+- [ ] Train/configure date extraction on 50 sample leases
+- [ ] Measure accuracy: target 85%
+- [ ] Build basic verification UI
 
-### Medium-term (Gate 3: Requirements)
-- [ ] Write detailed functional requirements
-- [ ] Define accuracy requirements per use case
-- [ ] Specify integration requirements
+### Week 2: Event Engine
+- [ ] Implement event schema (simplified for dates only)
+- [ ] Build deadline calculation
+- [ ] Build email alert system
+- [ ] Build dashboard view
+
+### Week 3: Integration
+- [ ] Connect extraction → event engine
+- [ ] End-to-end: upload → extract → alert
+- [ ] Add verification UX (click to source)
+- [ ] Bug fixes, UX polish
+
+### Week 4: User Testing
+- [ ] Get 3-5 real users with real leases
+- [ ] Watch them use it
+- [ ] Learn what's broken, what's missing
+
+**At end of 30 days:** Either we have something users want, or we learn why not.
 
 ---
 
