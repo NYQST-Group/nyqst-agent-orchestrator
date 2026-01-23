@@ -52,6 +52,49 @@ export { WorkbenchShell, PaneTabBar, WorkbenchSidebar, CommandPalette } from './
 // Pane Components
 export { ChatPane, RunExplorerPane, ArtifactBrowserPane, DocumentViewerPane, GovernancePane, ProvenancePane } from './components/panes';
 
+// Agent Components (based on research into Claude Artifacts, Cursor, v0, Devin patterns)
+export {
+  AutonomySlider,
+  AutonomyProvider,
+  useAutonomyContext,
+  ToolVisibility,
+  ReasoningPanel,
+  ThinkingIndicator,
+  ApprovalGate,
+  ApprovalGateProvider,
+  useApprovalFlow,
+  TrustIndicator,
+  getTrustLevelFromScore,
+} from './components/agent';
+export type {
+  AutonomyLevel,
+  ToolCall,
+  ToolCallStatus,
+  ReasoningStep,
+  ApprovalRequest,
+  ApprovalStatus,
+  TrustLevel,
+} from './components/agent';
+
+// Canvas/Spatial Components (based on research into tldraw, Miro, Heptabase patterns)
+export {
+  EvidenceCanvas,
+  ProvenanceGraph,
+  SemanticZoom,
+  SemanticZoomProvider,
+  useZoomContext,
+  ZoomSensitive,
+  SpatialCluster,
+} from './components/canvas';
+export type {
+  EvidenceNode,
+  EvidenceEdge,
+  ProvenanceNode,
+  ProvenanceEdge,
+  ZoomLevel,
+  ClusterNode,
+} from './components/canvas';
+
 // Providers
 export { ThemeProvider, useTheme } from './components/providers/theme-provider';
 
