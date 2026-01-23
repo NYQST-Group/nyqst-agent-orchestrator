@@ -10,6 +10,8 @@
 
 This repository contains user scenarios, research, and requirements for a commercial real estate intelligence platform. The work grounds the platform design in real workflows, industry standards, and practical user needs—from acquisition through asset management.
 
+**Critical Update:** After completing detailed scenarios, we identified that 80% of the work is domain-agnostic. The real value is in **five universal primitives** that can be configured for CRE, legal, insurance, or any document-heavy domain. See [Critical Analysis](requirements/CRITICAL-ANALYSIS.md) and [Universal Abstractions](requirements/UNIVERSAL-ABSTRACTIONS.md).
+
 ---
 
 ## Navigation
@@ -69,6 +71,35 @@ Synthesized requirements from scenarios and research.
 |----------|-------------|
 | [AI Value Opportunities](requirements/ai-specific/ai-value-opportunities.md) | Prioritized AI intervention points, trust requirements, safety |
 | [Research Consolidation Gates](requirements/research-consolidation-gates.md) | Framework for validating and consolidating research |
+
+---
+
+## Critical Meta-Analysis
+
+After completing detailed scenarios, we identified fundamental gaps. See full analysis in:
+- [Critical Analysis](requirements/CRITICAL-ANALYSIS.md) — Where we missed the point
+- [Universal Abstractions](requirements/UNIVERSAL-ABSTRACTIONS.md) — Primitives that replace scenarios
+
+### Key Realizations
+
+| What We Thought | What's Actually True |
+|-----------------|----------------------|
+| CRE needs custom features | CRE needs configured generic primitives |
+| Extraction is the hard part | Relationships, gaps, and interpretation are the value |
+| Build for accuracy | Build for adoption (95% AI projects fail on adoption) |
+| Scenarios define requirements | Primitives define requirements; scenarios are config |
+
+### The Five Universal Primitives
+
+Every CRE workflow (and legal, insurance, compliance) is a composition of:
+
+1. **Document Intelligence** — Extract facts, relate documents, detect gaps
+2. **Entity Resolution** — Cross-document identity (tenants, properties, parties)
+3. **Event Management** — Deadlines, alerts, actions, outcomes
+4. **Claim/Decision** — Interpretation + evidence → recorded judgment
+5. **Generation/Review** — Draft → review → approve → publish
+
+**Implication:** A 20-page workflow scenario becomes 20 lines of configuration.
 
 ---
 
