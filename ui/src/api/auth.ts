@@ -20,6 +20,14 @@ interface LoginResponse {
   user_id: string
 }
 
+interface DevBootstrapRequest {
+  tenant_slug?: string
+  tenant_name?: string
+  email?: string
+  user_name?: string
+  password?: string
+}
+
 interface CurrentUser {
   user_id: string | null
   tenant_id: string
@@ -88,6 +96,15 @@ export const authApi = {
     return handleResponse<LoginResponse>(response)
   },
 
+  async devBootstrap(data: DevBootstrapRequest = {}): Promise<LoginResponse> {
+    const response = await fetch(`${API_BASE}/auth/dev-bootstrap`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return handleResponse<LoginResponse>(response)
+  },
+
   async getCurrentUser(): Promise<CurrentUser> {
     const response = await fetch(`${API_BASE}/auth/me`, {
       headers: getAuthHeaders(),
@@ -126,4 +143,4 @@ export const authApi = {
 }
 
 export { ApiError }
-export type { LoginRequest, LoginResponse, CurrentUser, APIKey, APIKeyCreated, CreateAPIKeyRequest }
+export type { LoginRequest, LoginResponse, DevBootstrapRequest, CurrentUser, APIKey, APIKeyCreated, CreateAPIKeyRequest }

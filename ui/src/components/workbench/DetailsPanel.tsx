@@ -44,10 +44,12 @@ function PointerDetails({ pointerId }: { pointerId: string }) {
         <div className="space-y-1">
           <PropertyRow label="Namespace" value={pointer.namespace} />
           <PropertyRow label="Name" value={pointer.name} />
-          <PropertyRow label="Version" value={pointer.version} />
+          <PropertyRow label="Type" value={pointer.pointer_type} />
           <PropertyRow
             label="HEAD"
-            value={pointer.head_sha256 ? truncateHash(pointer.head_sha256) : 'null'}
+            value={
+              pointer.manifest_sha256 ? truncateHash(pointer.manifest_sha256) : 'null'
+            }
             mono
           />
         </div>
@@ -158,13 +160,15 @@ function RunDetails({ runId }: { runId: string }) {
         </div>
       </div>
 
-      {run.error_message && (
+      {run.error && (
         <>
           <Separator />
           <div>
             <h3 className="text-sm font-semibold mb-2 text-red-600">Error</h3>
             <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
-              {run.error_message}
+              {typeof run.error === 'object' && run.error && 'message' in run.error
+                ? String((run.error as Record<string, unknown>).message)
+                : JSON.stringify(run.error)}
             </p>
           </div>
         </>
@@ -191,8 +195,8 @@ function ArtifactDetails({ sha256 }: { sha256: string }) {
           <PropertyRow label="SHA-256" value={truncateHash(artifact.sha256)} mono />
           <PropertyRow label="Media Type" value={artifact.media_type} />
           <PropertyRow label="Size" value={formatBytes(artifact.size_bytes)} />
-          {artifact.original_filename && (
-            <PropertyRow label="Filename" value={artifact.original_filename} />
+          {artifact.filename && (
+            <PropertyRow label="Filename" value={artifact.filename} />
           )}
         </div>
       </div>

@@ -69,7 +69,7 @@ class PointerRepository(BaseRepository[Pointer]):
             pointer_type=pointer_type,
             manifest_sha256=manifest_sha256.lower() if manifest_sha256 else None,
             description=description,
-            metadata=metadata or {},
+            meta=metadata or {},
             created_by=created_by,
         )
 

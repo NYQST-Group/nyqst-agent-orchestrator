@@ -214,7 +214,8 @@ class Pointer(Base, TimestampMixin, SoftDeleteMixin):
         nullable=True,
         comment="Human-readable description",
     )
-    metadata: Mapped[dict] = mapped_column(
+    meta: Mapped[dict] = mapped_column(
+        "metadata",
         JSONB,
         nullable=False,
         default=dict,

@@ -4,14 +4,14 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { GitBranch, History, ArrowRight, FileStack } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { GitBranch, History, ArrowRight, FileStack, Tag, BookOpen } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { pointersApi } from '@/api/client'
+import { manifestsApi, pointersApi } from '@/api/client'
 import { truncateHash } from '@/lib/utils'
 import { useWorkbenchStore } from '@/stores/workbench-store'
+import { NotebookPanel } from '@/components/rag/NotebookPanel'
 
 interface PointerViewerProps {
   pointerId: string
@@ -34,9 +34,9 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
   })
 
   const { data: manifest } = useQuery({
-    queryKey: ['pointer-resolve', pointer?.namespace, pointer?.name],
-    queryFn: () => pointersApi.resolve(pointer!.namespace, pointer!.name),
-    enabled: !!pointer?.head_sha256,
+    queryKey: ['pointer-manifest', pointer?.manifest_sha256],
+    queryFn: () => manifestsApi.get(pointer!.manifest_sha256!),
+    enabled: !!pointer?.manifest_sha256,
   })
 
   if (!pointer) {
@@ -70,8 +70,9 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
             </p>
           </div>
           <div className="text-right">
-            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-              v{pointer.version}
+            <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-1 text-sm text-muted-foreground">
+              <Tag className="h-3.5 w-3.5" />
+              {pointer.pointer_type}
             </span>
           </div>
         </div>
@@ -84,13 +85,13 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
             <FileStack className="h-4 w-4" />
             Current HEAD
           </h2>
-          {pointer.head_sha256 ? (
+          {pointer.manifest_sha256 ? (
             <div className="rounded-lg border p-4 bg-card">
               <button
                 className="text-sm font-mono text-blue-600 hover:underline"
-                onClick={() => handleManifestClick(pointer.head_sha256!)}
+                onClick={() => handleManifestClick(pointer.manifest_sha256!)}
               >
-                {pointer.head_sha256}
+                {pointer.manifest_sha256}
               </button>
               {manifest && (
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -115,14 +116,22 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
         <Separator className="my-4" />
 
         {/* Tabs */}
-        <Tabs defaultValue="history">
+        <Tabs defaultValue={pointer.pointer_type === 'bundle' ? 'notebook' : 'history'}>
           <TabsList>
+            <TabsTrigger value="notebook">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Notebook
+            </TabsTrigger>
             <TabsTrigger value="history">
               <History className="h-4 w-4 mr-2" />
               History ({history?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="info">Info</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="notebook" className="mt-4">
+            <NotebookPanel pointer={pointer} />
+          </TabsContent>
 
           <TabsContent value="history" className="mt-4">
             <ScrollArea className="h-[300px]">
@@ -132,14 +141,14 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {history.map((entry, index) => (
+                  {history.map((entry) => (
                     <div
                       key={entry.id}
                       className="rounded-lg border p-3 bg-card"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">
-                          Version {entry.version}
+                          {entry.operation}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(entry.changed_at), 'PPpp')}
@@ -147,17 +156,21 @@ export function PointerViewer({ pointerId }: PointerViewerProps) {
                       </div>
                       <div className="flex items-center gap-2 text-sm font-mono">
                         <span className="text-muted-foreground">
-                          {entry.from_sha256
-                            ? truncateHash(entry.from_sha256)
+                          {entry.old_sha256
+                            ? truncateHash(entry.old_sha256)
                             : 'null'}
                         </span>
                         <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        <button
-                          className="text-blue-600 hover:underline"
-                          onClick={() => handleManifestClick(entry.to_sha256)}
-                        >
-                          {truncateHash(entry.to_sha256)}
-                        </button>
+                        {entry.new_sha256 ? (
+                          <button
+                            className="text-blue-600 hover:underline"
+                            onClick={() => handleManifestClick(entry.new_sha256!)}
+                          >
+                            {truncateHash(entry.new_sha256)}
+                          </button>
+                        ) : (
+                          <span className="text-muted-foreground">null</span>
+                        )}
                       </div>
                       {entry.reason && (
                         <p className="mt-2 text-sm text-muted-foreground">

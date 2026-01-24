@@ -100,6 +100,9 @@ logs/
 # Docker
 .docker/
 
+# Local demo runtime
+.dev/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -128,6 +131,10 @@ storybook-static/
 
 # TypeScript
 *.tsbuildinfo
+.tsbuild/
 
 # Misc
 .cache/
+
+# Requirements consolidation (generated analysis)
+REQUIREMENTS_CONSOLIDATION.md

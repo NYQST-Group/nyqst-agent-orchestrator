@@ -7,7 +7,6 @@ import { format } from 'date-fns'
 import {
   FileStack,
   FileBox,
-  Folder,
   ChevronRight,
   GitCommit,
 } from 'lucide-react'
@@ -24,33 +23,17 @@ interface ManifestViewerProps {
 }
 
 function EntryRow({ entry, onClick }: { entry: ManifestEntry; onClick: () => void }) {
-  const isManifest = entry.ref_type === 'manifest'
-
   return (
     <button
       className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted rounded-md text-left"
       onClick={onClick}
     >
-      {isManifest ? (
-        <Folder className="h-4 w-4 text-blue-500" />
-      ) : (
-        <FileBox className="h-4 w-4 text-gray-500" />
-      )}
+      <FileBox className="h-4 w-4 text-gray-500" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{entry.path}</p>
         <p className="text-xs text-muted-foreground font-mono">
-          {truncateHash(entry.ref_sha256)}
+          {truncateHash(entry.artifact_sha256)}
         </p>
-      </div>
-      <div className="text-right">
-        {entry.size_bytes !== undefined && (
-          <p className="text-xs text-muted-foreground">
-            {formatBytes(entry.size_bytes)}
-          </p>
-        )}
-        {entry.media_type && (
-          <p className="text-xs text-muted-foreground">{entry.media_type}</p>
-        )}
       </div>
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
     </button>
@@ -86,19 +69,11 @@ export function ManifestViewer({ sha256 }: ManifestViewerProps) {
   }
 
   const handleEntryClick = (entry: ManifestEntry) => {
-    if (entry.ref_type === 'manifest') {
-      openTab({
-        type: 'manifest',
-        title: `Manifest ${truncateHash(entry.ref_sha256)}`,
-        resourceId: entry.ref_sha256,
-      })
-    } else {
-      openTab({
-        type: 'artifact',
-        title: entry.path.split('/').pop() || truncateHash(entry.ref_sha256),
-        resourceId: entry.ref_sha256,
-      })
-    }
+    openTab({
+      type: 'artifact',
+      title: entry.path.split('/').pop() || truncateHash(entry.artifact_sha256),
+      resourceId: entry.artifact_sha256,
+    })
   }
 
   const handleManifestClick = (manifestSha: string) => {
@@ -212,7 +187,7 @@ export function ManifestViewer({ sha256 }: ManifestViewerProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {history.map((m, index) => (
+                  {history.map((m) => (
                     <button
                       key={m.sha256}
                       className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted text-left"

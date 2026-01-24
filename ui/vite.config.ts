@@ -11,10 +11,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: Number(process.env.INTELLI_UI_PORT || 3000),
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.INTELLI_API_URL || 'http://localhost:8000',
         changeOrigin: true,
       },
     },

@@ -17,6 +17,7 @@ from intelli.db.models import (  # noqa: F401
     Manifest,
     Pointer,
     PointerHistory,
+    RagChunk,
     Run,
     RunEvent,
 )

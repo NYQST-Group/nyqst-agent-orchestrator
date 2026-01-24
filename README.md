@@ -37,7 +37,17 @@ Storage/Substrate → Execution/Run Ledger → Knowledge System
 
 - Python 3.12+
 - Docker and Docker Compose
-- PostgreSQL 16+ with pgvector extension
+- PostgreSQL 16+ with pgvector extension (provided via Docker in dev)
+
+### Validated Startup (Recommended)
+
+To reduce integration issues, use the validated startup sequence (infra → migrations → backend health → API smoke → UI build):
+
+```bash
+bash scripts/dev/validate.sh
+```
+
+Manual version and troubleshooting: `docs/STARTUP_SEQUENCE.md`
 
 ### Development Setup
 
@@ -74,6 +84,11 @@ Once running, visit:
 
 ## API Endpoints
 
+### Auth
+- `POST /api/v1/auth/login` - Login (email/password)
+- `POST /api/v1/auth/dev-bootstrap` - Dev-only demo login (requires `DEBUG=true`)
+- `GET /api/v1/auth/me` - Current user
+
 ### Artifacts
 - `POST /api/v1/artifacts` - Upload artifact
 - `GET /api/v1/artifacts/{sha256}` - Get artifact metadata
@@ -100,6 +115,10 @@ Once running, visit:
 - `POST /api/v1/runs/{id}/start` - Start run
 - `POST /api/v1/runs/{id}/complete` - Complete run
 - `GET /api/v1/runs/{id}/events` - Get run ledger events
+
+### RAG (demo-grade)
+- `POST /api/v1/rag/index` - Chunk + embed all docs in a manifest/pointer
+- `POST /api/v1/rag/ask` - Ask a question and get sources
 
 ## MCP Tools (for Agents)
 

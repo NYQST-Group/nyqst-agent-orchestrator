@@ -66,10 +66,13 @@ export function ArtifactViewer({ sha256 }: ArtifactViewerProps) {
           {getIcon()}
           <div className="flex-1">
             <h1 className="text-xl font-semibold">
-              {artifact.original_filename || 'Unnamed Artifact'}
+              {artifact.filename || 'Unnamed Artifact'}
             </h1>
-            <p className="text-sm text-muted-foreground font-mono mt-1">
-              {artifact.sha256}
+            <p
+              className="text-sm text-muted-foreground font-mono mt-1"
+              title={artifact.sha256}
+            >
+              {truncateHash(artifact.sha256, 16)}
             </p>
           </div>
           <div className="flex gap-2">
@@ -126,7 +129,7 @@ export function ArtifactViewer({ sha256 }: ArtifactViewerProps) {
               <div className="border rounded-lg p-4 bg-muted/50">
                 <img
                   src={urlData.url}
-                  alt={artifact.original_filename || 'Artifact preview'}
+                  alt={artifact.filename || 'Artifact preview'}
                   className="max-w-full h-auto rounded"
                 />
               </div>

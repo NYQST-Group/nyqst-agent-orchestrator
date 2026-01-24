@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: PostgresDsn = Field(
-        default="postgresql+asyncpg://intelli:intelli@localhost:5432/intelli"
+        default="postgresql+asyncpg://intelli:intelli@localhost:5433/intelli"
     )
     db_pool_size: int = Field(default=10)
     db_max_overflow: int = Field(default=20)
@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     embedding_model: str = Field(default="text-embedding-3-small")
     embedding_dimensions: int = Field(default=1536)
     openai_api_key: str | None = Field(default=None)
+
+    # LLM (for answer generation)
+    chat_model: str = Field(default="gpt-4o-mini")
 
     # MCP Server
     mcp_transport: Literal["streamable-http", "stdio"] = Field(default="streamable-http")

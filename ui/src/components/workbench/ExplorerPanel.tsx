@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   ChevronRight,
   ChevronDown,
+  Plus,
   Folder,
   FolderOpen,
   GitBranch,
@@ -25,6 +26,7 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { pointersApi, artifactsApi, runsApi } from '@/api/client'
 import { useWorkbenchStore } from '@/stores/workbench-store'
+import { useToast } from '@/hooks/use-toast'
 import type { Pointer, Artifact, Run } from '@/types/api'
 
 interface TreeItemProps {
@@ -91,6 +93,7 @@ function PointersSection() {
     new Set()
   )
   const { selectedPointerId, selectPointer, openTab } = useWorkbenchStore()
+  const { toast } = useToast()
 
   const { data: pointers, isLoading, refetch } = useQuery({
     queryKey: ['pointers'],
@@ -130,6 +133,35 @@ function PointersSection() {
     })
   }
 
+  const handleCreateNotebook = async () => {
+    const raw = window.prompt('Create notebook (name or namespace/name):', 'demo-notebook')
+    if (!raw) return
+    const trimmed = raw.trim()
+    if (!trimmed) return
+
+    const [maybeNamespace, maybeName] = trimmed.split('/', 2)
+    const namespace = maybeName ? maybeNamespace : 'notebooks'
+    const name = maybeName ? maybeName : maybeNamespace
+
+    try {
+      const created = await pointersApi.create({
+        namespace,
+        name,
+        pointer_type: 'bundle',
+        description: 'Notebook',
+        metadata: { source: 'ui' },
+      })
+      await refetch()
+      handlePointerClick(created)
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create notebook',
+        description: error instanceof Error ? error.message : 'Unknown error',
+      })
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between px-2 py-1">
@@ -144,15 +176,26 @@ function PointersSection() {
           )}
           Pointers
         </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-5 w-5"
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          <RefreshCw className={cn('h-3 w-3', isLoading && 'animate-spin')} />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={handleCreateNotebook}
+            aria-label="Create notebook"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn('h-3 w-3', isLoading && 'animate-spin')} />
+          </Button>
+        </div>
       </div>
 
       {expanded && namespaces && (
@@ -196,14 +239,14 @@ function ArtifactsSection() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['artifacts', 'recent'],
-    queryFn: () => artifactsApi.list(1, 10),
+    queryFn: () => artifactsApi.list(10, 0),
     enabled: expanded,
   })
 
   const handleArtifactClick = (artifact: Artifact) => {
     openTab({
       type: 'artifact',
-      title: artifact.original_filename || artifact.sha256.slice(0, 12),
+      title: artifact.filename || artifact.sha256.slice(0, 12),
       resourceId: artifact.sha256,
     })
   }
@@ -235,13 +278,13 @@ function ArtifactsSection() {
         )}
       </div>
 
-      {expanded && data?.items && (
+      {expanded && data && (
         <div className="space-y-0.5">
-          {data.items.map((artifact) => (
+          {data.map((artifact) => (
             <TreeItem
               key={artifact.sha256}
               icon={<FileBox className="h-4 w-4" />}
-              label={artifact.original_filename || artifact.sha256.slice(0, 16)}
+              label={artifact.filename || artifact.sha256.slice(0, 16)}
               onClick={() => handleArtifactClick(artifact)}
               depth={0}
             />
@@ -258,7 +301,7 @@ function RunsSection() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['runs', 'recent'],
-    queryFn: () => runsApi.list(undefined, undefined, 1, 10),
+    queryFn: () => runsApi.list(undefined, undefined, 10, 0),
   })
 
   const getStatusColor = (status: Run['status']) => {

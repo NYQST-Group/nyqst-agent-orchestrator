@@ -13,12 +13,13 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey, Index, String, Text, func
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import BigInteger, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, INET, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from intelli.db.base import Base
-from intelli.db.models.mixins import TimestampMixin
+from intelli.db.base import TimestampMixin
 
 
 class TenantStatus(str, Enum):
@@ -55,10 +56,13 @@ class Tenant(Base, TimestampMixin):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    status: Mapped[TenantStatus] = mapped_column(default=TenantStatus.active)
+    status: Mapped[TenantStatus] = mapped_column(
+        SAEnum(TenantStatus, native_enum=False, length=20),
+        default=TenantStatus.active,
+    )
 
     # Quotas and limits
-    storage_quota_bytes: Mapped[int] = mapped_column(default=10 * 1024**3)  # 10 GB
+    storage_quota_bytes: Mapped[int] = mapped_column(BigInteger(), default=10 * 1024**3)  # 10 GB
     run_quota_monthly: Mapped[int] = mapped_column(default=1000)
 
     # Settings
@@ -78,7 +82,10 @@ class User(Base, TimestampMixin):
 
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    role: Mapped[UserRole] = mapped_column(default=UserRole.member)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, native_enum=False, length=20),
+        default=UserRole.member,
+    )
 
     # Auth - password hash for local auth, or external provider ID
     password_hash: Mapped[Optional[str]] = mapped_column(String(255))

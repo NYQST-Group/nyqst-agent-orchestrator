@@ -165,7 +165,7 @@ class PointerResponse(BaseModel):
     pointer_type: str = Field(..., description="Pointer type")
     manifest_sha256: str | None = Field(None, description="Current HEAD manifest")
     description: str | None = Field(None, description="Description")
-    metadata: dict = Field(default_factory=dict, description="Metadata")
+    metadata: dict = Field(default_factory=dict, description="Metadata", validation_alias="meta")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     created_by: UUID | None = Field(None, description="Creator principal ID")

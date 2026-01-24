@@ -38,6 +38,11 @@ const statusConfig: Record<Run['status'], { icon: React.ReactNode; color: string
     color: 'text-blue-500',
     label: 'Running',
   },
+  paused: {
+    icon: <Square className="h-5 w-5" />,
+    color: 'text-orange-500',
+    label: 'Paused',
+  },
   completed: {
     icon: <CheckCircle className="h-5 w-5" />,
     color: 'text-green-500',
@@ -178,13 +183,17 @@ export function RunViewer({ runId }: RunViewerProps) {
           </div>
         </div>
 
-        {run.error_message && (
+        {run.error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2 text-red-700">
               <AlertTriangle className="h-5 w-5" />
               <span className="font-medium">Error</span>
             </div>
-            <p className="mt-2 text-sm text-red-600">{run.error_message}</p>
+            <p className="mt-2 text-sm text-red-600">
+              {typeof run.error === 'object' && run.error && 'message' in run.error
+                ? String((run.error as Record<string, unknown>).message)
+                : JSON.stringify(run.error)}
+            </p>
           </div>
         )}
 

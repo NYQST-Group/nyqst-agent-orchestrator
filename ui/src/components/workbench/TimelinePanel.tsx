@@ -10,38 +10,74 @@ import {
   XCircle,
   Wrench,
   MessageSquare,
+  Search,
   Save,
   AlertTriangle,
   FileBox,
+  GitBranch,
   Circle,
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { useWorkbenchStore } from '@/stores/workbench-store'
 import { useRunEventStream } from '@/hooks/use-sse'
-import { cn } from '@/lib/utils'
-import type { RunEventType } from '@/types/api'
 
-const eventIcons: Record<RunEventType, React.ReactNode> = {
-  step_start: <Play className="h-4 w-4 text-blue-500" />,
-  step_complete: <CheckCircle className="h-4 w-4 text-green-500" />,
-  tool_call: <Wrench className="h-4 w-4 text-purple-500" />,
-  llm_call: <MessageSquare className="h-4 w-4 text-orange-500" />,
+const eventIcons: Record<string, React.ReactNode> = {
+  // Lifecycle
+  run_started: <Play className="h-4 w-4 text-blue-500" />,
+  run_paused: <Circle className="h-4 w-4 text-orange-500" />,
+  run_resumed: <Play className="h-4 w-4 text-blue-500" />,
+  run_completed: <CheckCircle className="h-4 w-4 text-green-500" />,
+  run_failed: <XCircle className="h-4 w-4 text-red-500" />,
+  run_cancelled: <XCircle className="h-4 w-4 text-gray-500" />,
+
+  // Steps
+  step_started: <Play className="h-4 w-4 text-blue-500" />,
+  step_completed: <CheckCircle className="h-4 w-4 text-green-500" />,
+
+  // Tool calls
+  tool_call_started: <Wrench className="h-4 w-4 text-purple-500" />,
+  tool_call_completed: <Wrench className="h-4 w-4 text-purple-500" />,
+
+  // LLM
+  llm_request: <MessageSquare className="h-4 w-4 text-orange-500" />,
+  llm_response: <MessageSquare className="h-4 w-4 text-orange-500" />,
+
+  // Retrieval
+  retrieval_query: <Search className="h-4 w-4 text-cyan-500" />,
+  retrieval_result: <Search className="h-4 w-4 text-cyan-500" />,
+
+  // Substrate
+  artifact_emitted: <FileBox className="h-4 w-4 text-emerald-500" />,
+  manifest_created: <FileBox className="h-4 w-4 text-emerald-500" />,
+  pointer_moved: <GitBranch className="h-4 w-4 text-emerald-500" />,
+
+  // State / errors
   checkpoint: <Save className="h-4 w-4 text-cyan-500" />,
   error: <XCircle className="h-4 w-4 text-red-500" />,
-  artifact_created: <FileBox className="h-4 w-4 text-emerald-500" />,
-  custom: <Circle className="h-4 w-4 text-gray-500" />,
+  warning: <AlertTriangle className="h-4 w-4 text-yellow-600" />,
 }
 
-const eventLabels: Record<RunEventType, string> = {
-  step_start: 'Step Started',
-  step_complete: 'Step Complete',
-  tool_call: 'Tool Call',
-  llm_call: 'LLM Call',
+const eventLabels: Record<string, string> = {
+  run_started: 'Run Started',
+  run_paused: 'Run Paused',
+  run_resumed: 'Run Resumed',
+  run_completed: 'Run Completed',
+  run_failed: 'Run Failed',
+  run_cancelled: 'Run Cancelled',
+  step_started: 'Step Started',
+  step_completed: 'Step Completed',
+  tool_call_started: 'Tool Call Started',
+  tool_call_completed: 'Tool Call Completed',
+  llm_request: 'LLM Request',
+  llm_response: 'LLM Response',
+  retrieval_query: 'Retrieval Query',
+  retrieval_result: 'Retrieval Result',
+  artifact_emitted: 'Artifact Emitted',
+  manifest_created: 'Manifest Created',
+  pointer_moved: 'Pointer Moved',
   checkpoint: 'Checkpoint',
   error: 'Error',
-  artifact_created: 'Artifact Created',
-  custom: 'Custom Event',
+  warning: 'Warning',
 }
 
 interface EventCardProps {
@@ -57,10 +93,21 @@ interface EventCardProps {
 }
 
 function EventCard({ event }: EventCardProps) {
-  const icon = eventIcons[event.event_type as RunEventType] || (
+  const icon = eventIcons[event.event_type] || (
     <Circle className="h-4 w-4" />
   )
-  const label = eventLabels[event.event_type as RunEventType] || event.event_type
+  const label =
+    eventLabels[event.event_type] || event.event_type.replace(/_/g, ' ')
+
+  const stepName = event.payload.step_name
+  const toolName = event.payload.tool_name
+  const errorValue = event.payload.error
+  const errorText =
+    typeof errorValue === 'string'
+      ? errorValue
+      : errorValue
+        ? JSON.stringify(errorValue)
+        : null
 
   return (
     <div className="flex gap-3 p-3 hover:bg-muted/50 rounded-md">
@@ -74,14 +121,14 @@ function EventCard({ event }: EventCardProps) {
         </div>
         {event.payload && Object.keys(event.payload).length > 0 && (
           <div className="mt-1 text-xs text-muted-foreground">
-            {event.payload.step_name && (
+            {typeof stepName === 'string' && (
               <span className="inline-block bg-muted px-1.5 py-0.5 rounded mr-2">
-                {String(event.payload.step_name)}
+                {stepName}
               </span>
             )}
-            {event.payload.tool_name && (
+            {typeof toolName === 'string' && (
               <span className="inline-block bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded mr-2">
-                {String(event.payload.tool_name)}
+                {toolName}
               </span>
             )}
             {event.duration_ms !== undefined && (
@@ -91,9 +138,9 @@ function EventCard({ event }: EventCardProps) {
             )}
           </div>
         )}
-        {event.payload.error && (
+        {errorText && (
           <div className="mt-1 text-xs text-red-600 bg-red-50 p-1.5 rounded">
-            {String(event.payload.error)}
+            {errorText}
           </div>
         )}
       </div>

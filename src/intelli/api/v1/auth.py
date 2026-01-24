@@ -17,13 +17,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
 from intelli.api.middleware.auth import AuthContext, AdminContext
+from intelli.config import settings
 from intelli.core.security import (
     create_access_token,
     generate_api_key,
     hash_password,
     verify_password,
 )
-from intelli.db.models.auth import APIKey, Tenant, User, UserRole, APIKeyScope
+from intelli.db.models.auth import APIKey, Tenant, TenantStatus, User, UserRole, APIKeyScope
 from intelli.services.audit_service import AuditService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -80,6 +81,19 @@ class APIKeyResponse(BaseModel):
 class APIKeyCreatedResponse(APIKeyResponse):
     """Response when creating a new API key - includes the full key (shown once)."""
     full_key: str = Field(..., description="Full API key - save this, it won't be shown again!")
+
+
+class DevBootstrapRequest(BaseModel):
+    """Development-only bootstrap helper.
+
+    Creates (or reuses) a tenant + user and returns a JWT.
+    Only available when DEBUG=true.
+    """
+    tenant_slug: str = Field(default="demo", min_length=1, max_length=50)
+    tenant_name: str = Field(default="Demo Tenant", min_length=1, max_length=100)
+    email: EmailStr = Field(default="demo@example.com")
+    user_name: str = Field(default="Demo User", min_length=1, max_length=100)
+    password: str = Field(default="demo", min_length=1)
 
 
 # ============================================================================
@@ -139,6 +153,74 @@ async def login(
 
     return LoginResponse(
         access_token=token,
+        tenant_id=str(tenant.id),
+        user_id=str(user.id),
+    )
+
+
+@router.post("/dev-bootstrap", response_model=LoginResponse)
+async def dev_bootstrap(
+    data: DevBootstrapRequest,
+    session: Annotated[AsyncSession, Depends(get_session)],
+):
+    """Create/reuse a demo tenant + user (development only) and return a JWT."""
+    if not settings.debug:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    # Find or create tenant
+    result = await session.execute(select(Tenant).where(Tenant.slug == data.tenant_slug))
+    tenant = result.scalar_one_or_none()
+    if not tenant:
+        tenant = Tenant(
+            name=data.tenant_name,
+            slug=data.tenant_slug,
+            status=TenantStatus.active,
+        )
+        session.add(tenant)
+        await session.flush()
+    elif tenant.status != TenantStatus.active:
+        tenant.status = TenantStatus.active
+        await session.flush()
+
+    # Find or create user
+    result = await session.execute(
+        select(User)
+        .where(User.tenant_id == tenant.id)
+        .where(User.email == data.email)
+    )
+    user = result.scalar_one_or_none()
+    if not user:
+        user = User(
+            tenant_id=tenant.id,
+            email=data.email,
+            name=data.user_name,
+            role=UserRole.owner,
+            password_hash=hash_password(data.password),
+            is_active=True,
+            last_login_at=datetime.now(timezone.utc),
+        )
+        session.add(user)
+        await session.flush()
+    else:
+        if not user.password_hash:
+            user.password_hash = hash_password(data.password)
+        if not user.is_active:
+            user.is_active = True
+        user.role = UserRole.owner
+        user.last_login_at = datetime.now(timezone.utc)
+        await session.flush()
+
+    await session.commit()
+
+    token = create_access_token(
+        subject=str(user.id),
+        tenant_id=str(tenant.id),
+        role=user.role.value,
+    )
+
+    return LoginResponse(
+        access_token=token,
+        expires_in=settings.jwt_expiry_hours * 3600,
         tenant_id=str(tenant.id),
         user_id=str(user.id),
     )

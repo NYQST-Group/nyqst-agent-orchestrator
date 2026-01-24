@@ -7,16 +7,23 @@ import type {
   ArtifactUploadResponse,
   Manifest,
   ManifestCreate,
+  ManifestCreateResponse,
   ManifestDiff,
   ManifestEntry,
   Pointer,
   PointerAdvance,
+  PointerAdvanceResponse,
   PointerCreate,
-  PointerHistory,
+  PointerHistoryEntry,
+  RagAskRequest,
+  RagAskResponse,
+  RagIndexRequest,
+  RagIndexResponse,
   Run,
   RunCreate,
   RunEvent,
-  PaginatedResponse,
+  RunEventListResponse,
+  RunListResponse,
 } from '@/types/api'
 import { getAuthHeaders } from '@/stores/auth-store'
 
@@ -61,11 +68,11 @@ function withAuth(options: RequestInit = {}): RequestInit {
 
 // Artifacts API
 export const artifactsApi = {
-  async upload(file: File, filename?: string): Promise<ArtifactUploadResponse> {
+  async upload(file: File, mediaType?: string): Promise<ArtifactUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
-    if (filename) {
-      formData.append('filename', filename)
+    if (mediaType) {
+      formData.append('media_type', mediaType)
     }
 
     const response = await fetch(
@@ -80,12 +87,10 @@ export const artifactsApi = {
     return handleResponse<Artifact>(response)
   },
 
-  async list(page = 1, size = 20): Promise<PaginatedResponse<Artifact>> {
-    const response = await fetch(
-      `${API_BASE}/artifacts?page=${page}&size=${size}`,
-      withAuth()
-    )
-    return handleResponse<PaginatedResponse<Artifact>>(response)
+  async list(limit = 20, offset = 0): Promise<Artifact[]> {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    const response = await fetch(`${API_BASE}/artifacts?${params}`, withAuth())
+    return handleResponse<Artifact[]>(response)
   },
 
   async getContentUrl(sha256: string): Promise<{ url: string }> {
@@ -106,7 +111,7 @@ export const artifactsApi = {
 
 // Manifests API
 export const manifestsApi = {
-  async create(data: ManifestCreate): Promise<Manifest> {
+  async create(data: ManifestCreate): Promise<ManifestCreateResponse> {
     const response = await fetch(
       `${API_BASE}/manifests`,
       withAuth({
@@ -115,7 +120,7 @@ export const manifestsApi = {
         body: JSON.stringify(data),
       })
     )
-    return handleResponse<Manifest>(response)
+    return handleResponse<ManifestCreateResponse>(response)
   },
 
   async get(sha256: string): Promise<Manifest> {
@@ -169,7 +174,7 @@ export const pointersApi = {
     return handleResponse<Pointer[]>(response)
   },
 
-  async advance(id: string, data: PointerAdvance): Promise<Pointer> {
+  async advance(id: string, data: PointerAdvance): Promise<PointerAdvanceResponse> {
     const response = await fetch(
       `${API_BASE}/pointers/${id}/advance`,
       withAuth({
@@ -178,20 +183,20 @@ export const pointersApi = {
         body: JSON.stringify(data),
       })
     )
-    return handleResponse<Pointer>(response)
+    return handleResponse<PointerAdvanceResponse>(response)
   },
 
-  async getHistory(id: string): Promise<PointerHistory[]> {
+  async getHistory(id: string): Promise<PointerHistoryEntry[]> {
     const response = await fetch(`${API_BASE}/pointers/${id}/history`, withAuth())
-    return handleResponse<PointerHistory[]>(response)
+    return handleResponse<PointerHistoryEntry[]>(response)
   },
 
-  async resolve(namespace: string, name: string): Promise<Manifest> {
+  async resolve(namespace: string, name: string): Promise<{ manifest_sha256: string | null }> {
     const response = await fetch(
       `${API_BASE}/pointers/${namespace}/${name}/resolve`,
       withAuth()
     )
-    return handleResponse<Manifest>(response)
+    return handleResponse<{ manifest_sha256: string | null }>(response)
   },
 }
 
@@ -217,15 +222,15 @@ export const runsApi = {
   async list(
     status?: string,
     runType?: string,
-    page = 1,
-    size = 20
-  ): Promise<PaginatedResponse<Run>> {
-    const params = new URLSearchParams({ page: String(page), size: String(size) })
+    limit = 20,
+    offset = 0
+  ): Promise<RunListResponse> {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
     if (status) params.append('status', status)
     if (runType) params.append('run_type', runType)
 
     const response = await fetch(`${API_BASE}/runs?${params}`, withAuth())
-    return handleResponse<PaginatedResponse<Run>>(response)
+    return handleResponse<RunListResponse>(response)
   },
 
   async start(id: string): Promise<Run> {
@@ -237,14 +242,10 @@ export const runsApi = {
   },
 
   async complete(id: string, outputManifestSha256?: string): Promise<Run> {
-    const response = await fetch(
-      `${API_BASE}/runs/${id}/complete`,
-      withAuth({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ output_manifest_sha256: outputManifestSha256 }),
-      })
-    )
+    const url = outputManifestSha256
+      ? `${API_BASE}/runs/${id}/complete?output_manifest_sha256=${encodeURIComponent(outputManifestSha256)}`
+      : `${API_BASE}/runs/${id}/complete`
+    const response = await fetch(url, withAuth({ method: 'POST' }))
     return handleResponse<Run>(response)
   },
 
@@ -254,7 +255,7 @@ export const runsApi = {
       withAuth({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error_message: errorMessage }),
+        body: JSON.stringify({ error: { type: 'error', message: errorMessage } }),
       })
     )
     return handleResponse<Run>(response)
@@ -274,7 +275,35 @@ export const runsApi = {
     }
 
     const response = await fetch(`${API_BASE}/runs/${id}/events?${params}`, withAuth())
-    return handleResponse<RunEvent[]>(response)
+    const data = await handleResponse<RunEventListResponse>(response)
+    return data.items
+  },
+}
+
+// RAG API
+export const ragApi = {
+  async index(data: RagIndexRequest): Promise<RagIndexResponse> {
+    const response = await fetch(
+      `${API_BASE}/rag/index`,
+      withAuth({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+    )
+    return handleResponse<RagIndexResponse>(response)
+  },
+
+  async ask(data: RagAskRequest): Promise<RagAskResponse> {
+    const response = await fetch(
+      `${API_BASE}/rag/ask`,
+      withAuth({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+    )
+    return handleResponse<RagAskResponse>(response)
   },
 }
 

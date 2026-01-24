@@ -50,6 +50,30 @@ export function LoginPage() {
     }
   }
 
+  const handleDemoLogin = async () => {
+    setIsLoading(true)
+    try {
+      const response = await authApi.devBootstrap()
+      setAccessToken(response.access_token, {
+        userId: response.user_id,
+        tenantId: response.tenant_id,
+      })
+      navigate('/workbench')
+    } catch (error) {
+      const description =
+        error instanceof ApiError && error.status === 404
+          ? 'Demo login is disabled on the server. Set DEBUG=true and restart the backend.'
+          : 'Unable to use demo login. Check the server logs.'
+      toast({
+        variant: 'destructive',
+        title: 'Demo login unavailable',
+        description,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleApiKeyLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -184,6 +208,23 @@ export function LoginPage() {
                   </>
                 ) : (
                   'Sign In'
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+                onClick={handleDemoLogin}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Starting demo...
+                  </>
+                ) : (
+                  'Demo Login'
                 )}
               </Button>
 
