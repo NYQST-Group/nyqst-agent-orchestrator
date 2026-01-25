@@ -4,7 +4,7 @@ Provides structured exceptions that map cleanly to HTTP responses
 and carry context for logging and debugging.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 class IntelliError(Exception):
@@ -23,10 +23,10 @@ class IntelliError(Exception):
 
     def __init__(
         self,
-        message: Optional[str] = None,
-        code: Optional[str] = None,
-        status_code: Optional[int] = None,
-        details: Optional[dict[str, Any]] = None,
+        message: str | None = None,
+        code: str | None = None,
+        status_code: int | None = None,
+        details: dict[str, Any] | None = None,
     ):
         self.message = message or self.__class__.message
         self.code = code or self.__class__.code
@@ -159,10 +159,7 @@ class PointerNotFoundError(NotFoundError):
     code = "POINTER_NOT_FOUND"
 
     def __init__(self, namespace: str = None, name: str = None, pointer_id: str = None, **kwargs):
-        if namespace and name:
-            identifier = f"{namespace}/{name}"
-        else:
-            identifier = pointer_id or "unknown"
+        identifier = f"{namespace}/{name}" if namespace and name else pointer_id or "unknown"
         super().__init__(
             resource_type="Pointer",
             identifier=identifier,

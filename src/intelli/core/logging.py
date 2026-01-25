@@ -10,7 +10,6 @@ Provides:
 import logging
 import sys
 from contextvars import ContextVar
-from typing import Any, Optional
 from uuid import uuid4
 
 import structlog
@@ -19,7 +18,7 @@ from structlog.types import EventDict, Processor
 from intelli.config import settings
 
 # Context variable for request correlation
-correlation_id_var: ContextVar[Optional[str]] = ContextVar("correlation_id", default=None)
+correlation_id_var: ContextVar[str | None] = ContextVar("correlation_id", default=None)
 
 
 def get_correlation_id() -> str:

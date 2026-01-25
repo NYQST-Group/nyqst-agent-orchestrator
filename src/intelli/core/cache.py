@@ -7,9 +7,9 @@ when Redis is unavailable.
 import asyncio
 import hashlib
 import json
-from datetime import timedelta
-from typing import Any, Optional, TypeVar, Callable
+from collections.abc import Callable
 from functools import wraps
+from typing import Any, TypeVar
 
 from intelli.config import settings
 
@@ -149,7 +149,7 @@ class RedisCache:
     def _key(self, key: str) -> str:
         return f"{self.prefix}:{key}"
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache."""
         redis = await get_redis()
         if redis is None:
@@ -167,7 +167,7 @@ class RedisCache:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
     ) -> bool:
         """Set value in cache."""
         redis = await get_redis()
@@ -201,7 +201,7 @@ class RedisCache:
         self,
         key: str,
         factory: Callable[[], T],
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
     ) -> T:
         """Get from cache or compute and cache."""
         value = await self.get(key)
@@ -221,7 +221,7 @@ class RedisCache:
 def cached(
     key_prefix: str,
     ttl: int = 300,
-    key_builder: Optional[Callable[..., str]] = None,
+    key_builder: Callable[..., str] | None = None,
 ):
     """Decorator for caching function results.
 

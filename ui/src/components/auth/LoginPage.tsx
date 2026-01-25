@@ -90,7 +90,7 @@ export function LoginPage() {
         scopes: user.scopes,
       })
       navigate('/overview')
-    } catch (error) {
+    } catch (_error) {
       useAuthStore.getState().logout()
       toast({
         variant: 'destructive',

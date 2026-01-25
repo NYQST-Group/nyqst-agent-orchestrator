@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.responses import Response
 
 from intelli.core.exceptions import IntelliError
-from intelli.core.logging import get_logger, get_correlation_id
+from intelli.core.logging import get_correlation_id, get_logger
 
 logger = get_logger(__name__)
 

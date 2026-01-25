@@ -7,8 +7,9 @@ Provides async job scheduling for long-running tasks like:
 - Cleanup tasks
 """
 
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Callable, Optional
+from typing import Any
 from uuid import uuid4
 
 from intelli.config import settings
@@ -20,7 +21,7 @@ logger = get_logger(__name__)
 _job_registry: dict[str, Callable] = {}
 
 
-def job(name: Optional[str] = None):
+def job(name: str | None = None):
     """Decorator to register a function as a background job.
 
     Usage:
@@ -71,9 +72,9 @@ class JobQueue:
         self,
         job_name: str,
         *args,
-        _job_id: Optional[str] = None,
-        _defer_by: Optional[timedelta] = None,
-        _defer_until: Optional[datetime] = None,
+        _job_id: str | None = None,
+        _defer_by: timedelta | None = None,
+        _defer_until: datetime | None = None,
         **kwargs,
     ) -> str:
         """Enqueue a job for background execution.
@@ -98,14 +99,13 @@ class JobQueue:
             if job_name in _job_registry:
                 try:
                     await _job_registry[job_name](None, *args, **kwargs)
-                except Exception as e:
+                except Exception:
                     logger.exception("job_failed", job_name=job_name, job_id=job_id)
                     raise
             return job_id
 
         # Enqueue via ARQ
         try:
-            from arq.jobs import Job
 
             await pool.enqueue_job(
                 job_name,
@@ -125,7 +125,7 @@ class JobQueue:
                 await _job_registry[job_name](None, *args, **kwargs)
             return job_id
 
-    async def get_job_result(self, job_id: str) -> Optional[Any]:
+    async def get_job_result(self, job_id: str) -> Any | None:
         """Get result of a completed job."""
         pool = await self._get_pool()
         if pool is None:

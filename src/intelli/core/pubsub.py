@@ -15,8 +15,8 @@ Usage:
 import asyncio
 import json
 from collections import defaultdict
-from typing import AsyncGenerator, Optional
-from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager, suppress
 
 import asyncpg
 
@@ -31,9 +31,9 @@ class PubSub:
     """
 
     def __init__(self):
-        self._connection: Optional[asyncpg.Connection] = None
+        self._connection: asyncpg.Connection | None = None
         self._listeners: dict[str, set[asyncio.Queue]] = defaultdict(set)
-        self._listen_task: Optional[asyncio.Task] = None
+        self._listen_task: asyncio.Task | None = None
         self._lock = asyncio.Lock()
 
     async def connect(self) -> None:
@@ -55,10 +55,8 @@ class PubSub:
         """Close the connection."""
         if self._listen_task:
             self._listen_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await self._listen_task
-            except asyncio.CancelledError:
-                pass
 
         if self._connection:
             await self._connection.close()
@@ -139,7 +137,7 @@ class PubSub:
                     # Wait for message with timeout for keepalive
                     message = await asyncio.wait_for(queue.get(), timeout=30.0)
                     yield message
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Send heartbeat
                     yield json.dumps({"type": "heartbeat"})
         finally:

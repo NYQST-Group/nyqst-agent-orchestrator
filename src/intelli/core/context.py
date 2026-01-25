@@ -6,7 +6,6 @@ context from anywhere in the application without passing through all layers.
 
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Optional
 from uuid import UUID, uuid4
 
 
@@ -20,19 +19,19 @@ class RequestContext:
     request_id: str = field(default_factory=lambda: str(uuid4()))
 
     # Tenant isolation (required for all authenticated requests)
-    tenant_id: Optional[UUID] = None
+    tenant_id: UUID | None = None
 
     # Actor info (mutually exclusive - either user or API key)
-    user_id: Optional[UUID] = None
-    api_key_id: Optional[UUID] = None
+    user_id: UUID | None = None
+    api_key_id: UUID | None = None
 
     # Authorization
-    role: Optional[str] = None
+    role: str | None = None
     scopes: list[str] = field(default_factory=list)
 
     # Client info for audit
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    ip_address: str | None = None
+    user_agent: str | None = None
 
     def is_authenticated(self) -> bool:
         """Check if request has valid authentication."""
@@ -52,7 +51,7 @@ class RequestContext:
 
 
 # Context variable to hold the current request context
-_request_context: ContextVar[Optional[RequestContext]] = ContextVar(
+_request_context: ContextVar[RequestContext | None] = ContextVar(
     "request_context", default=None
 )
 
@@ -69,7 +68,7 @@ def get_context() -> RequestContext:
     return ctx
 
 
-def get_context_or_none() -> Optional[RequestContext]:
+def get_context_or_none() -> RequestContext | None:
     """Get the current request context or None if not set."""
     return _request_context.get()
 

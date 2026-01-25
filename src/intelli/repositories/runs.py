@@ -1,9 +1,8 @@
 """Repository for Run and RunEvent operations."""
 
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 
 from intelli.core.clock import utc_now
 from intelli.db.models.runs import Run, RunEvent, RunStatus

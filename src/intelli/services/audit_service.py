@@ -3,12 +3,11 @@
 Records all significant actions for compliance and debugging.
 """
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from intelli.core.context import get_context_or_none, RequestContext
+from intelli.core.context import RequestContext, get_context_or_none
 from intelli.db.models.auth import AuditLog
 
 
@@ -23,8 +22,8 @@ class AuditService:
         action: str,
         resource_type: str,
         resource_id: str,
-        details: Optional[dict] = None,
-        context: Optional[RequestContext] = None,
+        details: dict | None = None,
+        context: RequestContext | None = None,
     ) -> AuditLog:
         """Record an audit event.
 
@@ -71,7 +70,7 @@ class AuditService:
             },
         )
 
-    async def log_manifest_create(self, sha256: str, entry_count: int, parent_sha256: Optional[str]):
+    async def log_manifest_create(self, sha256: str, entry_count: int, parent_sha256: str | None):
         """Log manifest creation."""
         await self.log(
             action="create",
@@ -86,7 +85,7 @@ class AuditService:
     async def log_pointer_advance(
         self,
         pointer_id: UUID,
-        from_sha256: Optional[str],
+        from_sha256: str | None,
         to_sha256: str,
         version: int,
     ):
@@ -102,7 +101,7 @@ class AuditService:
             },
         )
 
-    async def log_run_lifecycle(self, run_id: UUID, action: str, error_message: Optional[str] = None):
+    async def log_run_lifecycle(self, run_id: UUID, action: str, error_message: str | None = None):
         """Log run lifecycle events."""
         details = {}
         if error_message:

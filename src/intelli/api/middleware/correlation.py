@@ -6,7 +6,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from intelli.core.logging import set_correlation_id, get_correlation_id
+from intelli.core.logging import set_correlation_id
 
 
 class CorrelationMiddleware(BaseHTTPMiddleware):

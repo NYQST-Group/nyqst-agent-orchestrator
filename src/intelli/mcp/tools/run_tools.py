@@ -4,17 +4,14 @@ These tools enable agents to create runs, manage lifecycle, and log events
 to the append-only run ledger for full reproducibility and auditability.
 """
 
-import json
 from typing import Any
 from uuid import UUID
 
 from mcp.server import Server
-from mcp.types import Tool, TextContent
+from mcp.types import Tool
 
-from intelli.db.engine import AsyncSessionLocal
-from intelli.services.runs.run_service import RunService
 from intelli.services.runs.ledger_service import LedgerService
-
+from intelli.services.runs.run_service import RunService
 
 # Tool definitions
 RUN_TOOLS = [

@@ -8,18 +8,16 @@ Enterprise-grade multi-tenant security:
 """
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import BigInteger, ForeignKey, Index, String, func
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import BigInteger, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, INET, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from intelli.db.base import Base
-from intelli.db.base import TimestampMixin
+from intelli.db.base import Base, TimestampMixin
 
 
 class TenantStatus(str, Enum):
@@ -88,13 +86,13 @@ class User(Base, TimestampMixin):
     )
 
     # Auth - password hash for local auth, or external provider ID
-    password_hash: Mapped[Optional[str]] = mapped_column(String(255))
-    external_id: Mapped[Optional[str]] = mapped_column(String(255))  # OAuth/SAML subject
-    external_provider: Mapped[Optional[str]] = mapped_column(String(50))  # google, okta, etc.
+    password_hash: Mapped[str | None] = mapped_column(String(255))
+    external_id: Mapped[str | None] = mapped_column(String(255))  # OAuth/SAML subject
+    external_provider: Mapped[str | None] = mapped_column(String(50))  # google, okta, etc.
 
     # Status
     is_active: Mapped[bool] = mapped_column(default=True)
-    last_login_at: Mapped[Optional[datetime]] = mapped_column()
+    last_login_at: Mapped[datetime | None] = mapped_column()
 
     # Relationships
     tenant: Mapped["Tenant"] = relationship(back_populates="users")
@@ -115,7 +113,7 @@ class APIKey(Base, TimestampMixin):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
-    created_by_user_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     key_prefix: Mapped[str] = mapped_column(String(12), nullable=False)  # First 8 chars for identification
@@ -125,13 +123,13 @@ class APIKey(Base, TimestampMixin):
     scopes: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
 
     # Constraints
-    expires_at: Mapped[Optional[datetime]] = mapped_column()
+    expires_at: Mapped[datetime | None] = mapped_column()
     rate_limit_rpm: Mapped[int] = mapped_column(default=60)  # Requests per minute
-    allowed_ips: Mapped[Optional[list[str]]] = mapped_column(ARRAY(String))  # IP allowlist
+    allowed_ips: Mapped[list[str] | None] = mapped_column(ARRAY(String))  # IP allowlist
 
     # Status
     is_active: Mapped[bool] = mapped_column(default=True)
-    last_used_at: Mapped[Optional[datetime]] = mapped_column()
+    last_used_at: Mapped[datetime | None] = mapped_column()
     use_count: Mapped[int] = mapped_column(default=0)
 
     # Relationships
@@ -180,8 +178,8 @@ class AuditLog(Base):
 
     # Actor
     tenant_id: Mapped[UUID] = mapped_column(nullable=False)
-    user_id: Mapped[Optional[UUID]] = mapped_column()
-    api_key_id: Mapped[Optional[UUID]] = mapped_column()
+    user_id: Mapped[UUID | None] = mapped_column()
+    api_key_id: Mapped[UUID | None] = mapped_column()
 
     # Action
     action: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "artifact.create"
@@ -189,9 +187,9 @@ class AuditLog(Base):
     resource_id: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Context
-    ip_address: Mapped[Optional[str]] = mapped_column(INET)
-    user_agent: Mapped[Optional[str]] = mapped_column(String(500))
-    request_id: Mapped[Optional[str]] = mapped_column(String(36))
+    ip_address: Mapped[str | None] = mapped_column(INET)
+    user_agent: Mapped[str | None] = mapped_column(String(500))
+    request_id: Mapped[str | None] = mapped_column(String(36))
 
     # Details
     details: Mapped[dict] = mapped_column(JSONB, default=dict)

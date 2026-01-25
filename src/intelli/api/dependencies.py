@@ -7,11 +7,11 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.db.engine import get_session as db_get_session
+from intelli.services.runs.ledger_service import LedgerService
+from intelli.services.runs.run_service import RunService
 from intelli.services.substrate.artifact_service import ArtifactService
 from intelli.services.substrate.manifest_service import ManifestService
 from intelli.services.substrate.pointer_service import PointerService
-from intelli.services.runs.run_service import RunService
-from intelli.services.runs.ledger_service import LedgerService
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

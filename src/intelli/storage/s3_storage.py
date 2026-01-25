@@ -1,7 +1,6 @@
 """S3-compatible storage backend using aioboto3."""
 
 from collections.abc import AsyncIterator
-from datetime import datetime
 from typing import BinaryIO
 
 import aioboto3

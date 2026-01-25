@@ -7,7 +7,6 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from intelli.api.dependencies import PointerServiceDep
 from intelli.core.exceptions import ConflictError, NotFoundError
-from intelli.services.indexing.auto_index import auto_index_manifest
 from intelli.schemas.substrate import (
     PointerAdvance,
     PointerAdvanceResponse,
@@ -16,6 +15,7 @@ from intelli.schemas.substrate import (
     PointerResponse,
     PointerType,
 )
+from intelli.services.indexing.auto_index import auto_index_manifest
 
 router = APIRouter(prefix="/pointers", tags=["pointers"])
 

@@ -3,7 +3,7 @@
 from intelli.repositories.artifacts import ArtifactRepository
 from intelli.repositories.manifests import ManifestRepository
 from intelli.repositories.pointers import PointerRepository
-from intelli.repositories.runs import RunRepository, RunEventRepository
+from intelli.repositories.runs import RunEventRepository, RunRepository
 
 __all__ = [
     "ArtifactRepository",

@@ -7,12 +7,11 @@ MCP-compatible clients.
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
 
 from intelli.mcp.tools import (
-    substrate_tools,
-    run_tools,
     knowledge_tools,
+    run_tools,
+    substrate_tools,
 )
 
 

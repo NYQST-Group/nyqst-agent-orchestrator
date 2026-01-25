@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query
 
-from intelli.api.dependencies import RunServiceDep, LedgerServiceDep
+from intelli.api.dependencies import LedgerServiceDep, RunServiceDep
 from intelli.core.exceptions import NotFoundError, ValidationError
 from intelli.schemas.runs import (
     RunCreate,

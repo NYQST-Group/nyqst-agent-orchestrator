@@ -9,7 +9,7 @@ Content-addressable storage with:
 import hashlib
 import json
 from collections.abc import AsyncIterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import BinaryIO
 
@@ -119,7 +119,7 @@ class LocalStorageBackend(StorageBackend):
             meta = {
                 "content_type": content_type,
                 "content_length": len(body),
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 **(metadata or {}),
             }
             meta_path = self._get_metadata_path(key)
@@ -188,7 +188,7 @@ class LocalStorageBackend(StorageBackend):
         try:
             # Read metadata file if exists
             if meta_path.exists():
-                async with aiofiles.open(meta_path, "r") as f:
+                async with aiofiles.open(meta_path) as f:
                     meta = json.loads(await f.read())
                 return StorageMetadata(
                     content_type=meta.get("content_type", "application/octet-stream"),
@@ -205,7 +205,7 @@ class LocalStorageBackend(StorageBackend):
                 content_type="application/octet-stream",
                 content_length=stat.st_size,
                 etag=key,
-                last_modified=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+                last_modified=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
             )
         except OSError as e:
             raise StorageError(

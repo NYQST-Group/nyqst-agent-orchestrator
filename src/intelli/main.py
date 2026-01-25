@@ -1,21 +1,21 @@
 """FastAPI application factory and entry point."""
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from intelli.config import settings
-from intelli.core.logging import setup_logging, get_logger
-from intelli.core.exceptions import IntelliError
+from intelli.api.health import router as health_router
 from intelli.api.middleware import (
     CorrelationMiddleware,
     ErrorHandlerMiddleware,
     intelli_exception_handler,
 )
-from intelli.api.health import router as health_router
 from intelli.api.v1 import router as v1_router
+from intelli.config import settings
+from intelli.core.exceptions import IntelliError
+from intelli.core.logging import get_logger, setup_logging
 from intelli.services.indexing.init import init_index_backend
 
 logger = get_logger(__name__)

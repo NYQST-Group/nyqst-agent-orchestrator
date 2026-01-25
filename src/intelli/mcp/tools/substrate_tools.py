@@ -8,14 +8,13 @@ import json
 from typing import Any
 
 from mcp.server import Server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 from intelli.db.engine import AsyncSessionLocal
+from intelli.schemas.substrate import ManifestEntry, PointerType
 from intelli.services.substrate.artifact_service import ArtifactService
 from intelli.services.substrate.manifest_service import ManifestService
 from intelli.services.substrate.pointer_service import PointerService
-from intelli.schemas.substrate import ManifestEntry, PointerType
-
 
 # Tool definitions
 SUBSTRATE_TOOLS = [

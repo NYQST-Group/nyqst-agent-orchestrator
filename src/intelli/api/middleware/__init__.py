@@ -1,15 +1,15 @@
 """API middleware components."""
 
 from intelli.api.middleware.auth import (
-    authenticate,
-    authenticate_optional,
-    require_scope,
-    require_admin,
+    AdminContext,
+    AgentContext,
     AuthContext,
     OptionalAuthContext,
     WriteContext,
-    AdminContext,
-    AgentContext,
+    authenticate,
+    authenticate_optional,
+    require_admin,
+    require_scope,
 )
 from intelli.api.middleware.correlation import CorrelationMiddleware
 from intelli.api.middleware.error_handler import ErrorHandlerMiddleware, intelli_exception_handler

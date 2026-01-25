@@ -12,7 +12,8 @@ These endpoints enable the UI to receive real-time updates for:
 
 import asyncio
 import json
-from typing import Annotated, AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from typing import Annotated
 from uuid import UUID
 
 import asyncpg
@@ -62,7 +63,7 @@ async def _run_event_generator_notify(
             yield f"event: run_event\ndata: {json.dumps(event_data)}\n\n"
 
     # Connect to PostgreSQL for LISTEN
-    conn: Optional[asyncpg.Connection] = None
+    conn: asyncpg.Connection | None = None
     try:
         conn = await _get_listen_connection()
 
@@ -88,7 +89,7 @@ async def _run_event_generator_notify(
                 # Wait for event with timeout for heartbeat
                 payload = await asyncio.wait_for(queue.get(), timeout=30.0)
                 yield f"event: run_event\ndata: {payload}\n\n"
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Send heartbeat to keep connection alive
                 yield f"event: heartbeat\ndata: {json.dumps({'status': 'alive'})}\n\n"
             except asyncio.CancelledError:
@@ -105,7 +106,7 @@ async def _activity_generator_notify() -> AsyncGenerator[str, None]:
     """Generate SSE events for global activity feed using LISTEN/NOTIFY."""
     yield f"event: connected\ndata: {json.dumps({'type': 'activity_feed'})}\n\n"
 
-    conn: Optional[asyncpg.Connection] = None
+    conn: asyncpg.Connection | None = None
     try:
         conn = await _get_listen_connection()
         queue: asyncio.Queue = asyncio.Queue()
@@ -122,7 +123,7 @@ async def _activity_generator_notify() -> AsyncGenerator[str, None]:
             try:
                 payload = await asyncio.wait_for(queue.get(), timeout=30.0)
                 yield f"event: activity\ndata: {payload}\n\n"
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 yield f"event: heartbeat\ndata: {json.dumps({})}\n\n"
             except asyncio.CancelledError:
                 break

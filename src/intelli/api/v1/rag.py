@@ -12,7 +12,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
 from intelli.config import settings
-from intelli.schemas.rag import RagAskRequest, RagAskResponse, RagIndexRequest, RagIndexResponse, RagSource
+from intelli.schemas.rag import (
+    RagAskRequest,
+    RagAskResponse,
+    RagIndexRequest,
+    RagIndexResponse,
+    RagSource,
+)
 from intelli.services.knowledge.rag_service import RagService
 from intelli.services.runs.ledger_service import LedgerService
 from intelli.services.runs.run_service import RunService

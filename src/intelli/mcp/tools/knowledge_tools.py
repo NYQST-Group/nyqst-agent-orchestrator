@@ -7,7 +7,6 @@ and work with claims/citations. This is a stub for Phase 2 implementation.
 from mcp.server import Server
 from mcp.types import Tool
 
-
 # Placeholder tools for future KB operations
 KNOWLEDGE_TOOLS = [
     Tool(

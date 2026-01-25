@@ -68,6 +68,7 @@ class LedgerService:
         are truncated or skipped to avoid errors.
         """
         import json
+
         from sqlalchemy import text
 
         notification_payload = json.dumps({

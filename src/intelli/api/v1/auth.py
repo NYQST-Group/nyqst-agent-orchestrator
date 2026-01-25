@@ -6,8 +6,8 @@ Provides:
 - Current user/tenant info
 """
 
-from datetime import datetime, timezone
-from typing import Annotated, Optional
+from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
-from intelli.api.middleware.auth import AuthContext, AdminContext
+from intelli.api.middleware.auth import AdminContext, AuthContext
 from intelli.config import settings
 from intelli.core.security import (
     create_access_token,
@@ -24,7 +24,7 @@ from intelli.core.security import (
     hash_password,
     verify_password,
 )
-from intelli.db.models.auth import APIKey, Tenant, TenantStatus, User, UserRole, APIKeyScope
+from intelli.db.models.auth import APIKey, APIKeyScope, Tenant, TenantStatus, User, UserRole
 from intelli.services.audit_service import AuditService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -49,20 +49,20 @@ class LoginResponse(BaseModel):
 
 
 class CurrentUserResponse(BaseModel):
-    user_id: Optional[str] = None
+    user_id: str | None = None
     tenant_id: str
     tenant_name: str
-    role: Optional[str] = None
+    role: str | None = None
     scopes: list[str]
-    api_key_id: Optional[str] = None
+    api_key_id: str | None = None
 
 
 class APIKeyCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     scopes: list[APIKeyScope] = Field(default=[APIKeyScope.read])
-    expires_in_days: Optional[int] = Field(default=None, ge=1, le=365)
+    expires_in_days: int | None = Field(default=None, ge=1, le=365)
     rate_limit_rpm: int = Field(default=60, ge=1, le=1000)
-    allowed_ips: Optional[list[str]] = None
+    allowed_ips: list[str] | None = None
 
 
 class APIKeyResponse(BaseModel):
@@ -70,10 +70,10 @@ class APIKeyResponse(BaseModel):
     name: str
     key_prefix: str
     scopes: list[str]
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
     rate_limit_rpm: int
     is_active: bool
-    last_used_at: Optional[datetime]
+    last_used_at: datetime | None
     use_count: int
     created_at: datetime
 
@@ -123,7 +123,7 @@ async def login(
         select(User)
         .where(User.tenant_id == tenant.id)
         .where(User.email == data.email)
-        .where(User.is_active == True)
+        .where(User.is_active)
     )
     user = result.scalar_one_or_none()
 
@@ -141,7 +141,7 @@ async def login(
         )
 
     # Update last login
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     await session.commit()
 
     # Create token
@@ -197,7 +197,7 @@ async def dev_bootstrap(
             role=UserRole.owner,
             password_hash=hash_password(data.password),
             is_active=True,
-            last_login_at=datetime.now(timezone.utc),
+            last_login_at=datetime.now(UTC),
         )
         session.add(user)
         await session.flush()
@@ -207,7 +207,7 @@ async def dev_bootstrap(
         if not user.is_active:
             user.is_active = True
         user.role = UserRole.owner
-        user.last_login_at = datetime.now(timezone.utc)
+        user.last_login_at = datetime.now(UTC)
         await session.flush()
 
     await session.commit()
@@ -295,7 +295,7 @@ async def create_api_key(
     expires_at = None
     if data.expires_in_days:
         from datetime import timedelta
-        expires_at = datetime.now(timezone.utc) + timedelta(days=data.expires_in_days)
+        expires_at = datetime.now(UTC) + timedelta(days=data.expires_in_days)
 
     # Create API key record
     api_key = APIKey(

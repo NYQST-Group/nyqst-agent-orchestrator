@@ -69,10 +69,7 @@ class ArtifactService:
             Upload result with SHA-256 and metadata
         """
         # Read content and compute hash
-        if isinstance(content, bytes):
-            data = content
-        else:
-            data = content.read()
+        data = content if isinstance(content, bytes) else content.read()
 
         sha256 = hashlib.sha256(data).hexdigest()
         size_bytes = len(data)
@@ -157,7 +154,7 @@ class ArtifactService:
             NotFoundError: If artifact doesn't exist
         """
         # Verify artifact exists in DB
-        artifact = await self.get_artifact(sha256)
+        await self.get_artifact(sha256)
 
         # Get content from storage
         return await self.storage.get_bytes(sha256)

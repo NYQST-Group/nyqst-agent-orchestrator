@@ -8,8 +8,8 @@ Handles:
 - Audit logging
 """
 
-from datetime import datetime, timezone
-from typing import Annotated, Optional
+from datetime import UTC, datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -18,10 +18,9 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
-from intelli.core.context import RequestContext, set_context, clear_context
+from intelli.core.context import RequestContext, set_context
 from intelli.core.security import decode_access_token, hash_api_key, rate_limiter
-from intelli.db.models.auth import APIKey, AuditLog, Tenant, User
-
+from intelli.db.models.auth import APIKey, Tenant, User
 
 # Security schemes
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -31,7 +30,7 @@ async def get_api_key_auth(
     session: AsyncSession,
     api_key: str,
     request: Request,
-) -> Optional[RequestContext]:
+) -> RequestContext | None:
     """Authenticate via API key.
 
     Returns RequestContext if valid, None otherwise.
@@ -43,7 +42,7 @@ async def get_api_key_auth(
         select(APIKey, Tenant)
         .join(Tenant, APIKey.tenant_id == Tenant.id)
         .where(APIKey.key_hash == key_hash)
-        .where(APIKey.is_active == True)
+        .where(APIKey.is_active)
         .where(Tenant.status == "active")
     )
     row = result.first()
@@ -54,7 +53,7 @@ async def get_api_key_auth(
     api_key_obj, tenant = row
 
     # Check expiry
-    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.now(timezone.utc):
+    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.now(UTC):
         return None
 
     # Check IP allowlist
@@ -83,7 +82,7 @@ async def get_api_key_auth(
         update(APIKey)
         .where(APIKey.id == api_key_obj.id)
         .values(
-            last_used_at=datetime.now(timezone.utc),
+            last_used_at=datetime.now(UTC),
             use_count=APIKey.use_count + 1,
         )
     )
@@ -101,7 +100,7 @@ async def get_bearer_auth(
     session: AsyncSession,
     token: str,
     request: Request,
-) -> Optional[RequestContext]:
+) -> RequestContext | None:
     """Authenticate via JWT bearer token.
 
     Returns RequestContext if valid, None otherwise.
@@ -126,7 +125,7 @@ async def get_bearer_auth(
         select(User)
         .where(User.id == user_id)
         .where(User.tenant_id == tenant_id)
-        .where(User.is_active == True)
+        .where(User.is_active)
     )
     user = result.scalar_one_or_none()
 
@@ -148,15 +147,15 @@ async def get_bearer_auth(
 async def authenticate(
     request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
-    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
-    bearer: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)] = None,
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
+    bearer: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
 ) -> RequestContext:
     """Authenticate the request and return context.
 
     Tries API key first, then bearer token.
     Raises 401 if neither is valid.
     """
-    context: Optional[RequestContext] = None
+    context: RequestContext | None = None
 
     # Try API key first
     if x_api_key:
@@ -182,15 +181,15 @@ async def authenticate(
 async def authenticate_optional(
     request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
-    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
-    bearer: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)] = None,
-) -> Optional[RequestContext]:
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
+    bearer: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+) -> RequestContext | None:
     """Optionally authenticate the request.
 
     Returns None if no valid auth provided (doesn't raise).
     Used for public endpoints that behave differently when authenticated.
     """
-    context: Optional[RequestContext] = None
+    context: RequestContext | None = None
 
     if x_api_key:
         try:
@@ -233,7 +232,7 @@ def require_admin():
 
 # Type aliases for dependency injection
 AuthContext = Annotated[RequestContext, Depends(authenticate)]
-OptionalAuthContext = Annotated[Optional[RequestContext], Depends(authenticate_optional)]
+OptionalAuthContext = Annotated[RequestContext | None, Depends(authenticate_optional)]
 WriteContext = Annotated[RequestContext, Depends(require_scope("write"))]
 AdminContext = Annotated[RequestContext, Depends(require_admin())]
 AgentContext = Annotated[RequestContext, Depends(require_scope("agent"))]

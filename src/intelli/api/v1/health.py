@@ -6,9 +6,10 @@ Provides:
 - Detailed health status
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -16,7 +17,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
 from intelli.config import settings
-import httpx
 
 router = APIRouter(tags=["health"])
 
@@ -127,7 +127,7 @@ async def detailed_health(
 
     return HealthStatus(
         status=overall_status,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         version="0.1.0",
         checks=checks,
     )

@@ -1,9 +1,8 @@
 """Repository for Pointer operations."""
 
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from intelli.core.clock import utc_now
 from intelli.db.models.substrate import Pointer, PointerHistory
@@ -110,9 +109,8 @@ class PointerRepository(BaseRepository[Pointer]):
         old_sha256 = pointer.manifest_sha256
 
         # Check optimistic lock
-        if expected_sha256 is not None:
-            if old_sha256 != expected_sha256.lower() if expected_sha256 else old_sha256 is not None:
-                return False, old_sha256
+        if expected_sha256 is not None and old_sha256 != expected_sha256.lower():
+            return False, old_sha256
 
         # Update pointer
         pointer.manifest_sha256 = new_sha256.lower()

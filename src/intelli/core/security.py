@@ -9,8 +9,7 @@ Provides:
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from passlib.context import CryptContext
@@ -59,7 +58,7 @@ def create_access_token(
     subject: str,
     tenant_id: str,
     role: str,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create a JWT access token.
 
@@ -69,7 +68,7 @@ def create_access_token(
         role: User role for authorization
         expires_delta: Custom expiry time
     """
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta or timedelta(hours=JWT_EXPIRY_HOURS)
     )
 
@@ -78,13 +77,13 @@ def create_access_token(
         "tid": tenant_id,  # Tenant ID
         "role": role,
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
     }
 
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def decode_access_token(token: str) -> Optional[dict]:
+def decode_access_token(token: str) -> dict | None:
     """Decode and validate a JWT access token.
 
     Returns:
@@ -120,7 +119,7 @@ class RateLimiter:
         Returns:
             True if request is allowed
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         window_start = now - timedelta(seconds=window_seconds)
 
         # Get existing requests for this key
@@ -142,7 +141,7 @@ class RateLimiter:
 
     def get_remaining(self, key: str, limit: int, window_seconds: int = 60) -> int:
         """Get remaining requests in current window."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         window_start = now - timedelta(seconds=window_seconds)
 
         if key not in self._requests:
