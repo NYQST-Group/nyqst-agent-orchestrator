@@ -40,6 +40,17 @@ To avoid inventing a custom agentic stack, use these tools *behind* the contract
   - helpful for debugging and regression testing indexing/retrieval quality
   - does not replace the platform run ledger (ledger remains canonical for audit/export)
 
+## Multi-provider considerations (embeddings + rerankers)
+
+The index inevitably depends on models (embeddings, and optionally rerankers). To keep this enterprise-ready:
+- Bind model/provider choice to **profiles** (not user-visible knobs).
+- Support multiple providers via a **ModelRouter** that can select per-tenant/per-profile providers (OpenAI/Anthropic/Azure/etc.), with policy constraints.
+- Emit run ledger fields/hashes for:
+  - embedding model id + dimensions + provider
+  - reranker model id + provider (if used)
+  - profile id + version
+  - index backend id + version
+
 ## Contract surface (conceptual)
 
 ### Ingest

@@ -133,6 +133,34 @@ Ontologies live in graph and relational stores for ontology elements, but are tr
 - Ontology releases are versioned (artifact/manifest) and mounted as DataAssets.
 - Retrieval uses Index Service profiles; deep traversal uses graph queries (or edge tables early).
 
+### 2.11 Model providers + routing (multi-provider, policy-gated)
+
+The platform must support multiple model providers (chat + embeddings + optional rerankers) without coupling product logic to any single vendor.
+
+Represent this explicitly as *configuration objects*, not hard-coded code paths:
+
+- **ProviderConnection (tenant-scoped)**: how to talk to a provider.
+  - provider: `openai`, `anthropic`, `azure_openai`, `bedrock`, `vertex`, …
+  - endpoint/base_url (optional), region (optional)
+  - credential refs (secret manager), rotation metadata
+  - budgets/quotas, allowlists/denylists, data-handling constraints (residency)
+
+- **ModelRegistry (tenant/project-scoped)**: what models are allowed.
+  - chat models (for generation + tool calling)
+  - embedding models (for Index Service)
+  - optional rerankers (where supported)
+
+- **ModelProfile (versioned)**: the binding used by a module/agent.
+  - `chat_model`: provider + model id + decoding params
+  - `embedding_model`: provider + model id + dimensions
+  - optional `reranker`: provider + model id + params
+  - policy flags (e.g., “no tool calls”, “citations required”, “no external network tools”)
+
+**Where it is enforced**
+- Agents never choose providers ad-hoc: they run under an AgentDefinition, which selects a ModelProfile.
+- Policies can override (or block) profiles at higher levels of care.
+- Every run logs model/provider selection + config hashes to the run ledger for audit.
+
 ## 3) Sessions and module boundaries
 
 ### 3.1 Research session (deep research VM/container)
@@ -347,6 +375,29 @@ Minimal canonical object set external systems map into:
 - Document/Attachment
 - Approval
 
+### 7.4 Wiring connectors into substrate, index, and streaming UI
+
+Connectors should not be “side systems”. They are just **producers** (and sometimes **action tools**) in the same platform contracts:
+
+**A) Connector ingestion (sync/webhooks → trusted notebooks/search)**
+1. Inbound webhook/backfill job triggers a **ConnectorRun** (a Run in the run ledger).
+2. Connector normalizes provider payloads and emits **Artifacts** (raw JSON, attachments, rendered HTML/PDF, transcripts).
+3. Connector builds a **Manifest** for the sync output and advances a pointer (e.g., `namespace=project/<id>` + `name=connector/<provider>/<connection>`).
+4. Pointer advance triggers **always-on indexing** via Index Service profiles (no user “index” action).
+5. UI updates via:
+   - global SSE streams (`activity`, `pointer_changes`, `run_events`) for dashboards/feed
+   - and/or the chat stream (see 8.3/8.4) when the connector run was initiated from an agent interaction.
+
+**B) Connector actions (agent → external system)**
+- Expose outbound actions as tools (preferably via MCP) such as:
+  - `slack.post_message`, `jira.create_issue`, `hubspot.update_deal`, …
+- Gate all actions via policy:
+  - require confirmations at higher levels of care
+  - enforce idempotency keys + dry-run modes where possible
+  - log tool calls and results to the run ledger
+
+This keeps “integration” aligned with enterprise trust: every inbound/outbound connector action is observable, reproducible (where applicable), and attributable.
+
 ## 8) Module UX (NotebookLM‑like entry)
 
 ### 8.1 Product shell
@@ -383,6 +434,20 @@ Mapping to platform trust primitives:
 - each user interaction corresponds to a **Run** (or a step within a Run) with ledger events
 - retrieved evidence is returned as **sources** (artifact refs + offsets) so users can click to inspect
 - tool calls are surfaced explicitly (and can require confirmation under stricter levels of care)
+
+### 8.4 Streaming wiring (chat stream + system event streams)
+
+There are two complementary streaming surfaces:
+
+**Chat stream (per interaction)**  
+Used for assistant responses, tool-call progress, and returning sources in-line. Implemented as the AI SDK UI message stream protocol (SSE).
+
+**System streams (global)**  
+Used for “everything else changes” updates: run timelines, pointer moves, background connector syncs, index ingest progress. Implemented via the platform SSE endpoints backed by Postgres LISTEN/NOTIFY.
+
+Guideline:
+- If work was initiated from a chat interaction, stream the relevant parts in the chat UI *and* still record everything in the run ledger.
+- If work is background (scheduled connector sync, recert, reindex), stream it via global system streams and show it on Overview/Activity.
 
 ## 9) Governance + promotion (later phases)
 
