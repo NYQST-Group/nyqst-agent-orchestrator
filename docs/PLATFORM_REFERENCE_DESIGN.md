@@ -72,6 +72,29 @@ Interpretation:
 - **Thread**: chat‑like interaction + pinned context + attachments; used for collaboration but not treated as “truth”.
 - **Session**: binds user + project/objective + compute realm; has mounts to substrate and ephemeral FS.
 
+#### 2.5.1 Orchestration runtime (LangGraph; internal library)
+
+Use LangGraph as the **agent/workflow orchestration runtime** (graph-based control flow), because it provides:
+- **Stateful execution** for multi-step and multi-agent workflows.
+- **Streaming** execution for UI (progress + partial outputs).
+- **Durable resumability** via checkpointing (e.g., Redis/Postgres checkpointers) for long-running runs.
+- **Human-in-the-loop** patterns (interrupt → approve/modify → continue).
+- **Memory/Store primitives** (Redis/Postgres/in-memory stores) for per-thread “memories” and lightweight semantic retrieval.
+
+Design boundary (important):
+- LangGraph **does not** replace the platform kernel: substrate (artifacts/manifests/pointers), Index Service, or run ledger.
+- LangGraph checkpoints/stores are **operational aids** (resumability/memory), not the authoritative audit record.
+- The authoritative record remains: **inputs pinned to manifests + run ledger events + emitted artifacts**.
+
+#### 2.5.2 Observability + evaluation (LangSmith; optional)
+
+LangSmith can be integrated for developer-facing:
+- tracing (graph steps, model calls, tool calls),
+- dataset-based regression tests and evaluations,
+- prompt/version experimentation.
+
+It complements the run ledger. For enterprise trust, the platform’s **run ledger remains canonical** (immutable, queryable, exportable).
+
 ### 2.6 Knowledge bases (governed retrieval)
 
 - **KnowledgeBase**: governed retrieval object built from one or more corpus/bundle versions.
@@ -203,6 +226,24 @@ To make “always‑on indexing” cheap enough to be a default:
 - Key embedding/cache artifacts by **chunk hash** so re-indexing after re-clones or pointer churn reuses prior compute.
 - Treat the visible index as a **materialized view**: rebuildable from substrate + profiles, never the source of truth.
 
+### 4.7 Recommended implementation split (LangChain vs LangGraph)
+
+To avoid “building a custom agentic stack”, keep a clear split:
+
+- **LangChain (inside Index Service)** provides the **RAG/indexing building blocks**:
+  - loaders/parsers, splitters, embeddings, retrievers, rerankers
+  - integrations with vector stores / search backends
+  - retrieval-chain patterns (answer-with-sources is one consumer)
+
+- **LangGraph (orchestration runtime)** runs **indexing as a workflow** (and later, analysis workflows):
+  - orchestrates ingest jobs (fan-out, retries, checkpoints)
+  - streams progress to UI
+  - calls Index Service + MCP tools as steps
+
+This keeps the platform’s “IP boundary” intact:
+- users get **profiles**, not knobs;
+- modules depend on **contracts**, not vendor APIs.
+
 ## 5) Run ledger: canonical logging for agentic work
 
 ### 5.1 Why this matters
@@ -329,6 +370,20 @@ Dev/diagnostic surfaces exist but are not the default entry point.
 - **Client Intelligence**: client context and deliverables linked back to evidence.
 - **Project Intelligence**: objectives/tasks/deliverables and history of what changed.
 
+### 8.3 AI interaction UI contract (Vercel AI SDK UI)
+
+Adopt Vercel AI SDK UI (`@ai-sdk/react`) as the **frontend contract** for assistant interactions:
+- `useChat` becomes the standard UI primitive (messages, streaming, tool call rendering).
+- Backend exposes a single chat endpoint that streams **UI Message Stream / Data Stream Protocol** over SSE:
+  - `Content-Type: text/event-stream`
+  - `x-vercel-ai-ui-message-stream: v1`
+- The UI is decoupled from the agent runtime: LangGraph (or any orchestrator) can stream into this protocol.
+
+Mapping to platform trust primitives:
+- each user interaction corresponds to a **Run** (or a step within a Run) with ledger events
+- retrieved evidence is returned as **sources** (artifact refs + offsets) so users can click to inspect
+- tool calls are surfaced explicitly (and can require confirmation under stricter levels of care)
+
 ## 9) Governance + promotion (later phases)
 
 Corpus promotion requires:
@@ -394,6 +449,12 @@ Core stateful services:
 - object storage (S3/MinIO) for artifacts
 - OpenSearch (hybrid search; “real service” index backend)
 - Redis optional for queues/caches (can start without if workloads are small)
+
+Core libraries (non-stateful):
+- LangGraph (orchestration runtime: state, checkpoints, streaming)
+- LangChain (indexing/retrieval primitives behind Index Service profiles)
+- Vercel AI SDK UI (frontend chat + streaming/tool rendering contract)
+- LangSmith optional (dev tracing/evals); keep run ledger canonical for audit
 
 What to defer (until a clear trigger):
 - durable workflow engine (Temporal) until long-running/resumable runs matter

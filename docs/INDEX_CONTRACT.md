@@ -20,6 +20,26 @@ The index covers (at minimum):
 - **Explainable & auditable**: indexing emits runs + ledger events (what happened, with what config, when).
 - **Swappable backend**: the contract stays stable while the engine can evolve (pgvector → OpenSearch/Qdrant/Vespa/etc.).
 
+## Where LangGraph / LangChain / LangSmith fit
+
+To avoid inventing a custom agentic stack, use these tools *behind* the contract:
+
+- **LangChain** (inside the Index Service) provides the RAG/indexing primitives:
+  - parsing/loading, splitting, embeddings
+  - retrievers + rerankers (hybrid and multi-stage retrieval)
+  - integrations with search/vector backends
+
+  The platform still owns the “IP boundary”: LangChain components are wired into **profiles**, not exposed as user-visible knobs.
+
+- **LangGraph** is an orchestration/runtime layer, not the index itself:
+  - use it to run indexing workflows (fan-out, retries, checkpoints) as **runs**
+  - use it to run agentic RAG workflows that call the Index Service + MCP tools
+  - do **not** treat LangGraph memory/stores as the enterprise Index Service (those are for per-thread memory/resume, not global search over corpora)
+
+- **LangSmith** is optional developer tooling (tracing + evals):
+  - helpful for debugging and regression testing indexing/retrieval quality
+  - does not replace the platform run ledger (ledger remains canonical for audit/export)
+
 ## Contract surface (conceptual)
 
 ### Ingest
