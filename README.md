@@ -2,6 +2,8 @@
 
 An agent-first platform for document intelligence, research workflows, and knowledge management with full provenance tracking and governance.
 
+Start here: `docs/START_HERE.md`
+
 ## Core Principles
 
 1. **Single source of truth**: Immutable artifacts + manifests + run ledger
