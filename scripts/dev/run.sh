@@ -63,8 +63,8 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example"
 fi
 
-step "Start infrastructure (postgres + minio)"
-docker compose up -d postgres minio minio-init
+step "Start infrastructure (postgres + minio + opensearch)"
+docker compose up -d postgres minio minio-init opensearch
 
 step "Python venv + deps"
 if [[ ! -d .venv ]]; then

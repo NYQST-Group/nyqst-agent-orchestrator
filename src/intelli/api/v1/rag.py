@@ -143,12 +143,12 @@ async def ask_rag(
 
     sources = [
         RagSource(
-            chunk_id=r.chunk.id,
-            score=1.0 - r.distance,
-            artifact_sha256=r.chunk.artifact_sha256,
-            path=(r.chunk.meta or {}).get("path"),
-            chunk_index=r.chunk.chunk_index,
-            content=r.chunk.content,
+            chunk_id=r.chunk_id,
+            score=r.score,
+            artifact_sha256=r.artifact_sha256,
+            path=(r.path_hint or None),
+            chunk_index=r.chunk_index,
+            content=r.content,
         )
         for r in retrieved
     ]

@@ -42,6 +42,7 @@ git pull --rebase
   - UI: `3000`
   - Postgres: `5433` (configurable via `INTELLI_POSTGRES_PORT` in `docker-compose.yml`)
   - MinIO: `9000` (+ console `9001`)
+  - OpenSearch: `9200`
 - Note: `docker-compose.yml` includes an optional Langfuse service that also uses `3000` (only start that profile if you change ports).
 
 Overrides:
@@ -59,10 +60,10 @@ Minimum recommended edits in `.env`:
 - `OPENAI_API_KEY=...` (required for RAG indexing/asking)
 - Optional: `CHAT_MODEL=...` (defaults to `gpt-4o-mini`)
 
-### 3) Start infrastructure (Postgres + MinIO)
+### 3) Start infrastructure (Postgres + MinIO + OpenSearch)
 
 ```bash
-docker compose up -d postgres minio minio-init
+docker compose up -d postgres minio minio-init opensearch
 ```
 
 Validate:
@@ -73,6 +74,10 @@ Validate:
 - MinIO healthy:
   ```bash
   curl -fsS http://localhost:9000/minio/health/live >/dev/null
+  ```
+- OpenSearch healthy:
+  ```bash
+  curl -fsS http://localhost:9200 >/dev/null
   ```
 
 ### 4) Python environment + migrations
@@ -151,7 +156,7 @@ INTELLI_UI_PORT=3011 INTELLI_API_URL=http://localhost:8002 npm -C ui run dev
 Validate UI:
 - Open `http://localhost:3000`
 - Use “Demo Login”
-- Create a notebook (`+` in Explorer), upload docs, index, ask
+- Create a notebook (`+` in Explorer), upload docs, then ask
 
 ## Troubleshooting notes (common failures)
 

@@ -1,7 +1,7 @@
 """Minimal RAG service (index + ask) for demo workflows.
 
 This intentionally stays lightweight:
-- Indexes artifacts in a manifest into chunk embeddings (Postgres + pgvector)
+- Indexes artifacts into chunk embeddings (OpenSearch or Postgres + pgvector)
 - Answers questions scoped to a manifest using retrieved chunks + an LLM
 
 It is not a full KnowledgeBase/Corpus implementation yet.
@@ -24,6 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from intelli.config import settings
 from intelli.db.models.rag import RagChunk
 from intelli.db.models.substrate import Artifact
+from intelli.services.indexing.opensearch_chunks import OpenSearchChunkIndex
+from intelli.services.indexing.opensearch_client import OpenSearchClient, OpenSearchConfig
 from intelli.services.runs.ledger_service import LedgerService
 from intelli.services.substrate.artifact_service import ArtifactService
 from intelli.services.substrate.manifest_service import ManifestService
@@ -39,9 +41,13 @@ class RagIndexStats:
 
 
 @dataclass(frozen=True)
-class RagRetrievedChunk:
-    chunk: RagChunk
-    distance: float
+class RetrievedChunk:
+    chunk_id: UUID
+    artifact_sha256: str
+    chunk_index: int
+    content: str
+    score: float
+    path_hint: str | None = None
 
 
 def _chunk_text(text: str, max_chars: int = 2000, overlap: int = 200) -> list[str]:
@@ -94,7 +100,19 @@ class RagService:
     def _get_openai(self) -> AsyncOpenAI:
         if not settings.openai_api_key:
             raise ValueError("OPENAI_API_KEY is not configured")
-        return AsyncOpenAI(api_key=settings.openai_api_key)
+        kwargs = {"api_key": settings.openai_api_key}
+        if settings.openai_base_url:
+            kwargs["base_url"] = settings.openai_base_url
+        return AsyncOpenAI(**kwargs)
+
+    def _get_opensearch(self) -> OpenSearchClient:
+        cfg = OpenSearchConfig(
+            base_url=settings.opensearch_url,
+            username=settings.opensearch_username,
+            password=settings.opensearch_password,
+            verify_certs=settings.opensearch_verify_certs,
+        )
+        return OpenSearchClient(cfg)
 
     async def _extract_text(
         self,
@@ -196,22 +214,58 @@ class RagService:
         return [d.embedding for d in resp.data]
 
     async def _artifact_already_indexed(self, artifact_sha256: str) -> bool:
-        stmt = (
-            select(func.count())
-            .select_from(RagChunk)
-            .where(RagChunk.artifact_sha256 == artifact_sha256)
-            .where(RagChunk.embedding_model == settings.embedding_model)
-        )
-        result = await self.session.execute(stmt)
-        return (result.scalar_one() or 0) > 0
+        if settings.index_backend != "opensearch":
+            stmt = (
+                select(func.count())
+                .select_from(RagChunk)
+                .where(RagChunk.artifact_sha256 == artifact_sha256)
+                .where(RagChunk.embedding_model == settings.embedding_model)
+            )
+            result = await self.session.execute(stmt)
+            return (result.scalar_one() or 0) > 0
+
+        client = self._get_opensearch()
+        try:
+            idx = OpenSearchChunkIndex(client)
+            await idx.ensure_index()
+            resp = await client.search(
+                settings.opensearch_chunks_index,
+                body={
+                    "size": 0,
+                    "query": {
+                        "bool": {
+                            "filter": [
+                                {"term": {"artifact_sha256": artifact_sha256}},
+                                {"term": {"embedding_model": settings.embedding_model}},
+                            ]
+                        }
+                    },
+                },
+            )
+            total = int(((resp.get("hits") or {}).get("total") or {}).get("value") or 0)
+            return total > 0
+        finally:
+            await client.aclose()
 
     async def _delete_artifact_chunks(self, artifact_sha256: str) -> None:
-        stmt = (
-            delete(RagChunk)
-            .where(RagChunk.artifact_sha256 == artifact_sha256)
-            .where(RagChunk.embedding_model == settings.embedding_model)
-        )
-        await self.session.execute(stmt)
+        if settings.index_backend != "opensearch":
+            stmt = (
+                delete(RagChunk)
+                .where(RagChunk.artifact_sha256 == artifact_sha256)
+                .where(RagChunk.embedding_model == settings.embedding_model)
+            )
+            await self.session.execute(stmt)
+            return
+
+        client = self._get_opensearch()
+        try:
+            idx = OpenSearchChunkIndex(client)
+            await idx.delete_artifact(
+                artifact_sha256=artifact_sha256,
+                embedding_model=settings.embedding_model,
+            )
+        finally:
+            await client.aclose()
 
     async def index_manifest(
         self,
@@ -282,18 +336,32 @@ class RagService:
                     )
                 )
 
-            for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings, strict=True)):
-                self.session.add(
-                    RagChunk(
+            if settings.index_backend == "opensearch":
+                client = self._get_opensearch()
+                try:
+                    idx = OpenSearchChunkIndex(client)
+                    await idx.upsert_chunks(
                         artifact_sha256=artifact_sha256,
-                        chunk_index=idx,
-                        content=chunk_text,
-                        meta={"path": path_hint},
                         embedding_model=settings.embedding_model,
-                        embedding_dimensions=len(embedding),
-                        embedding=embedding,
+                        path_hint=path_hint,
+                        chunks=chunks,
+                        embeddings=embeddings,
                     )
-                )
+                finally:
+                    await client.aclose()
+            else:
+                for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings, strict=True)):
+                    self.session.add(
+                        RagChunk(
+                            artifact_sha256=artifact_sha256,
+                            chunk_index=idx,
+                            content=chunk_text,
+                            meta={"path": path_hint},
+                            embedding_model=settings.embedding_model,
+                            embedding_dimensions=len(embedding),
+                            embedding=embedding,
+                        )
+                    )
 
             artifacts_indexed += 1
             chunks_created += len(chunks)
@@ -320,15 +388,39 @@ class RagService:
         query: str,
         *,
         top_k: int = 8,
-    ) -> list[RagRetrievedChunk]:
+    ) -> list[RetrievedChunk]:
         entries = await self.manifests.get_entries(manifest_sha256)
         artifact_shas = sorted({e.artifact_sha256 for e in entries})
         if not artifact_shas:
             return []
 
         query_embedding = (await self._embed_texts([query]))[0]
-        distance = RagChunk.embedding.cosine_distance(query_embedding).label("distance")
+        if settings.index_backend == "opensearch":
+            client = self._get_opensearch()
+            try:
+                idx = OpenSearchChunkIndex(client)
+                hits = await idx.search_hybrid(
+                    query_text=query,
+                    query_embedding=query_embedding,
+                    artifact_sha256s=artifact_shas,
+                    embedding_model=settings.embedding_model,
+                    top_k=top_k,
+                )
+                return [
+                    RetrievedChunk(
+                        chunk_id=h.chunk_id,
+                        artifact_sha256=h.artifact_sha256,
+                        chunk_index=h.chunk_index,
+                        content=h.content,
+                        score=h.score,
+                        path_hint=h.path_hint,
+                    )
+                    for h in hits
+                ]
+            finally:
+                await client.aclose()
 
+        distance = RagChunk.embedding.cosine_distance(query_embedding).label("distance")
         stmt = (
             select(RagChunk, distance)
             .where(RagChunk.embedding_model == settings.embedding_model)
@@ -338,7 +430,17 @@ class RagService:
         )
 
         rows = (await self.session.execute(stmt)).all()
-        return [RagRetrievedChunk(chunk=row[0], distance=float(row[1])) for row in rows]
+        return [
+            RetrievedChunk(
+                chunk_id=row[0].id,
+                artifact_sha256=row[0].artifact_sha256,
+                chunk_index=row[0].chunk_index,
+                content=row[0].content,
+                score=float(1.0 - float(row[1])),
+                path_hint=(row[0].meta or {}).get("path"),
+            )
+            for row in rows
+        ]
 
     async def answer(
         self,
@@ -348,7 +450,7 @@ class RagService:
         top_k: int = 8,
         run_id: UUID | None = None,
         ledger: LedgerService | None = None,
-    ) -> tuple[str, list[RagRetrievedChunk]]:
+    ) -> tuple[str, list[RetrievedChunk]]:
         entries = await self.manifests.get_entries(manifest_sha256)
         artifact_to_path: dict[str, str] = {}
         for e in entries:
@@ -364,16 +466,27 @@ class RagService:
 
         retrieved = await self.retrieve(manifest_sha256, question, top_k=top_k)
 
+        # Always-on indexing: if retrieval returns nothing but we have sources,
+        # attempt an on-demand incremental index refresh and retry once.
+        if not retrieved and artifact_to_path:
+            await self.index_manifest(
+                manifest_sha256,
+                force=False,
+                run_id=run_id,
+                ledger=ledger,
+            )
+            retrieved = await self.retrieve(manifest_sha256, question, top_k=top_k)
+
         if ledger and run_id:
             await ledger.log_retrieval_result(
                 run_id=run_id,
                 kb_id=manifest_sha256,
                 results=[
                     {
-                        "chunk_id": str(r.chunk.id),
-                        "artifact_sha256": r.chunk.artifact_sha256,
-                        "path": artifact_to_path.get(r.chunk.artifact_sha256),
-                        "distance": r.distance,
+                        "chunk_id": str(r.chunk_id),
+                        "artifact_sha256": r.artifact_sha256,
+                        "path": artifact_to_path.get(r.artifact_sha256),
+                        "score": r.score,
                     }
                     for r in retrieved
                 ],
@@ -381,12 +494,12 @@ class RagService:
 
         if not retrieved:
             return (
-                "No indexed content found for this notebook. Run indexing first.",
+                "No indexed content found yet for these sources. Indexing runs automatically — try again shortly.",
                 [],
             )
 
         sources_text = "\n\n".join(
-            f"[{i}] {artifact_to_path.get(r.chunk.artifact_sha256) or r.chunk.artifact_sha256}\n{r.chunk.content}"
+            f"[{i}] {artifact_to_path.get(r.artifact_sha256) or r.artifact_sha256}\n{r.content}"
             for i, r in enumerate(retrieved, start=1)
         )
 
@@ -419,7 +532,6 @@ class RagService:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.2,
         )
 
         answer = resp.choices[0].message.content or ""

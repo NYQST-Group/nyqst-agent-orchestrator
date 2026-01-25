@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, FileUp, Sparkles, Wrench } from 'lucide-react'
+import { BookOpen, FileUp, Sparkles } from 'lucide-react'
 import { artifactsApi, manifestsApi, pointersApi, ragApi } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -106,33 +106,6 @@ export function NotebookPanel({ pointer }: { pointer: Pointer }) {
     },
   })
 
-  const indexMutation = useMutation({
-    mutationFn: async () => {
-      if (!pointer.manifest_sha256) {
-        throw new Error('Upload files first (notebook is empty).')
-      }
-      return ragApi.index({ pointer_id: pointer.id })
-    },
-    onSuccess: (result) => {
-      toast({
-        title: 'Indexed',
-        description: `${result.chunks_created} chunks across ${result.artifacts_total} files`,
-      })
-      openTab({
-        type: 'run',
-        title: `RAG Index ${result.run_id.slice(0, 8)}`,
-        resourceId: result.run_id,
-      })
-    },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Indexing failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
-      })
-    },
-  })
-
   const askMutation = useMutation({
     mutationFn: async () => {
       if (!pointer.manifest_sha256) {
@@ -178,7 +151,7 @@ export function NotebookPanel({ pointer }: { pointer: Pointer }) {
             Notebook
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Upload documents, index them, then ask questions with citations.
+            Upload documents, then ask questions with citations. Indexing runs automatically as sources change.
           </p>
         </div>
         <div className="flex gap-2">
@@ -190,18 +163,9 @@ export function NotebookPanel({ pointer }: { pointer: Pointer }) {
             onChange={handleFilesSelected}
           />
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => indexMutation.mutate()}
-            disabled={indexMutation.isPending || uploadMutation.isPending}
-          >
-            <Wrench className="h-4 w-4 mr-2" />
-            Index
-          </Button>
-          <Button
             size="sm"
             onClick={handlePickFiles}
-            disabled={uploadMutation.isPending || indexMutation.isPending}
+            disabled={uploadMutation.isPending || askMutation.isPending}
           >
             <FileUp className="h-4 w-4 mr-2" />
             Upload

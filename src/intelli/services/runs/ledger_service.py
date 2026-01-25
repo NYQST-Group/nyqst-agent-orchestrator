@@ -63,6 +63,9 @@ class LedgerService:
 
         Uses the raw connection to send NOTIFY, which is picked up
         by any listening SSE connections.
+
+        Note: PostgreSQL NOTIFY has an 8000 byte limit. Large payloads
+        are truncated or skipped to avoid errors.
         """
         import json
         from sqlalchemy import text
@@ -76,6 +79,19 @@ class LedgerService:
             "duration_ms": event.duration_ms,
             "sequence_num": event.sequence_num,
         })
+
+        # PostgreSQL NOTIFY has 8000 byte limit - skip large payloads
+        if len(notification_payload) > 7500:
+            # Send a truncated notification without full payload
+            notification_payload = json.dumps({
+                "id": event.id,
+                "run_id": str(event.run_id),
+                "event_type": event.event_type,
+                "payload": {"_truncated": True, "event_type": event.event_type},
+                "timestamp": event.timestamp.isoformat(),
+                "duration_ms": event.duration_ms,
+                "sequence_num": event.sequence_num,
+            })
 
         # PostgreSQL NOTIFY - received by any LISTEN connections
         await self.session.execute(

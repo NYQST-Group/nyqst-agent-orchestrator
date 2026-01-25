@@ -80,7 +80,35 @@ services:
     profiles:
       - observability
 
+  # OpenSearch for hybrid search (BM25 + vector) and scalable indexing.
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: intelli-opensearch
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      plugins.security.disabled: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "MySecurePass123!@#Dev"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
 volumes:
   postgres_data:
   minio_data:
   redis_data:
+  opensearch_data:

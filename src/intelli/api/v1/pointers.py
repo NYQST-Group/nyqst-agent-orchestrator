@@ -3,10 +3,11 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from intelli.api.dependencies import PointerServiceDep
 from intelli.core.exceptions import ConflictError, NotFoundError
+from intelli.services.indexing.auto_index import auto_index_manifest
 from intelli.schemas.substrate import (
     PointerAdvance,
     PointerAdvanceResponse,
@@ -74,6 +75,7 @@ async def advance_pointer(
     pointer_id: UUID,
     service: PointerServiceDep,
     data: PointerAdvance,
+    background_tasks: BackgroundTasks,
 ) -> PointerAdvanceResponse:
     """Advance pointer HEAD to a new manifest.
 
@@ -86,6 +88,29 @@ async def advance_pointer(
             expected_sha256=data.expected_sha256,
             reason=data.reason,
         )
+
+        # Always-on indexing (substrate capability) for pointers that opt in.
+        if result.success:
+            pointer = await service.get_pointer_by_id(pointer_id)
+            index_cfg = (pointer.meta or {}).get("index", {})
+            enabled = index_cfg.get("enabled")
+            if enabled is True or (enabled is None and pointer.namespace == "notebooks"):
+                profile = index_cfg.get("profile") or (
+                    "docs.default" if pointer.namespace == "notebooks" else "default"
+                )
+                background_tasks.add_task(
+                    auto_index_manifest,
+                    manifest_sha256=result.new_sha256,
+                    pointer_id=pointer_id,
+                    profile=profile,
+                    reason=data.reason or "pointer_advance",
+                )
+
+        # Ensure the advance is committed before returning a 200.
+        # FastAPI executes dependency cleanup (and our session commit) after the response is sent,
+        # which can cause a brief window where a subsequent request cannot see the new HEAD.
+        await service.repo.session.commit()
+
         return PointerAdvanceResponse(
             success=result.success,
             old_sha256=result.old_sha256,

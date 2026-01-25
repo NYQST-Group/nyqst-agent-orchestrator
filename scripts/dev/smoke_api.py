@@ -140,16 +140,6 @@ def main() -> int:
         _print_warn("OPENAI_API_KEY not set; skipping RAG index/ask smoke steps")
         return 0
 
-    # RAG index
-    r = client.post(
-        "/api/v1/rag/index",
-        headers=headers,
-        json={"pointer_id": pointer_id},
-    )
-    r.raise_for_status()
-    index_result = r.json()
-    _print_ok(f"rag index (chunks_created={index_result.get('chunks_created')})")
-
     # RAG ask
     r = client.post(
         "/api/v1/rag/ask",

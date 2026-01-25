@@ -16,6 +16,7 @@ from intelli.api.middleware import (
 )
 from intelli.api.health import router as health_router
 from intelli.api.v1 import router as v1_router
+from intelli.services.indexing.init import init_index_backend
 
 logger = get_logger(__name__)
 
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app_name=settings.app_name,
         debug=settings.debug,
     )
+    await init_index_backend()
     # Note: Database tables are created via Alembic migrations, not here
     yield
     # Shutdown

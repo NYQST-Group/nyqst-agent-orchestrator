@@ -41,9 +41,18 @@ class Settings(BaseSettings):
     embedding_model: str = Field(default="text-embedding-3-small")
     embedding_dimensions: int = Field(default=1536)
     openai_api_key: str | None = Field(default=None)
+    openai_base_url: str | None = Field(default=None)
 
     # LLM (for answer generation)
     chat_model: str = Field(default="gpt-4o-mini")
+
+    # Indexing / search backend
+    index_backend: Literal["pgvector", "opensearch"] = Field(default="pgvector")
+    opensearch_url: str = Field(default="http://localhost:9200")
+    opensearch_username: str | None = Field(default=None)
+    opensearch_password: str | None = Field(default=None)
+    opensearch_verify_certs: bool = Field(default=False)
+    opensearch_chunks_index: str = Field(default="intelli-chunks-v1")
 
     # MCP Server
     mcp_transport: Literal["streamable-http", "stdio"] = Field(default="streamable-http")

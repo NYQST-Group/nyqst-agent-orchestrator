@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
 from intelli.config import settings
+import httpx
 
 router = APIRouter(tags=["health"])
 
@@ -49,6 +50,12 @@ async def readiness(
     try:
         # Check database
         await session.execute(text("SELECT 1"))
+        # Check index backend if required
+        if settings.index_backend == "opensearch":
+            async with httpx.AsyncClient(timeout=2.0, verify=settings.opensearch_verify_certs) as client:
+                r = await client.get(settings.opensearch_url.rstrip("/") + "/")
+            if r.status_code != 200:
+                raise RuntimeError(f"OpenSearch not ready (status {r.status_code})")
         return {"status": "ready"}
     except Exception:
         from fastapi import Response
@@ -98,6 +105,25 @@ async def detailed_health(
         "transport": settings.mcp_transport,
         "port": settings.mcp_port,
     }
+
+    # Index backend (optional)
+    if settings.index_backend == "opensearch":
+        try:
+            async with httpx.AsyncClient(timeout=2.0, verify=settings.opensearch_verify_certs) as client:
+                r = await client.get(settings.opensearch_url.rstrip("/") + "/")
+            checks["index"] = {
+                "status": "healthy" if r.status_code == 200 else "degraded",
+                "backend": "opensearch",
+                "url": settings.opensearch_url,
+                "http_status": r.status_code,
+            }
+            if r.status_code != 200 and overall_status == "healthy":
+                overall_status = "degraded"
+        except Exception as e:
+            checks["index"] = {"status": "unhealthy", "backend": "opensearch", "error": str(e)}
+            overall_status = "unhealthy"
+    else:
+        checks["index"] = {"status": "healthy", "backend": settings.index_backend}
 
     return HealthStatus(
         status=overall_status,

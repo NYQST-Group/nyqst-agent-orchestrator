@@ -59,8 +59,8 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example (edit OPENAI_API_KEY for full RAG smoke test)"
 fi
 
-step "Start infrastructure (postgres + minio)"
-docker compose up -d postgres minio minio-init
+step "Start infrastructure (postgres + minio + opensearch)"
+docker compose up -d postgres minio minio-init opensearch
 
 step "Wait for Postgres"
 wait_for "postgres ready" "docker compose exec -T postgres pg_isready -U intelli" 60 1 \
@@ -69,6 +69,10 @@ wait_for "postgres ready" "docker compose exec -T postgres pg_isready -U intelli
 step "Wait for MinIO"
 wait_for "minio health" "curl -fsS http://localhost:9000/minio/health/live" 60 1 \
   || die "MinIO did not become healthy"
+
+step "Wait for OpenSearch"
+wait_for "opensearch health" "curl -fsS http://localhost:9200 >/dev/null" 120 1 \
+  || die "OpenSearch did not become healthy"
 
 step "Python venv + deps"
 if [[ ! -d .venv ]]; then

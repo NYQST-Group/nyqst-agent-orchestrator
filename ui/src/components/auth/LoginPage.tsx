@@ -34,7 +34,7 @@ export function LoginPage() {
         userId: response.user_id,
         tenantId: response.tenant_id,
       })
-      navigate('/workbench')
+      navigate('/overview')
     } catch (error) {
       const message =
         error instanceof ApiError
@@ -58,7 +58,7 @@ export function LoginPage() {
         userId: response.user_id,
         tenantId: response.tenant_id,
       })
-      navigate('/workbench')
+      navigate('/overview')
     } catch (error) {
       const description =
         error instanceof ApiError && error.status === 404
@@ -89,7 +89,7 @@ export function LoginPage() {
         tenantName: user.tenant_name,
         scopes: user.scopes,
       })
-      navigate('/workbench')
+      navigate('/overview')
     } catch (error) {
       useAuthStore.getState().logout()
       toast({
