@@ -20,6 +20,7 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [000](./000-TEMPLATE.md) | Template | N/A | N/A |
 | [001](./001-data-model-strategy.md) | Data Model Strategy - Domain-First with CDM Mapping | Accepted | 03_PLATFORM.md, 06_ARCHITECTURE.md |
 | [002](./002-code-generation-strategy.md) | Code Generation and Contract Strategy | Proposed | 06_ARCHITECTURE.md |
+| [003](./003-virtual-team-architecture.md) | Virtual Team Architecture for AI Agent Coordination | Proposed | 03_PLATFORM.md, 06_ARCHITECTURE.md |
 
 ## Pending ADRs (from PRD Notes)
 

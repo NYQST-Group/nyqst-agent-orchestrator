@@ -308,3 +308,4 @@ This document covers **platform foundation only**. The following are covered els
 - [Roadmap](../prd/07_ROADMAP.md) - Full product roadmap including product features
 - [Platform Modules](../prd/03_PLATFORM.md) - Module capabilities
 - [Platform Reference Design](../PLATFORM_REFERENCE_DESIGN.md) - Detailed technical specification
+- [Virtual Team Operating System](./VIRTUAL_TEAM_OPERATING_SYSTEM.md) - AI agent coordination infrastructure
