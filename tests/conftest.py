@@ -1,0 +1,87 @@
+"""Pytest fixtures for Intelli platform tests."""
+
+import pytest
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from httpx import AsyncClient, ASGITransport
+
+from intelli.main import create_app
+from intelli.db.base import Base
+from intelli.api.dependencies import get_session
+
+# Test database URL - use a separate test database
+TEST_DATABASE_URL = "postgresql+asyncpg://intelli:intelli@localhost:5432/intelli_test"
+
+
+@pytest_asyncio.fixture
+async def test_engine():
+    """Create test database engine and tables."""
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def test_session(test_engine):
+    """Create test database session."""
+    session_factory = async_sessionmaker(
+        bind=test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with session_factory() as session:
+        yield session
+        await session.rollback()
+
+
+@pytest_asyncio.fixture
+async def test_client(test_session):
+    """Create test HTTP client with dependency overrides."""
+    app = create_app()
+
+    # Override the database session dependency
+    async def override_get_session():
+        yield test_session
+
+    app.dependency_overrides[get_session] = override_get_session
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        yield client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_artifact_content() -> bytes:
+    """Sample content for artifact tests."""
+    return b"Hello, this is test content for artifact testing."
+
+
+@pytest.fixture
+def sample_pdf_content() -> bytes:
+    """Minimal PDF content for testing."""
+    # This is a minimal valid PDF
+    return b"""%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj
+xref
+0 3
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+trailer << /Size 3 /Root 1 0 R >>
+startxref
+115
+%%EOF"""
