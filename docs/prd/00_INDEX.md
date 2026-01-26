@@ -15,18 +15,29 @@ This PRD suite provides comprehensive product documentation for the NYQST platfo
 ### Document Map
 
 ```
-docs/prd/
-├── 00_INDEX.md              <- You are here (navigation guide)
-├── 01_EXECUTIVE_SUMMARY.md  <- Start here (2-page overview for all audiences)
-├── 02_VISION.md             <- Strategic thesis, market position, why NYQST exists
-├── 03_PLATFORM.md           <- NYQST Platform modules and core capabilities
-├── 04_PRODUCTS.md           <- Product variants: PropSygnal & RegSygnal
-├── 05_USERS.md              <- User personas across products
-├── 06_ARCHITECTURE.md       <- Technical architecture and design principles
-├── 07_ROADMAP.md            <- Phased delivery plan, current priorities
-├── 08_METRICS.md            <- Success metrics, KPIs, acceptance criteria
-├── 09_RISKS.md              <- Risks, dependencies, assumptions, mitigations
-└── 10_APPENDIX.md           <- Glossary, references, supporting materials
+docs/
+├── prd/                         <- Product Requirements (what & why)
+│   ├── 00_INDEX.md              <- You are here (navigation guide)
+│   ├── 01_EXECUTIVE_SUMMARY.md  <- Start here (2-page overview for all audiences)
+│   ├── 02_VISION.md             <- Strategic thesis, market position, why NYQST exists
+│   ├── 03_PLATFORM.md           <- NYQST Platform modules and core capabilities
+│   ├── 04_PRODUCTS.md           <- Product variants: PropSygnal & RegSygnal
+│   ├── 05_USERS.md              <- User personas across products
+│   ├── 06_ARCHITECTURE.md       <- Technical architecture and design principles
+│   ├── 07_ROADMAP.md            <- Phased delivery plan, current priorities
+│   ├── 08_METRICS.md            <- Success metrics, KPIs, acceptance criteria
+│   ├── 09_RISKS.md              <- Risks, dependencies, assumptions, mitigations
+│   └── 10_APPENDIX.md           <- Glossary, references, supporting materials
+│
+├── planning/                    <- Execution Planning (when & how)
+│   └── PLATFORM_FOUNDATION.md   <- Core infrastructure build sequence
+│
+├── adr/                         <- Architecture Decision Records (why this way)
+│   ├── README.md                <- ADR index and pending decisions
+│   └── 000-TEMPLATE.md          <- Template for new ADRs
+│
+└── research/                    <- Research & Analysis
+    └── AGENTIC_SYSTEMS_RESEARCH.md <- Agentic systems ecosystem research
 ```
 
 ### Reading Guide by Audience
@@ -101,7 +112,22 @@ This PRD suite includes **ADR Notes** embedded within relevant documents. These 
 **ADR Notes format:**
 > **ADR Note (Topic):** Brief description of decision needed and key questions to address.
 
-ADRs will be created in `docs/adr/` when architectural decisions are made during implementation.
+ADRs will be created in `docs/adr/` when architectural decisions are made during implementation. See [ADR README](../adr/README.md) for the full list of pending ADRs.
+
+---
+
+## Planning Documents
+
+Planning documents bridge the PRD (what to build) with execution (how to build it).
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| [Platform Foundation](../planning/PLATFORM_FOUNDATION.md) | Dependency-sequenced core infrastructure build order | Engineering, Product |
+| Epic Backlog (future) | Prioritized product features for PropSygnal/RegSygnal | Product, Engineering |
+
+**Key Distinction:**
+- **Platform Foundation** - Order driven by technical dependencies (all required, just sequenced)
+- **Epic Backlog** - Order driven by business value (prioritization frameworks apply)
 
 ---
 
