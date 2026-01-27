@@ -16,6 +16,17 @@ This plan introduces a **two-track approach** to deliver a working client previe
 
 The throwaway is minimal and intentional: we build a simple agent and streaming endpoint that will be upgraded (not discarded) when the foundation is ready.
 
+### ADR Alignment
+
+This plan implements decisions from the following Architecture Decision Records:
+
+| ADR | Decision | Plan Implementation |
+|-----|----------|---------------------|
+| [ADR-004](../adr/004-index-service-architecture.md) | Contract-first IndexService with OpenSearch + pgvector | Track B Week 1-2: IndexService unification |
+| [ADR-005](../adr/005-agent-runtime-framework.md) | LangGraph backend + Vercel AI SDK frontend | Track A Week 1: LangGraph agent + useChat hook |
+| [ADR-006](../adr/006-session-workspace-architecture.md) | Lightweight database session model | Track B Week 3-4: Session model |
+| [ADR-007](../adr/007-document-processing-pipeline.md) | Tiered DocIR with HybridChunker | Track B Week 2-3: Docling + HybridChunker |
+
 ---
 
 ## 1. Current State Assessment
@@ -147,26 +158,43 @@ research_assistant = graph.compile()
 
 **Streaming Endpoint (Vercel AI SDK Compatible):**
 
+Per [ADR-005](../adr/005-agent-runtime-framework.md), LangGraph's streaming output is bridged to the Vercel AI SDK UI protocol via a stream adapter:
+
+```
+LangGraph StreamEvents
+       │
+       ▼
+  LangGraphToAISDKAdapter
+       │
+       ├──► SSE (AI SDK UI protocol) → Frontend useChat
+       │
+       └──► Run Ledger Events → Platform audit
+```
+
 ```python
 # src/intelli/api/v1/agent.py
 
-from ai_sdk import StreamingTextResponse, Message
+from intelli.agents.adapters import LangGraphToAISDKAdapter
 
 @router.post("/chat")
 async def agent_chat(
     request: AgentChatRequest,
     session: AsyncSession = Depends(get_session),
+    run_service: RunService = Depends(get_run_service),
 ):
     """Stream agent responses in Vercel AI SDK format."""
+    adapter = LangGraphToAISDKAdapter(run_service)
+    
     async def generate():
         async for event in research_assistant.astream(
             {"messages": request.messages, "context_pointer_id": request.pointer_id}
         ):
-            # Format compatible with useChat hook
-            if "generate" in event:
-                yield event["generate"]["content"]
+            # Adapter converts LangGraph events to AI SDK format
+            # AND emits run ledger events for audit
+            for ai_sdk_chunk in adapter.convert(event):
+                yield ai_sdk_chunk
     
-    return StreamingTextResponse(generate())
+    return StreamingResponse(generate(), media_type="text/event-stream")
 ```
 
 **Frontend Integration (useChat hook):**
@@ -794,6 +822,7 @@ Week 4+ │ Convergence: Upgrade preview with foundation
 
 ```
 src/intelli/agents/graphs/research_assistant.py   # Simple LangGraph agent
+src/intelli/agents/adapters/__init__.py           # LangGraphToAISDKAdapter (per ADR-005)
 src/intelli/api/v1/agent.py                       # Streaming chat endpoint (AI SDK compatible)
 src/intelli/schemas/agent.py                      # Request/response models
 ui/src/hooks/useAgentChat.ts                      # Vercel AI SDK useChat wrapper
