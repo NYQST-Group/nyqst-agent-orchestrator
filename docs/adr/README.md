@@ -21,6 +21,12 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [001](./001-data-model-strategy.md) | Data Model Strategy - Domain-First with CDM Mapping | Accepted | 03_PLATFORM.md, 06_ARCHITECTURE.md |
 | [002](./002-code-generation-strategy.md) | Code Generation and Contract Strategy | Proposed | 06_ARCHITECTURE.md |
 | [003](./003-virtual-team-architecture.md) | Virtual Team Architecture for AI Agent Coordination | Proposed | 03_PLATFORM.md, 06_ARCHITECTURE.md |
+| [004](./004-index-service-architecture.md) | Index Service Architecture | Proposed | 03_PLATFORM.md, 06_ARCHITECTURE.md |
+| [005](./005-agent-runtime-framework.md) | Agent Runtime and Framework Choice | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
+| [006](./006-session-workspace-architecture.md) | Session and Workspace Architecture | Proposed | 06_ARCHITECTURE.md |
+| [007](./007-document-processing-pipeline.md) | Document Processing Pipeline | Proposed | 03_PLATFORM.md, 06_ARCHITECTURE.md |
+| [008](./008-mcp-tool-architecture.md) | MCP Tool Architecture | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
+| [009](./009-human-in-the-loop-governance.md) | Human-in-the-Loop and Governance Patterns | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
 
 ## Pending ADRs (from PRD Notes)
 
@@ -28,55 +34,55 @@ The following ADRs have been flagged in the PRD documents and need to be written
 
 ### Core Architecture
 
-| Topic | PRD Source | Key Questions |
-|-------|------------|---------------|
-| Session/VM Architecture | 06_ARCHITECTURE.md | VM orchestration, session persistence, cold start, resource allocation |
-| Knowledge Architecture | 06_ARCHITECTURE.md | Storage format, retrieval, versioning, sharing permissions |
-| Playbook Architecture | 06_ARCHITECTURE.md | Definition format, versioning, batch orchestration, improvement loop |
-| Task vs Workflow Architecture | 06_ARCHITECTURE.md | Task/workflow unification, governance layer, Camunda integration |
-| Checkpointing Architecture | 06_ARCHITECTURE.md | Storage backend, granularity policies, serialization, pruning |
-| Human-in-the-Loop Patterns | 06_ARCHITECTURE.md | Interrupt triggers, state inspection, approval workflow, feedback |
-| Long-Running Agent Patterns | 03_PLATFORM.md | Initializer vs progress agent, artifact format, checkpoint granularity |
-| Tool Design Standards | 03_PLATFORM.md | Skill interface specification, namespacing, response format |
+| Topic | PRD Source | Key Questions | Status |
+|-------|------------|---------------|--------|
+| Session/VM Architecture | 06_ARCHITECTURE.md | VM orchestration, session persistence, cold start, resource allocation | **→ [ADR-006](./006-session-workspace-architecture.md)** |
+| Knowledge Architecture | 06_ARCHITECTURE.md | Storage format, retrieval, versioning, sharing permissions | Pending |
+| Playbook Architecture | 06_ARCHITECTURE.md | Definition format, versioning, batch orchestration, improvement loop | Pending |
+| Task vs Workflow Architecture | 06_ARCHITECTURE.md | Task/workflow unification, governance layer, Camunda integration | Pending |
+| Checkpointing Architecture | 06_ARCHITECTURE.md | Storage backend, granularity policies, serialization, pruning | Partially covered in **[ADR-005](./005-agent-runtime-framework.md)** |
+| Human-in-the-Loop Patterns | 06_ARCHITECTURE.md | Interrupt triggers, state inspection, approval workflow, feedback | **→ [ADR-009](./009-human-in-the-loop-governance.md)** |
+| Long-Running Agent Patterns | 03_PLATFORM.md | Initializer vs progress agent, artifact format, checkpoint granularity | Partially covered in **[ADR-005](./005-agent-runtime-framework.md)** |
+| Tool Design Standards | 03_PLATFORM.md | Skill interface specification, namespacing, response format | **→ [ADR-008](./008-mcp-tool-architecture.md)** |
 
 ### Integration
 
-| Topic | PRD Source | Key Questions |
-|-------|------------|---------------|
-| CRM/PM Integration | 06_ARCHITECTURE.md | Monday/HubSpot/Salesforce connectors, bidirectional sync |
-| MCP Marketplace | 06_ARCHITECTURE.md | Discovery, versioning, security, custom onboarding, billing |
-| MCP Architecture | 06_ARCHITECTURE.md | Full adoption vs selective, tool design, workflow in MCP |
-| Agent Framework Choice | 06_ARCHITECTURE.md | LangGraph vs Vercel AI SDK vs custom |
+| Topic | PRD Source | Key Questions | Status |
+|-------|------------|---------------|--------|
+| CRM/PM Integration | 06_ARCHITECTURE.md | Monday/HubSpot/Salesforce connectors, bidirectional sync | Pending |
+| MCP Marketplace | 06_ARCHITECTURE.md | Discovery, versioning, security, custom onboarding, billing | Pending |
+| MCP Architecture | 06_ARCHITECTURE.md | Full adoption vs selective, tool design, workflow in MCP | **→ [ADR-008](./008-mcp-tool-architecture.md)** |
+| Agent Framework Choice | 06_ARCHITECTURE.md | LangGraph vs Vercel AI SDK vs custom | **→ [ADR-005](./005-agent-runtime-framework.md)** |
 
 ### UI/UX
 
-| Topic | PRD Source | Key Questions |
-|-------|------------|---------------|
-| Research UI | 06_ARCHITECTURE.md | Panel layout, source ingestion, Deep vs Fast research |
-| Workbench UI | 06_ARCHITECTURE.md | IDE framework, terminal integration, file system |
-| Analysis Canvas | 06_ARCHITECTURE.md | Canvas framework, data model, collaboration, export |
-| Cross-Session Analysis | 06_ARCHITECTURE.md | Permissions, pattern detection, coaching reports, privacy |
-| Generative UI Architecture | 06_ARCHITECTURE.md | Component library, AG-UI protocol, state sync, guardrails |
+| Topic | PRD Source | Key Questions | Status |
+|-------|------------|---------------|--------|
+| Research UI | 06_ARCHITECTURE.md | Panel layout, source ingestion, Deep vs Fast research | Pending |
+| Workbench UI | 06_ARCHITECTURE.md | IDE framework, terminal integration, file system | Pending |
+| Analysis Canvas | 06_ARCHITECTURE.md | Canvas framework, data model, collaboration, export | Pending |
+| Cross-Session Analysis | 06_ARCHITECTURE.md | Permissions, pattern detection, coaching reports, privacy | Pending |
+| Generative UI Architecture | 06_ARCHITECTURE.md | Component library, AG-UI protocol, state sync, guardrails | Pending |
 
 ### Platform Services
 
-| Topic | PRD Source | Key Questions |
-|-------|------------|---------------|
-| Document Processing Pipeline | 03_PLATFORM.md | Tier selection, parser technology, evaluation metrics |
-| Classification Service | 03_PLATFORM.md | Service boundary, MCP interface, taxonomy management |
-| Domain Model Library | 03_PLATFORM.md | Context7-style server, search, LLM summarization |
-| CDM Integration | 03_PLATFORM.md | Microsoft CDM, table structures, extensions |
-| Indexing/Diffing Service | 03_PLATFORM.md | Service boundary, API vs MCP, swap-in/swap-out |
-| Context Management Service | 03_PLATFORM.md | Connector architecture, email parsing, client/project matching |
+| Topic | PRD Source | Key Questions | Status |
+|-------|------------|---------------|--------|
+| Document Processing Pipeline | 03_PLATFORM.md | Tier selection, parser technology, evaluation metrics | **→ [ADR-007](./007-document-processing-pipeline.md)** |
+| Classification Service | 03_PLATFORM.md | Service boundary, MCP interface, taxonomy management | Pending |
+| Domain Model Library | 03_PLATFORM.md | Context7-style server, search, LLM summarization | Pending |
+| CDM Integration | 03_PLATFORM.md | Microsoft CDM, table structures, extensions | Covered in **[ADR-001](./001-data-model-strategy.md)** |
+| Indexing/Diffing Service | 03_PLATFORM.md | Service boundary, API vs MCP, swap-in/swap-out | **→ [ADR-004](./004-index-service-architecture.md)** |
+| Context Management Service | 03_PLATFORM.md | Connector architecture, email parsing, client/project matching | Pending |
 
 ### Product Features
 
-| Topic | PRD Source | Key Questions |
-|-------|------------|---------------|
-| Dynamic Views | 03_PLATFORM.md | View generation, visualization framework, task integration |
-| Agent-Generated Apps | 03_PLATFORM.md | Guardrailed component library, app configuration, constraints |
-| Background Copilot | 03_PLATFORM.md | Trigger conditions, organizational model building, opportunity detection |
-| MCP Workflow Capability | 03_PLATFORM.md | MCP workflow extension, external packaging, billing |
+| Topic | PRD Source | Key Questions | Status |
+|-------|------------|---------------|--------|
+| Dynamic Views | 03_PLATFORM.md | View generation, visualization framework, task integration | Pending |
+| Agent-Generated Apps | 03_PLATFORM.md | Guardrailed component library, app configuration, constraints | Pending |
+| Background Copilot | 03_PLATFORM.md | Trigger conditions, organizational model building, opportunity detection | Pending |
+| MCP Workflow Capability | 03_PLATFORM.md | MCP workflow extension, external packaging, billing | Pending |
 
 ## How to Write an ADR
 
