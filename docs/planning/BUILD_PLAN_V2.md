@@ -86,23 +86,30 @@ A working demo where a client can:
 3. See the agent's reasoning and sources
 4. View what the agent did (run timeline)
 
-### Week 1: Agent Chat + Streaming
+### Week 1: Agent Chat + Streaming (with Vercel AI SDK)
 
 **Deliverables:**
 - Research agent graph (LangGraph) that wraps existing RAG service
-- Streaming endpoint for agent responses (`POST /api/v1/agent/chat`)
-- ResearchPage wired to real backend (not placeholder)
-- Chat pane connected to streaming endpoint
+- Streaming endpoint for agent responses (`POST /api/v1/agent/chat`) compatible with Vercel AI SDK
+- ResearchPage wired to real backend using `useChat` hook
+- Chat pane with professional streaming UX (typing indicators, message history, error handling)
 
 **Tasks:**
 
 | ID | Task | Estimate | Dependencies |
 |----|------|----------|--------------|
 | A1.1 | Create `research_assistant` LangGraph graph | 1d | None |
-| A1.2 | Add streaming chat endpoint (`/api/v1/agent/chat`) | 1d | A1.1 |
-| A1.3 | Wire chat-pane.tsx to streaming endpoint | 1d | A1.2 |
-| A1.4 | Replace ResearchPage placeholder with working UI | 1d | A1.3 |
-| A1.5 | Add document context selector (mount pointers) | 1d | A1.4 |
+| A1.2 | Add streaming chat endpoint (AI SDK compatible format) | 1d | A1.1 |
+| A1.3 | Install Vercel AI SDK (`ai`, `@ai-sdk/react`) | 0.5d | None |
+| A1.4 | Replace mock streaming with `useChat` hook | 0.5d | A1.2, A1.3 |
+| A1.5 | Replace ResearchPage placeholder with working UI | 1d | A1.4 |
+| A1.6 | Add document context selector (mount pointers) | 1d | A1.5 |
+
+**Why Vercel AI SDK:**
+- Production-ready streaming with built-in loading states and error handling
+- `useChat` hook manages message history, input state, and streaming automatically
+- Compatible with LangGraph streaming output
+- Used by major AI products (ChatGPT-like UX out of the box)
 
 **Agent Graph (Simple Version):**
 
@@ -138,24 +145,52 @@ graph.set_entry_point("retrieve")
 research_assistant = graph.compile()
 ```
 
-**Streaming Endpoint:**
+**Streaming Endpoint (Vercel AI SDK Compatible):**
 
 ```python
 # src/intelli/api/v1/agent.py
+
+from ai_sdk import StreamingTextResponse, Message
 
 @router.post("/chat")
 async def agent_chat(
     request: AgentChatRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    """Stream agent responses via SSE."""
+    """Stream agent responses in Vercel AI SDK format."""
     async def generate():
         async for event in research_assistant.astream(
             {"messages": request.messages, "context_pointer_id": request.pointer_id}
         ):
-            yield f"data: {json.dumps(event)}\n\n"
+            # Format compatible with useChat hook
+            if "generate" in event:
+                yield event["generate"]["content"]
     
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    return StreamingTextResponse(generate())
+```
+
+**Frontend Integration (useChat hook):**
+
+```typescript
+// ui/src/hooks/useAgentChat.ts
+
+import { useChat } from '@ai-sdk/react';
+
+export function useAgentChat(pointerId: string) {
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    api: '/api/v1/agent/chat',
+    body: { pointer_id: pointerId },
+  });
+
+  return {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    error,
+  };
+}
 ```
 
 **Exit Criteria Week 1:**
@@ -185,9 +220,11 @@ async def agent_chat(
 - Search results show with relevance scores
 - Clicking a source opens document at relevant section
 
-### Week 3: Polish + Integration
+### Week 3: Polish + Integration (Material 3 Design Principles)
 
 **Deliverables:**
+- Professional visual polish following Material 3 design principles
+- Consistent use of component library (no ad-hoc styling)
 - Error handling and loading states
 - Mobile-responsive layout
 - Demo script and walkthrough
@@ -197,17 +234,84 @@ async def agent_chat(
 
 | ID | Task | Estimate | Dependencies |
 |----|------|----------|--------------|
-| A3.1 | Add error boundaries and fallbacks | 1d | Week 2 |
-| A3.2 | Loading skeletons for all async operations | 0.5d | A3.1 |
-| A3.3 | Mobile layout adjustments | 0.5d | None |
-| A3.4 | Internal demo and bug bash | 1d | A3.1-A3.3 |
-| A3.5 | Fix critical bugs from testing | 1d | A3.4 |
-| A3.6 | Demo script and client walkthrough prep | 0.5d | A3.5 |
+| A3.1 | UI audit: ensure all pages use component library | 0.5d | Week 2 |
+| A3.2 | Apply Material 3 spacing and typography hierarchy | 0.5d | A3.1 |
+| A3.3 | Add error boundaries and fallbacks | 0.5d | A3.1 |
+| A3.4 | Loading skeletons for all async operations | 0.5d | A3.3 |
+| A3.5 | Mobile layout adjustments | 0.5d | None |
+| A3.6 | Visual QA checklist (see below) | 0.5d | A3.1-A3.5 |
+| A3.7 | Internal demo and bug bash | 1d | A3.6 |
+| A3.8 | Fix critical bugs from testing | 0.5d | A3.7 |
+| A3.9 | Demo script and client walkthrough prep | 0.5d | A3.8 |
+
+**Material 3 Design Principles Applied:**
+
+The existing shadcn/ui component library (Radix + Tailwind) will be enhanced with Material 3 design principles from RESEARCH_SYNTHESIS.md:
+
+1. **Emotional Design for Engagement**
+   - Smooth transitions and micro-animations (tailwindcss-animate)
+   - Satisfying feedback on interactions (button press states, loading indicators)
+   - Consistent visual rhythm across all pages
+
+2. **Automatic Compliance with Spacing, Hierarchy, Contrast**
+   - Use design tokens from `globals.css` consistently
+   - Typography scale: text-xs → text-sm → text-base → text-lg → text-xl
+   - Spacing scale: p-2 → p-4 → p-6 → p-8 (consistent padding/margins)
+   - Color contrast: all text meets WCAG AA standards
+
+3. **Cross-Platform Consistency**
+   - All UI from `packages/ui-library/components/ui/*`
+   - Domain-specific variants (artifact, manifest, run, evidence, claim, corpus, bundle)
+   - No inline styles or ad-hoc Tailwind classes for core UI elements
+
+**Visual QA Checklist:**
+
+```markdown
+## Pre-Demo Visual QA
+
+### Component Consistency
+- [ ] All buttons use Button component with correct variants
+- [ ] All inputs use Input component (no raw <input>)
+- [ ] All badges use Badge component with domain variants
+- [ ] All tooltips use Tooltip component
+- [ ] All dialogs use Dialog component
+
+### Spacing & Layout
+- [ ] Consistent padding in all panes (p-4 standard)
+- [ ] Proper spacing between sections (space-y-4 or space-y-6)
+- [ ] No overlapping elements
+- [ ] Proper alignment (items-center, justify-between used correctly)
+
+### Typography
+- [ ] Headings use correct scale (text-lg for pane titles, text-xl for page titles)
+- [ ] Body text is text-sm or text-base
+- [ ] Muted text uses text-muted-foreground
+- [ ] No orphaned text (proper line heights)
+
+### States & Feedback
+- [ ] Loading states show skeletons (not spinners everywhere)
+- [ ] Error states show clear messages with retry options
+- [ ] Empty states have helpful guidance
+- [ ] Hover states on all interactive elements
+- [ ] Focus rings on keyboard navigation
+
+### Dark Mode
+- [ ] All colors use CSS variables (not hardcoded)
+- [ ] Contrast maintained in dark mode
+- [ ] No white flashes on page load
+
+### Mobile (if applicable)
+- [ ] Touch targets minimum 44x44px
+- [ ] No horizontal scroll
+- [ ] Readable text without zooming
+```
 
 **Exit Criteria Week 3:**
 - Demo runs smoothly for 30-minute client presentation
 - No critical bugs in happy path
 - Error states handled gracefully
+- Visual QA checklist 100% complete
+- CEO/client impression: "This looks professional and polished"
 
 ---
 
@@ -690,17 +794,30 @@ Week 4+ │ Convergence: Upgrade preview with foundation
 
 ```
 src/intelli/agents/graphs/research_assistant.py   # Simple LangGraph agent
-src/intelli/api/v1/agent.py                       # Streaming chat endpoint
+src/intelli/api/v1/agent.py                       # Streaming chat endpoint (AI SDK compatible)
 src/intelli/schemas/agent.py                      # Request/response models
-ui/src/hooks/useAgentChat.ts                      # Streaming hook
+ui/src/hooks/useAgentChat.ts                      # Vercel AI SDK useChat wrapper
 ui/src/pages/ResearchPage.tsx                     # Replace placeholder
 ```
 
 ### Modified Files (Track A)
 
 ```
+ui/package.json                                   # Add ai, @ai-sdk/react dependencies
 ui/src/App.tsx                                    # Route updates
-packages/ui-library/components/panes/chat-pane.tsx # Wire to real backend
+packages/ui-library/components/panes/chat-pane.tsx # Wire to useChat hook
+```
+
+### New Dependencies (Track A)
+
+```json
+// ui/package.json additions
+{
+  "dependencies": {
+    "ai": "^3.0.0",
+    "@ai-sdk/react": "^0.0.50"
+  }
+}
 ```
 
 ### New Files (Track B)
