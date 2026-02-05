@@ -1,0 +1,17 @@
+{
+  "case_id": "search_glossary",
+  "input": "Create a glossary of all defined terms",
+  "description": "Glossary request should search first, not ask format",
+  "expected_tool": "search_documents",
+  "expect_tool_call": true,
+  "actual_tool": "search_documents",
+  "actual_args": {
+    "query": "defined terms OR glossary OR term definitions",
+    "manifest_sha256": "evaluation_000000000000000000000000000000000000000000000000000000"
+  },
+  "has_tool_call": true,
+  "content_preview": "",
+  "elapsed_ms": 5626,
+  "passed": true,
+  "failure_reason": null
+}

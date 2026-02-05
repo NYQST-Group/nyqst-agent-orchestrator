@@ -100,7 +100,13 @@ class OpenSearchChunkIndex:
 
         body_lines: list[dict] = []
         for idx, (content, emb) in enumerate(zip(chunks, embeddings, strict=True)):
-            doc_id = str(chunk_uuid(artifact_sha256=artifact_sha256, embedding_model=embedding_model, chunk_index=idx))
+            doc_id = str(
+                chunk_uuid(
+                    artifact_sha256=artifact_sha256,
+                    embedding_model=embedding_model,
+                    chunk_index=idx,
+                )
+            )
             body_lines.append({"index": {"_index": self.index_name, "_id": doc_id}})
             body_lines.append(
                 {
@@ -205,4 +211,3 @@ class OpenSearchChunkIndex:
                 )
             )
         return out
-

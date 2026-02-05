@@ -5,7 +5,7 @@ The Run Ledger is an append-only event stream for full reproducibility.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID, uuid4
 
 from sqlalchemy import BigInteger, ForeignKey, Index, Integer, String, UniqueConstraint
@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from intelli.db.base import Base, TimestampMixin
 
 
-class RunStatus(str, Enum):
+class RunStatus(StrEnum):
     """Run lifecycle states."""
 
     PENDING = "pending"
@@ -27,7 +27,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class RunEventType(str, Enum):
+class RunEventType(StrEnum):
     """Types of events in the run ledger."""
 
     # Lifecycle

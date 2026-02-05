@@ -208,6 +208,7 @@ async def authenticate_optional(
 
 def require_scope(scope: str):
     """Dependency to require a specific scope."""
+
     async def check_scope(ctx: Annotated[RequestContext, Depends(authenticate)]):
         if not ctx.has_scope(scope):
             raise HTTPException(
@@ -215,11 +216,13 @@ def require_scope(scope: str):
                 detail=f"Missing required scope: {scope}",
             )
         return ctx
+
     return check_scope
 
 
 def require_admin():
     """Dependency to require admin access."""
+
     async def check_admin(ctx: Annotated[RequestContext, Depends(authenticate)]):
         if not ctx.can_admin():
             raise HTTPException(
@@ -227,6 +230,7 @@ def require_admin():
                 detail="Admin access required",
             )
         return ctx
+
     return check_admin
 
 

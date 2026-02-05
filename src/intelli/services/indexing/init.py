@@ -24,4 +24,3 @@ async def init_index_backend() -> None:
         await idx.ensure_index()
     finally:
         await client.aclose()
-

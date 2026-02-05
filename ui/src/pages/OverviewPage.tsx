@@ -14,6 +14,7 @@ import {
 import { pointersApi } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useTourStore } from '@/stores/tour-store'
 
 type Card = {
   title: string
@@ -84,6 +85,7 @@ function StatusPill({ status }: { status: Card['status'] }) {
 
 export function OverviewPage() {
   const navigate = useNavigate()
+  const openTour = useTourStore((s) => s.openTour)
 
   const notebooksQuery = useQuery({
     queryKey: ['pointers', 'notebooks'],
@@ -97,9 +99,12 @@ export function OverviewPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          You’re building a trusted commercial analysis platform. Start with notebooks and
+          You're building a trusted commercial analysis platform. Start with notebooks and
           progressively add research, workflows, and decision governance—without losing provenance.
         </p>
+        <Button variant="outline" size="sm" className="mt-2 w-fit" onClick={openTour}>
+          Take a Guided Tour
+        </Button>
       </div>
 
       <div className="mt-6 rounded-xl border bg-card">

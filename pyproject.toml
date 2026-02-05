@@ -33,8 +33,11 @@ dependencies = [
 
     # Agent framework
     "langgraph>=0.2.0",
+    "langgraph-checkpoint-postgres>=2.0.0",
     "langchain-core>=0.3.0",
     "langchain-openai>=0.2.0",
+    "psycopg[binary]>=3.2.0",
+    "psycopg-pool>=3.2.0",
 
     # MCP server
     "mcp>=1.2.0",
@@ -77,8 +80,15 @@ packages = ["src/intelli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "unit: Fast unit tests (no DB, no network)",
+    "integration: Integration tests (needs DB / docker services)",
+    "e2e: End-to-end tests (full stack with real DB)",
+    "adapter: Adapter SSE contract tests (must be 100% coverage)",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -101,5 +111,5 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["aioboto3.*", "docling.*", "langgraph.*", "mcp.*"]
+module = ["aioboto3.*", "docling.*", "langgraph.*", "mcp.*", "langfuse.*"]
 ignore_missing_imports = true

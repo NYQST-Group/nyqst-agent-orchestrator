@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: PostgresDsn = Field(
-        default="postgresql+asyncpg://intelli:intelli@localhost:5433/intelli"
+        default="postgresql+asyncpg://intelli:intelli@localhost:5433/intelli_test"
     )
     db_pool_size: int = Field(default=10)
     db_max_overflow: int = Field(default=20)
@@ -45,6 +45,14 @@ class Settings(BaseSettings):
 
     # LLM (for answer generation)
     chat_model: str = Field(default="gpt-4o-mini")
+    chat_model_temperature: float = Field(default=0.2, description="LLM temperature for chat/agent")
+    chat_model_max_tokens: int = Field(
+        default=4096, description="Max completion tokens (includes reasoning)"
+    )
+    chat_model_reasoning_effort: str | None = Field(
+        default=None,
+        description="Reasoning effort for o-series models: low, medium, high. None = not a reasoning model.",
+    )
 
     # Indexing / search backend
     index_backend: Literal["pgvector", "opensearch"] = Field(default="pgvector")
@@ -61,14 +69,27 @@ class Settings(BaseSettings):
     # Security
     secret_key: str = Field(
         default="CHANGE-ME-IN-PRODUCTION-use-openssl-rand-hex-32",
-        description="Secret key for JWT signing. Generate with: openssl rand -hex 32"
+        description="Secret key for JWT signing. Generate with: openssl rand -hex 32",
     )
     jwt_expiry_hours: int = Field(default=24)
     cors_origins: list[str] = Field(default=["http://localhost:3000"])
     rate_limit_rpm: int = Field(default=60, description="Default rate limit requests per minute")
 
+    # LangGraph checkpointer
+    checkpointer_pool_size: int = Field(
+        default=5, description="psycopg pool size for LangGraph checkpointer"
+    )
+
     # Redis (optional - graceful fallback if not configured)
-    redis_url: str | None = Field(default=None, description="Redis URL for caching and rate limiting")
+    redis_url: str | None = Field(
+        default=None, description="Redis URL for caching and rate limiting"
+    )
+
+    # Session monitoring
+    session_monitor_interval_seconds: int = Field(
+        default=300,
+        description="Interval in seconds between session idle checks (default: 5 minutes)",
+    )
 
     # Observability
     langfuse_enabled: bool = Field(default=False)

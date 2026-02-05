@@ -9,7 +9,7 @@ Enterprise-grade multi-tenant security:
 
 import secrets
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID, uuid4
 
 from sqlalchemy import BigInteger, ForeignKey, Index, String, func
@@ -20,27 +20,30 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from intelli.db.base import Base, TimestampMixin
 
 
-class TenantStatus(str, Enum):
+class TenantStatus(StrEnum):
     """Tenant lifecycle states."""
+
     active = "active"
     suspended = "suspended"
     pending = "pending"
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """User roles within a tenant."""
-    owner = "owner"      # Full control, billing, can delete tenant
-    admin = "admin"      # Manage users, API keys, all resources
-    member = "member"    # Read/write resources
-    viewer = "viewer"    # Read-only access
+
+    owner = "owner"  # Full control, billing, can delete tenant
+    admin = "admin"  # Manage users, API keys, all resources
+    member = "member"  # Read/write resources
+    viewer = "viewer"  # Read-only access
 
 
-class APIKeyScope(str, Enum):
+class APIKeyScope(StrEnum):
     """API key permission scopes."""
-    read = "read"                # Read artifacts, manifests, runs
-    write = "write"              # Create/modify resources
-    admin = "admin"              # Manage tenant settings
-    agent = "agent"              # MCP tool access (runs, checkpoints)
+
+    read = "read"  # Read artifacts, manifests, runs
+    write = "write"  # Create/modify resources
+    admin = "admin"  # Manage tenant settings
+    agent = "agent"  # MCP tool access (runs, checkpoints)
 
 
 class Tenant(Base, TimestampMixin):
@@ -49,6 +52,7 @@ class Tenant(Base, TimestampMixin):
     All resources (artifacts, manifests, pointers, runs) belong to a tenant.
     Provides hard isolation boundary for multi-tenancy.
     """
+
     __tablename__ = "tenants"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -67,16 +71,23 @@ class Tenant(Base, TimestampMixin):
     settings: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Relationships
-    users: Mapped[list["User"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
-    api_keys: Mapped[list["APIKey"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
+    users: Mapped[list["User"]] = relationship(
+        back_populates="tenant", cascade="all, delete-orphan"
+    )
+    api_keys: Mapped[list["APIKey"]] = relationship(
+        back_populates="tenant", cascade="all, delete-orphan"
+    )
 
 
 class User(Base, TimestampMixin):
     """Human user within a tenant."""
+
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
 
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -109,15 +120,22 @@ class APIKey(Base, TimestampMixin):
     Keys are hashed - we only store the hash, not the plaintext.
     The plaintext is shown once at creation time.
     """
+
     __tablename__ = "api_keys"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
-    created_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    created_by_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    key_prefix: Mapped[str] = mapped_column(String(12), nullable=False)  # First 8 chars for identification
-    key_hash: Mapped[str] = mapped_column(String(64), nullable=False)    # SHA-256 of full key
+    key_prefix: Mapped[str] = mapped_column(
+        String(12), nullable=False
+    )  # First 8 chars for identification
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False)  # SHA-256 of full key
 
     # Permissions
     scopes: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
@@ -162,6 +180,7 @@ class APIKey(Base, TimestampMixin):
     def hash_key(key: str) -> str:
         """Hash an API key for comparison."""
         import hashlib
+
         return hashlib.sha256(key.encode()).hexdigest()
 
 
@@ -171,6 +190,7 @@ class AuditLog(Base):
     Append-only log for compliance, debugging, and security.
     Partitioned by timestamp for efficient querying and retention.
     """
+
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True)

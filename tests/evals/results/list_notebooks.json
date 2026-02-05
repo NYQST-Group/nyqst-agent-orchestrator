@@ -1,0 +1,14 @@
+{
+  "case_id": "list_notebooks",
+  "input": "What notebooks do I have access to?",
+  "description": "Notebook listing question should call list_notebooks",
+  "expected_tool": "list_notebooks",
+  "expect_tool_call": true,
+  "actual_tool": "list_notebooks",
+  "actual_args": {},
+  "has_tool_call": true,
+  "content_preview": "",
+  "elapsed_ms": 2964,
+  "passed": true,
+  "failure_reason": null
+}

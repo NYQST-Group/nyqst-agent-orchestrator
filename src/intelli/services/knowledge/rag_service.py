@@ -161,7 +161,10 @@ class RagService:
                 await ledger.log_tool_call_complete(
                     run_id=run_id,
                     tool_name=tool_name,
-                    result={"ok": False, "error": {"type": type(exc).__name__, "message": str(exc)}},
+                    result={
+                        "ok": False,
+                        "error": {"type": type(exc).__name__, "message": str(exc)},
+                    },
                     duration_ms=int((perf_counter() - start) * 1000),
                 )
             raise
@@ -370,7 +373,10 @@ class RagService:
                 await ledger.log_step_complete(
                     run_id=run_id,
                     step_name="index_artifact",
-                    output_data={"chunks": len(chunks), "embedding_model": settings.embedding_model},
+                    output_data={
+                        "chunks": len(chunks),
+                        "embedding_model": settings.embedding_model,
+                    },
                     success=True,
                 )
 

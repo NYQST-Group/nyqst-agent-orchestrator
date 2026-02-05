@@ -16,6 +16,7 @@ import { ProjectsPage } from '@/pages/ProjectsPage'
 
 function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isDemo = import.meta.env.VITE_DEMO_MODE === 'true'
 
   function LegacyNotebookRedirect() {
     const { id } = useParams()
@@ -28,7 +29,7 @@ function App() {
         <Route
           path="/"
           element={
-            <Navigate to={isAuthenticated ? '/overview' : '/login'} replace />
+            <Navigate to={isAuthenticated || isDemo ? '/overview' : '/login'} replace />
           }
         />
         <Route path="/login" element={<LoginPage />} />

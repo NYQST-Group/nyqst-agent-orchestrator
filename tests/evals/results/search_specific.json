@@ -1,0 +1,17 @@
+{
+  "case_id": "search_specific",
+  "input": "What does the Normative Framework (P2) define?",
+  "description": "Specific concept question should trigger search",
+  "expected_tool": "search_documents",
+  "expect_tool_call": true,
+  "actual_tool": "search_documents",
+  "actual_args": {
+    "query": "Normative Framework (P2)",
+    "manifest_sha256": "evaluation_000000000000000000000000000000000000000000000000000000"
+  },
+  "has_tool_call": true,
+  "content_preview": "",
+  "elapsed_ms": 3064,
+  "passed": true,
+  "failure_reason": null
+}

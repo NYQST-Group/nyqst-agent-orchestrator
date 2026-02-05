@@ -71,33 +71,36 @@ class LedgerService:
 
         from sqlalchemy import text
 
-        notification_payload = json.dumps({
-            "id": event.id,
-            "run_id": str(event.run_id),
-            "event_type": event.event_type,
-            "payload": event.payload,
-            "timestamp": event.timestamp.isoformat(),
-            "duration_ms": event.duration_ms,
-            "sequence_num": event.sequence_num,
-        })
+        notification_payload = json.dumps(
+            {
+                "id": event.id,
+                "run_id": str(event.run_id),
+                "event_type": event.event_type,
+                "payload": event.payload,
+                "timestamp": event.timestamp.isoformat(),
+                "duration_ms": event.duration_ms,
+                "sequence_num": event.sequence_num,
+            }
+        )
 
         # PostgreSQL NOTIFY has 8000 byte limit - skip large payloads
         if len(notification_payload) > 7500:
             # Send a truncated notification without full payload
-            notification_payload = json.dumps({
-                "id": event.id,
-                "run_id": str(event.run_id),
-                "event_type": event.event_type,
-                "payload": {"_truncated": True, "event_type": event.event_type},
-                "timestamp": event.timestamp.isoformat(),
-                "duration_ms": event.duration_ms,
-                "sequence_num": event.sequence_num,
-            })
+            notification_payload = json.dumps(
+                {
+                    "id": event.id,
+                    "run_id": str(event.run_id),
+                    "event_type": event.event_type,
+                    "payload": {"_truncated": True, "event_type": event.event_type},
+                    "timestamp": event.timestamp.isoformat(),
+                    "duration_ms": event.duration_ms,
+                    "sequence_num": event.sequence_num,
+                }
+            )
 
         # PostgreSQL NOTIFY - received by any LISTEN connections
         await self.session.execute(
-            text("SELECT pg_notify('run_events', :payload)"),
-            {"payload": notification_payload}
+            text("SELECT pg_notify('run_events', :payload)"), {"payload": notification_payload}
         )
 
     async def log_step_start(

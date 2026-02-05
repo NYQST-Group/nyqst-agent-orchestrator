@@ -14,8 +14,10 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
+import { TourPanel } from '@/tour/TourPanel'
 
 type NavItem = {
   to: string
@@ -104,10 +106,16 @@ export function AppShell() {
   }
 
   const showAdvanced = !location.pathname.startsWith('/workbench')
+  const isDemo = import.meta.env.VITE_DEMO_MODE === 'true'
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background">
-      <div className="flex h-full">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background">
+      {isDemo && (
+        <div className="flex items-center justify-center bg-amber-500/10 px-3 py-1 text-xs text-amber-700 border-b border-amber-500/20">
+          Demo Mode — using mock data
+        </div>
+      )}
+      <div className="flex h-full flex-1 min-h-0">
         {/* Sidebar */}
         <aside className="hidden h-full w-[300px] shrink-0 border-r bg-gradient-to-b from-background to-muted/30 md:flex">
           <div className="flex h-full w-full flex-col p-4">
@@ -125,9 +133,12 @@ export function AppShell() {
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" aria-label="Settings (coming soon)">
-                <Settings className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <ThemeToggle />
+                <Button variant="ghost" size="icon" aria-label="Settings (coming soon)">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="mt-4 rounded-xl border bg-card px-3 py-2">
@@ -186,7 +197,8 @@ export function AppShell() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 size="sm"
@@ -205,6 +217,7 @@ export function AppShell() {
           </div>
         </main>
       </div>
+      <TourPanel />
     </div>
   )
 }

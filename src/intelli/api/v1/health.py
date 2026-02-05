@@ -52,13 +52,16 @@ async def readiness(
         await session.execute(text("SELECT 1"))
         # Check index backend if required
         if settings.index_backend == "opensearch":
-            async with httpx.AsyncClient(timeout=2.0, verify=settings.opensearch_verify_certs) as client:
+            async with httpx.AsyncClient(
+                timeout=2.0, verify=settings.opensearch_verify_certs
+            ) as client:
                 r = await client.get(settings.opensearch_url.rstrip("/") + "/")
             if r.status_code != 200:
                 raise RuntimeError(f"OpenSearch not ready (status {r.status_code})")
         return {"status": "ready"}
     except Exception:
         from fastapi import Response
+
         return Response(
             content='{"status": "not_ready"}',
             status_code=503,
@@ -96,7 +99,9 @@ async def detailed_health(
     checks["storage"] = {
         "status": "healthy",
         "backend": settings.storage_backend,
-        "bucket": settings.s3_bucket if settings.storage_backend == "s3" else settings.local_storage_path,
+        "bucket": settings.s3_bucket
+        if settings.storage_backend == "s3"
+        else settings.local_storage_path,
     }
 
     # MCP check (config only)
@@ -109,7 +114,9 @@ async def detailed_health(
     # Index backend (optional)
     if settings.index_backend == "opensearch":
         try:
-            async with httpx.AsyncClient(timeout=2.0, verify=settings.opensearch_verify_certs) as client:
+            async with httpx.AsyncClient(
+                timeout=2.0, verify=settings.opensearch_verify_certs
+            ) as client:
                 r = await client.get(settings.opensearch_url.rstrip("/") + "/")
             checks["index"] = {
                 "status": "healthy" if r.status_code == 200 else "degraded",

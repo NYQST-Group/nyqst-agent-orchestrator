@@ -237,11 +237,13 @@ class ManifestService:
             if path not in old_by_path:
                 added.append(new_entry)
             elif old_by_path[path].artifact_sha256 != new_entry.artifact_sha256:
-                modified.append({
-                    "path": path,
-                    "old": old_by_path[path],
-                    "new": new_entry,
-                })
+                modified.append(
+                    {
+                        "path": path,
+                        "old": old_by_path[path],
+                        "new": new_entry,
+                    }
+                )
 
         # Find removed
         for path, old_entry in old_by_path.items():

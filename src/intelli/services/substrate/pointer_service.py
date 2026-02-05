@@ -69,9 +69,7 @@ class PointerService:
         # Check for existing pointer
         existing = await self.repo.get_by_name(namespace, name)
         if existing:
-            raise ConflictError(
-                f"Pointer already exists: {namespace}/{name}"
-            )
+            raise ConflictError(f"Pointer already exists: {namespace}/{name}")
 
         # Validate manifest if specified
         if manifest_sha256:
@@ -295,7 +293,5 @@ class PointerService:
         type_value = pointer_type.value if pointer_type else None
 
         if namespace:
-            return await self.repo.list_by_namespace(
-                namespace, type_value, limit, offset
-            )
+            return await self.repo.list_by_namespace(namespace, type_value, limit, offset)
         return await self.repo.list_all_active(type_value, limit, offset)

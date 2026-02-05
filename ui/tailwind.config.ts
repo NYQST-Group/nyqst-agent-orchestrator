@@ -1,11 +1,14 @@
 import type { Config } from 'tailwindcss'
 import tailwindcssAnimate from 'tailwindcss-animate'
+import typography from '@tailwindcss/typography'
+import assistantUI from '@assistant-ui/react-ui/tailwindcss'
 
 const config: Config = {
   darkMode: ['class'],
   content: [
     './index.html',
     './src/**/*.{ts,tsx}',
+    './node_modules/@assistant-ui/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     container: {
@@ -72,7 +75,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, typography, assistantUI],
 }
 
 export default config

@@ -30,10 +30,12 @@ def job(name: str | None = None):
             # Long-running work
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         job_name = name or func.__name__
         _job_registry[job_name] = func
         return func
+
     return decorator
 
 
@@ -106,7 +108,6 @@ class JobQueue:
 
         # Enqueue via ARQ
         try:
-
             await pool.enqueue_job(
                 job_name,
                 *args,
@@ -133,6 +134,7 @@ class JobQueue:
 
         try:
             from arq.jobs import Job
+
             job = Job(job_id, pool)
             return await job.result(timeout=0)
         except Exception:
@@ -146,6 +148,7 @@ class JobQueue:
 
         try:
             from arq.jobs import Job
+
             job = Job(job_id, pool)
             await job.abort()
             return True
@@ -168,6 +171,7 @@ class WorkerSettings:
         if not settings.redis_url:
             return None
         from arq.connections import RedisSettings
+
         return RedisSettings.from_dsn(settings.redis_url)
 
     # Worker configuration
@@ -181,6 +185,7 @@ class WorkerSettings:
 # ============================================================================
 # Pre-defined Jobs
 # ============================================================================
+
 
 @job("parse_document")
 async def parse_document_job(ctx, artifact_sha: str, run_id: str):

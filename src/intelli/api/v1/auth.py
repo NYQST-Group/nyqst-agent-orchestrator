@@ -34,6 +34,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # Schemas
 # ============================================================================
 
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -80,6 +81,7 @@ class APIKeyResponse(BaseModel):
 
 class APIKeyCreatedResponse(APIKeyResponse):
     """Response when creating a new API key - includes the full key (shown once)."""
+
     full_key: str = Field(..., description="Full API key - save this, it won't be shown again!")
 
 
@@ -89,6 +91,7 @@ class DevBootstrapRequest(BaseModel):
     Creates (or reuses) a tenant + user and returns a JWT.
     Only available when DEBUG=true.
     """
+
     tenant_slug: str = Field(default="demo", min_length=1, max_length=50)
     tenant_name: str = Field(default="Demo Tenant", min_length=1, max_length=100)
     email: EmailStr = Field(default="demo@example.com")
@@ -99,6 +102,7 @@ class DevBootstrapRequest(BaseModel):
 # ============================================================================
 # Endpoints
 # ============================================================================
+
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
@@ -184,9 +188,7 @@ async def dev_bootstrap(
 
     # Find or create user
     result = await session.execute(
-        select(User)
-        .where(User.tenant_id == tenant.id)
-        .where(User.email == data.email)
+        select(User).where(User.tenant_id == tenant.id).where(User.email == data.email)
     )
     user = result.scalar_one_or_none()
     if not user:
@@ -233,9 +235,7 @@ async def get_current_user(
 ):
     """Get information about the current authenticated user/key."""
     # Get tenant info
-    result = await session.execute(
-        select(Tenant).where(Tenant.id == ctx.tenant_id)
-    )
+    result = await session.execute(select(Tenant).where(Tenant.id == ctx.tenant_id))
     tenant = result.scalar_one()
 
     return CurrentUserResponse(
@@ -255,9 +255,7 @@ async def list_api_keys(
 ):
     """List all API keys for the current tenant (admin only)."""
     result = await session.execute(
-        select(APIKey)
-        .where(APIKey.tenant_id == ctx.tenant_id)
-        .order_by(APIKey.created_at.desc())
+        select(APIKey).where(APIKey.tenant_id == ctx.tenant_id).order_by(APIKey.created_at.desc())
     )
     keys = result.scalars().all()
 
@@ -295,6 +293,7 @@ async def create_api_key(
     expires_at = None
     if data.expires_in_days:
         from datetime import timedelta
+
         expires_at = datetime.now(UTC) + timedelta(days=data.expires_in_days)
 
     # Create API key record
@@ -342,9 +341,7 @@ async def revoke_api_key(
 ):
     """Revoke (deactivate) an API key (admin only)."""
     result = await session.execute(
-        select(APIKey)
-        .where(APIKey.id == key_id)
-        .where(APIKey.tenant_id == ctx.tenant_id)
+        select(APIKey).where(APIKey.id == key_id).where(APIKey.tenant_id == ctx.tenant_id)
     )
     api_key = result.scalar_one_or_none()
 

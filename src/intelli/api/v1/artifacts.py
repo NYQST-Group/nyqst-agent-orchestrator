@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 
 from intelli.api.dependencies import ArtifactServiceDep
+from intelli.api.middleware.auth import AuthContext
 from intelli.core.exceptions import NotFoundError
 from intelli.schemas.substrate import ArtifactResponse, ArtifactUploadResponse
 
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/artifacts", tags=["artifacts"])
 
 @router.post("", response_model=ArtifactUploadResponse)
 async def upload_artifact(
+    ctx: AuthContext,
     service: ArtifactServiceDep,
     file: Annotated[UploadFile, File(description="File to upload")],
     media_type: Annotated[str | None, Form(description="MIME type override")] = None,
@@ -41,6 +43,7 @@ async def upload_artifact(
 
 @router.get("/{sha256}", response_model=ArtifactResponse)
 async def get_artifact(
+    ctx: AuthContext,
     sha256: str,
     service: ArtifactServiceDep,
 ) -> ArtifactResponse:
@@ -54,6 +57,7 @@ async def get_artifact(
 
 @router.get("/{sha256}/content")
 async def get_artifact_content(
+    ctx: AuthContext,
     sha256: str,
     service: ArtifactServiceDep,
 ) -> StreamingResponse:
@@ -79,6 +83,7 @@ async def get_artifact_content(
 
 @router.get("/{sha256}/url")
 async def get_artifact_url(
+    ctx: AuthContext,
     sha256: str,
     service: ArtifactServiceDep,
     expiration_seconds: Annotated[int, Query(ge=60, le=86400)] = 3600,
@@ -96,6 +101,7 @@ async def get_artifact_url(
 
 @router.get("", response_model=list[ArtifactResponse])
 async def list_artifacts(
+    ctx: AuthContext,
     service: ArtifactServiceDep,
     media_type: Annotated[str | None, Query(description="Filter by MIME type")] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
@@ -112,6 +118,7 @@ async def list_artifacts(
 
 @router.delete("/{sha256}")
 async def delete_artifact(
+    ctx: AuthContext,
     sha256: str,
     service: ArtifactServiceDep,
     force: Annotated[bool, Query(description="Delete even if referenced")] = False,

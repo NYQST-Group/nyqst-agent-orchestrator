@@ -68,4 +68,3 @@ class RagAskResponse(BaseModel):
     sources: list[RagSource]
 
     model_config = ConfigDict(extra="forbid")
-

@@ -239,7 +239,11 @@ class RunService:
         """
         run = await self.get_run(run_id)
 
-        if run.status in [RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value]:
+        if run.status in [
+            RunStatus.COMPLETED.value,
+            RunStatus.FAILED.value,
+            RunStatus.CANCELLED.value,
+        ]:
             raise ValidationError(
                 f"Cannot fail run in state: {run.status}",
                 field="status",
@@ -271,7 +275,11 @@ class RunService:
         """
         run = await self.get_run(run_id)
 
-        if run.status in [RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value]:
+        if run.status in [
+            RunStatus.COMPLETED.value,
+            RunStatus.FAILED.value,
+            RunStatus.CANCELLED.value,
+        ]:
             raise ValidationError(
                 f"Cannot cancel run in state: {run.status}",
                 field="status",

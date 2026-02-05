@@ -75,9 +75,7 @@ def setup_logging() -> None:
 
     if settings.debug:
         # Pretty console output for development
-        processors = shared_processors + [
-            structlog.dev.ConsoleRenderer(colors=True)
-        ]
+        processors = shared_processors + [structlog.dev.ConsoleRenderer(colors=True)]
     else:
         # JSON output for production
         processors = shared_processors + [

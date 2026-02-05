@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query
 
 from intelli.api.dependencies import LedgerServiceDep, RunServiceDep
+from intelli.api.middleware.auth import AuthContext
 from intelli.core.exceptions import NotFoundError, ValidationError
 from intelli.schemas.runs import (
     RunCreate,
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/runs", tags=["runs"])
 
 @router.post("", response_model=RunResponse)
 async def create_run(
+    ctx: AuthContext,
     service: RunServiceDep,
     data: RunCreate,
 ) -> RunResponse:
@@ -40,6 +42,7 @@ async def create_run(
 
 @router.get("/{run_id}", response_model=RunResponse)
 async def get_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
 ) -> RunResponse:
@@ -53,6 +56,7 @@ async def get_run(
 
 @router.post("/{run_id}/start", response_model=RunResponse)
 async def start_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
 ) -> RunResponse:
@@ -68,6 +72,7 @@ async def start_run(
 
 @router.post("/{run_id}/pause", response_model=RunResponse)
 async def pause_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
 ) -> RunResponse:
@@ -83,6 +88,7 @@ async def pause_run(
 
 @router.post("/{run_id}/resume", response_model=RunResponse)
 async def resume_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
 ) -> RunResponse:
@@ -98,6 +104,7 @@ async def resume_run(
 
 @router.post("/{run_id}/complete", response_model=RunResponse)
 async def complete_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
     result: dict | None = None,
@@ -115,6 +122,7 @@ async def complete_run(
 
 @router.post("/{run_id}/fail", response_model=RunResponse)
 async def fail_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
     error: dict,
@@ -131,6 +139,7 @@ async def fail_run(
 
 @router.post("/{run_id}/cancel", response_model=RunResponse)
 async def cancel_run(
+    ctx: AuthContext,
     run_id: UUID,
     service: RunServiceDep,
 ) -> RunResponse:
@@ -146,6 +155,7 @@ async def cancel_run(
 
 @router.get("", response_model=RunListResponse)
 async def list_runs(
+    ctx: AuthContext,
     service: RunServiceDep,
     status: Annotated[RunStatus | None, Query(description="Filter by status")] = None,
     run_type: Annotated[str | None, Query(description="Filter by type")] = None,
@@ -175,6 +185,7 @@ async def list_runs(
 
 @router.post("/{run_id}/events", response_model=RunEventResponse)
 async def create_run_event(
+    ctx: AuthContext,
     run_id: UUID,
     service: LedgerServiceDep,
     data: RunEventCreate,
@@ -191,10 +202,13 @@ async def create_run_event(
 
 @router.get("/{run_id}/events", response_model=RunEventListResponse)
 async def get_run_events(
+    ctx: AuthContext,
     run_id: UUID,
     service: LedgerServiceDep,
     event_types: Annotated[list[str] | None, Query(description="Filter by event types")] = None,
-    since_sequence: Annotated[int | None, Query(description="Get events after this sequence")] = None,
+    since_sequence: Annotated[
+        int | None, Query(description="Get events after this sequence")
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=10000)] = 1000,
 ) -> RunEventListResponse:
     """Get events for a run."""
@@ -214,6 +228,7 @@ async def get_run_events(
 
 @router.get("/{run_id}/checkpoint")
 async def get_latest_checkpoint(
+    ctx: AuthContext,
     run_id: UUID,
     service: LedgerServiceDep,
 ) -> dict:

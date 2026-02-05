@@ -68,9 +68,7 @@ def create_access_token(
         role: User role for authorization
         expires_delta: Custom expiry time
     """
-    expire = datetime.now(UTC) + (
-        expires_delta or timedelta(hours=JWT_EXPIRY_HOURS)
-    )
+    expire = datetime.now(UTC) + (expires_delta or timedelta(hours=JWT_EXPIRY_HOURS))
 
     payload = {
         "sub": subject,
@@ -127,9 +125,7 @@ class RateLimiter:
             self._requests[key] = []
 
         # Filter to only requests within window
-        self._requests[key] = [
-            ts for ts in self._requests[key] if ts > window_start
-        ]
+        self._requests[key] = [ts for ts in self._requests[key] if ts > window_start]
 
         # Check if under limit
         if len(self._requests[key]) >= limit:

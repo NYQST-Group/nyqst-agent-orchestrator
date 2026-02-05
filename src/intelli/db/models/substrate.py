@@ -303,6 +303,4 @@ class PointerHistory(Base):
     # Relationships
     pointer: Mapped[Pointer] = relationship("Pointer", back_populates="history")
 
-    __table_args__ = (
-        Index("ix_pointer_history_pointer", "pointer_id", "changed_at"),
-    )
+    __table_args__ = (Index("ix_pointer_history_pointer", "pointer_id", "changed_at"),)

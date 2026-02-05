@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from intelli.api.dependencies import PointerServiceDep
+from intelli.api.middleware.auth import AuthContext
 from intelli.core.exceptions import ConflictError, NotFoundError
 from intelli.schemas.substrate import (
     PointerAdvance,
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/pointers", tags=["pointers"])
 
 @router.post("", response_model=PointerResponse)
 async def create_pointer(
+    ctx: AuthContext,
     service: PointerServiceDep,
     data: PointerCreate,
 ) -> PointerResponse:
@@ -44,6 +46,7 @@ async def create_pointer(
 
 @router.get("/{namespace}/{name}", response_model=PointerResponse)
 async def get_pointer(
+    ctx: AuthContext,
     namespace: str,
     name: str,
     service: PointerServiceDep,
@@ -58,6 +61,7 @@ async def get_pointer(
 
 @router.get("/{namespace}/{name}/resolve")
 async def resolve_pointer(
+    ctx: AuthContext,
     namespace: str,
     name: str,
     service: PointerServiceDep,
@@ -72,6 +76,7 @@ async def resolve_pointer(
 
 @router.put("/{pointer_id}/advance", response_model=PointerAdvanceResponse)
 async def advance_pointer(
+    ctx: AuthContext,
     pointer_id: UUID,
     service: PointerServiceDep,
     data: PointerAdvance,
@@ -123,6 +128,7 @@ async def advance_pointer(
 
 @router.put("/{pointer_id}/reset")
 async def reset_pointer(
+    ctx: AuthContext,
     pointer_id: UUID,
     service: PointerServiceDep,
     target_sha256: Annotated[str | None, Query(description="Target manifest SHA-256")] = None,
@@ -145,6 +151,7 @@ async def reset_pointer(
 
 @router.get("/{pointer_id}/history", response_model=list[PointerHistoryEntry])
 async def get_pointer_history(
+    ctx: AuthContext,
     pointer_id: UUID,
     service: PointerServiceDep,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
@@ -159,6 +166,7 @@ async def get_pointer_history(
 
 @router.delete("/{pointer_id}")
 async def delete_pointer(
+    ctx: AuthContext,
     pointer_id: UUID,
     service: PointerServiceDep,
 ) -> dict:
@@ -172,6 +180,7 @@ async def delete_pointer(
 
 @router.get("", response_model=list[PointerResponse])
 async def list_pointers(
+    ctx: AuthContext,
     service: PointerServiceDep,
     namespace: Annotated[str | None, Query(description="Filter by namespace")] = None,
     pointer_type: Annotated[PointerType | None, Query(description="Filter by type")] = None,

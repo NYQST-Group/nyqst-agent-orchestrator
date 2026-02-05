@@ -31,6 +31,7 @@ async def get_redis():
 
     try:
         import redis.asyncio as redis
+
         _redis_client = redis.from_url(
             settings.redis_url,
             encoding="utf-8",
@@ -78,6 +79,7 @@ class RedisRateLimiter:
             return True, limit, window_seconds
 
         import time
+
         now = time.time()
         key = self._key(identifier)
         window_start = now - window_seconds
@@ -123,6 +125,7 @@ class RedisRateLimiter:
             return limit
 
         import time
+
         now = time.time()
         key = self._key(identifier)
         window_start = now - window_seconds
@@ -262,6 +265,7 @@ def cached(
             return result
 
         return wrapper
+
     return decorator
 
 

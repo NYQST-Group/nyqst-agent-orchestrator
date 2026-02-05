@@ -27,6 +27,7 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [007](./007-document-processing-pipeline.md) | Document Processing Pipeline | Proposed | 03_PLATFORM.md, 06_ARCHITECTURE.md |
 | [008](./008-mcp-tool-architecture.md) | MCP Tool Architecture | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
 | [009](./009-human-in-the-loop-governance.md) | Human-in-the-Loop and Governance Patterns | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
+| [010](./010-bootstrap-infrastructure.md) | Bootstrap Infrastructure — PostgreSQL + pgvector + Neo4j | Proposed | 03_PLATFORM.md |
 
 ## Pending ADRs (from PRD Notes)
 

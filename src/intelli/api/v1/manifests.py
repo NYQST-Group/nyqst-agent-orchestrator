@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from intelli.api.dependencies import ManifestServiceDep
+from intelli.api.middleware.auth import AuthContext
 from intelli.core.exceptions import NotFoundError, ValidationError
 from intelli.schemas.substrate import (
     ManifestCreate,
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/manifests", tags=["manifests"])
 
 @router.post("", response_model=dict)
 async def create_manifest(
+    ctx: AuthContext,
     service: ManifestServiceDep,
     data: ManifestCreate,
 ) -> dict:
@@ -49,6 +51,7 @@ async def create_manifest(
 
 @router.get("/{sha256}", response_model=ManifestResponse)
 async def get_manifest(
+    ctx: AuthContext,
     sha256: str,
     service: ManifestServiceDep,
 ) -> ManifestResponse:
@@ -81,6 +84,7 @@ async def get_manifest(
 
 @router.get("/{sha256}/entries", response_model=list[ManifestEntry])
 async def get_manifest_entries(
+    ctx: AuthContext,
     sha256: str,
     service: ManifestServiceDep,
 ) -> list[ManifestEntry]:
@@ -93,6 +97,7 @@ async def get_manifest_entries(
 
 @router.get("/{sha256}/history", response_model=list[ManifestResponse])
 async def get_manifest_history(
+    ctx: AuthContext,
     sha256: str,
     service: ManifestServiceDep,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
@@ -129,6 +134,7 @@ async def get_manifest_history(
 
 @router.get("/{old_sha256}/diff/{new_sha256}", response_model=ManifestDiff)
 async def diff_manifests(
+    ctx: AuthContext,
     old_sha256: str,
     new_sha256: str,
     service: ManifestServiceDep,
@@ -156,6 +162,7 @@ async def diff_manifests(
 
 @router.get("", response_model=list[ManifestResponse])
 async def list_manifests(
+    ctx: AuthContext,
     service: ManifestServiceDep,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,

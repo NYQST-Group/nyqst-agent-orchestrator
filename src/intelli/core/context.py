@@ -15,6 +15,7 @@ class RequestContext:
 
     Carries tenant isolation info and audit metadata through the request.
     """
+
     # Request identification
     request_id: str = field(default_factory=lambda: str(uuid4()))
 
@@ -51,9 +52,7 @@ class RequestContext:
 
 
 # Context variable to hold the current request context
-_request_context: ContextVar[RequestContext | None] = ContextVar(
-    "request_context", default=None
-)
+_request_context: ContextVar[RequestContext | None] = ContextVar("request_context", default=None)
 
 
 def get_context() -> RequestContext:

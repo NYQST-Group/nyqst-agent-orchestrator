@@ -127,12 +127,7 @@ class ManifestRepository(BaseRepository[Manifest]):
         Returns:
             List of manifests ordered by creation time
         """
-        stmt = (
-            select(Manifest)
-            .order_by(Manifest.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        stmt = select(Manifest).order_by(Manifest.created_at.desc()).limit(limit).offset(offset)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

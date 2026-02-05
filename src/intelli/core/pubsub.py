@@ -102,11 +102,13 @@ class PubSub:
         # For larger payloads, store in DB and send reference
         if len(payload) > 7500:
             # Truncate or send reference
-            payload = json.dumps({
-                "type": "large_payload",
-                "channel": channel,
-                "message": "Payload too large, fetch from API",
-            })
+            payload = json.dumps(
+                {
+                    "type": "large_payload",
+                    "channel": channel,
+                    "message": "Payload too large, fetch from API",
+                }
+            )
 
         await self._connection.execute(f"NOTIFY {channel}, $1", payload)
 

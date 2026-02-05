@@ -1,13 +1,13 @@
 """Pydantic schemas for substrate objects: Artifacts, Manifests, Pointers."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class PointerType(str, Enum):
+class PointerType(StrEnum):
     """Types of pointers with different governance levels."""
 
     BUNDLE = "bundle"  # Working set, freely mutable
@@ -84,7 +84,9 @@ class ManifestEntry(BaseModel):
 class ManifestTree(BaseModel):
     """The tree structure stored in a manifest."""
 
-    entries: list[ManifestEntry] = Field(default_factory=list, description="List of manifest entries")
+    entries: list[ManifestEntry] = Field(
+        default_factory=list, description="List of manifest entries"
+    )
     metadata: dict | None = Field(default_factory=dict, description="Tree-level metadata")
 
 

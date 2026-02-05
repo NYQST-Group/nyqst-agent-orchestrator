@@ -49,6 +49,7 @@ export default [
         HTMLButtonElement: 'readonly',
         HTMLDivElement: 'readonly',
         HTMLFormElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
         Element: 'readonly',
         Node: 'readonly',
         NodeList: 'readonly',

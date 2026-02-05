@@ -1,13 +1,13 @@
 """Pydantic schemas for Runs and Run Events."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class RunStatus(str, Enum):
+class RunStatus(StrEnum):
     """Run lifecycle states."""
 
     PENDING = "pending"
@@ -18,7 +18,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class RunEventType(str, Enum):
+class RunEventType(StrEnum):
     """Types of events in the run ledger."""
 
     # Lifecycle

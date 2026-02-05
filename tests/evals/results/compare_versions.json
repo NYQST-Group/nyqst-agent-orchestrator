@@ -1,0 +1,17 @@
+{
+  "case_id": "compare_versions",
+  "input": "Compare manifest abc123 with def456 and show what changed",
+  "description": "Version comparison should call a tool (search_documents or compare_manifests)",
+  "expected_tool": null,
+  "expect_tool_call": true,
+  "actual_tool": "compare_manifests",
+  "actual_args": {
+    "old_sha256": "abc123",
+    "new_sha256": "def456"
+  },
+  "has_tool_call": true,
+  "content_preview": "",
+  "elapsed_ms": 8866,
+  "passed": true,
+  "failure_reason": null
+}

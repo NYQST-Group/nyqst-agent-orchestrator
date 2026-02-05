@@ -11,6 +11,7 @@ from intelli.api.middleware.auth import (
     require_admin,
     require_scope,
 )
+from intelli.api.middleware.context import AuthContextMiddleware
 from intelli.api.middleware.correlation import CorrelationMiddleware
 from intelli.api.middleware.error_handler import ErrorHandlerMiddleware, intelli_exception_handler
 
@@ -26,6 +27,7 @@ __all__ = [
     "AdminContext",
     "AgentContext",
     # Middleware classes
+    "AuthContextMiddleware",
     "CorrelationMiddleware",
     "ErrorHandlerMiddleware",
     "intelli_exception_handler",

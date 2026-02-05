@@ -26,6 +26,15 @@ import type {
   RunListResponse,
 } from '@/types/api'
 import { getAuthHeaders } from '@/stores/auth-store'
+import {
+  mockArtifactsApi,
+  mockManifestsApi,
+  mockPointersApi,
+  mockRunsApi,
+  mockRagApi,
+} from '@/api/mocks'
+
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true'
 
 const API_BASE = '/api/v1'
 
@@ -66,8 +75,8 @@ function withAuth(options: RequestInit = {}): RequestInit {
   }
 }
 
-// Artifacts API
-export const artifactsApi = {
+// Real Artifacts API
+const realArtifactsApi = {
   async upload(file: File, mediaType?: string): Promise<ArtifactUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
@@ -109,8 +118,8 @@ export const artifactsApi = {
   },
 }
 
-// Manifests API
-export const manifestsApi = {
+// Real Manifests API
+const realManifestsApi = {
   async create(data: ManifestCreate): Promise<ManifestCreateResponse> {
     const response = await fetch(
       `${API_BASE}/manifests`,
@@ -147,8 +156,8 @@ export const manifestsApi = {
   },
 }
 
-// Pointers API
-export const pointersApi = {
+// Real Pointers API
+const realPointersApi = {
   async create(data: PointerCreate): Promise<Pointer> {
     const response = await fetch(
       `${API_BASE}/pointers`,
@@ -200,8 +209,8 @@ export const pointersApi = {
   },
 }
 
-// Runs API
-export const runsApi = {
+// Real Runs API
+const realRunsApi = {
   async create(data: RunCreate): Promise<Run> {
     const response = await fetch(
       `${API_BASE}/runs`,
@@ -280,8 +289,8 @@ export const runsApi = {
   },
 }
 
-// RAG API
-export const ragApi = {
+// Real RAG API
+const realRagApi = {
   async index(data: RagIndexRequest): Promise<RagIndexResponse> {
     const response = await fetch(
       `${API_BASE}/rag/index`,
@@ -306,5 +315,12 @@ export const ragApi = {
     return handleResponse<RagAskResponse>(response)
   },
 }
+
+// Export real or mock APIs based on demo mode
+export const artifactsApi = IS_DEMO ? (mockArtifactsApi as typeof realArtifactsApi) : realArtifactsApi
+export const manifestsApi = IS_DEMO ? (mockManifestsApi as typeof realManifestsApi) : realManifestsApi
+export const pointersApi = IS_DEMO ? (mockPointersApi as typeof realPointersApi) : realPointersApi
+export const runsApi = IS_DEMO ? (mockRunsApi as typeof realRunsApi) : realRunsApi
+export const ragApi = IS_DEMO ? (mockRagApi as typeof realRagApi) : realRagApi
 
 export { ApiError }

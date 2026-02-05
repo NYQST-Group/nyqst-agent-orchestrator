@@ -322,10 +322,7 @@ class RunEventRepository(BaseRepository[RunEvent]):
             conditions.append(RunEvent.sequence_num > since_sequence)
 
         stmt = (
-            select(RunEvent)
-            .where(and_(*conditions))
-            .order_by(RunEvent.sequence_num)
-            .limit(limit)
+            select(RunEvent).where(and_(*conditions)).order_by(RunEvent.sequence_num).limit(limit)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
@@ -375,9 +372,8 @@ class RunEventRepository(BaseRepository[RunEvent]):
         Returns:
             Next sequence number
         """
-        stmt = (
-            select(func.coalesce(func.max(RunEvent.sequence_num), 0))
-            .where(RunEvent.run_id == run_id)
+        stmt = select(func.coalesce(func.max(RunEvent.sequence_num), 0)).where(
+            RunEvent.run_id == run_id
         )
         result = await self.session.execute(stmt)
         current_max = result.scalar() or 0

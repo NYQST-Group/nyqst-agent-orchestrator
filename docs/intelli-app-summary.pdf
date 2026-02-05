@@ -1,0 +1,152 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold >>
+endobj
+6 0 obj
+<< /Length 3438 >>
+stream
+BT
+/F2 16 Tf
+1 0 0 1 54 738 Tm
+(Intelli - Agent-First Document Intelligence Platform) Tj
+/F1 9 Tf
+1 0 0 1 54 716 Tm
+(One-page repo summary \(evidence-only\)) Tj
+/F2 11 Tf
+1 0 0 1 54 696 Tm
+(WHAT IT IS) Tj
+/F1 9 Tf
+1 0 0 1 54 681 Tm
+(An agent-first platform for document intelligence, research workflows, and knowledge) Tj
+/F1 9 Tf
+1 0 0 1 54 670 Tm
+(management.) Tj
+/F1 9 Tf
+1 0 0 1 54 659 Tm
+(Designed for trust: immutable artifacts/manifests, pointer-based versioning, and a run) Tj
+/F1 9 Tf
+1 0 0 1 54 648 Tm
+(ledger.) Tj
+/F2 11 Tf
+1 0 0 1 54 633 Tm
+(WHO IT'S FOR) Tj
+/F1 9 Tf
+1 0 0 1 54 618 Tm
+(Enterprise analysts/researchers and the platform engineers supporting them, when outputs must) Tj
+/F1 9 Tf
+1 0 0 1 54 607 Tm
+(be auditable and reproducible.) Tj
+/F2 11 Tf
+1 0 0 1 54 592 Tm
+(WHAT IT DOES) Tj
+/F1 9 Tf
+1 0 0 1 54 577 Tm
+(- Ingests files as immutable, content-addressed Artifacts \(SHA-256\) stored in object storage.) Tj
+/F1 9 Tf
+1 0 0 1 54 566 Tm
+(- Creates immutable Manifests \(tree snapshots\) and advances Git-like Pointers \(mutable) Tj
+/F1 9 Tf
+1 0 0 1 54 555 Tm
+(  HEADs\).) Tj
+/F1 9 Tf
+1 0 0 1 54 544 Tm
+(- Records executions as Runs with an append-only RunEvent ledger \(steps, tool calls,) Tj
+/F1 9 Tf
+1 0 0 1 54 533 Tm
+(  retrieval\).) Tj
+/F1 9 Tf
+1 0 0 1 54 522 Tm
+(- Exposes substrate + run operations via FastAPI HTTP API and via MCP tools for agent) Tj
+/F1 9 Tf
+1 0 0 1 54 511 Tm
+(  clients.) Tj
+/F1 9 Tf
+1 0 0 1 54 500 Tm
+(- Supports demo-grade RAG workflows \(index + ask endpoints\) with pluggable search backends.) Tj
+/F1 9 Tf
+1 0 0 1 54 489 Tm
+(- Ships a Vite-based product UI in `ui/` \(repo also has an older/experimental UI at root\).) Tj
+/F2 11 Tf
+1 0 0 1 54 474 Tm
+(HOW IT WORKS \(repo-based\)) Tj
+/F1 9 Tf
+1 0 0 1 54 459 Tm
+(- UI \(`ui/`\) and MCP/HTTP clients call the FastAPI API server \(`src/intelli/main.py`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 448 Tm
+(- Dev infra uses Postgres \(pgvector\), MinIO \(S3\), and OpenSearch \(see `docker-compose.yml`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 437 Tm
+(- Metadata in Postgres via SQLAlchemy models \(`src/intelli/db/models/*`; migrations in) Tj
+/F1 9 Tf
+1 0 0 1 54 426 Tm
+(  `migrations/`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 415 Tm
+(- Artifact bytes live in S3-compatible storage \(MinIO\) or local FS \(`src/intelli/storage/`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 404 Tm
+(- Indexing backend: `pgvector` \(default\) or OpenSearch chunk index \(`services/indexing/*`,) Tj
+/F1 9 Tf
+1 0 0 1 54 393 Tm
+(  `docs/INDEX_CONTRACT.md`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 382 Tm
+(- LangGraph checkpoints persist to Postgres \(`src/intelli/db/checkpointer.py`; initialized on) Tj
+/F1 9 Tf
+1 0 0 1 54 371 Tm
+(  app startup\).) Tj
+/F2 11 Tf
+1 0 0 1 54 356 Tm
+(HOW TO RUN \(minimal\)) Tj
+/F1 9 Tf
+1 0 0 1 54 341 Tm
+(- Prereqs: Python >=3.12, Docker + Compose, Node >=18 + npm \(see `pyproject.toml`\).) Tj
+/F1 9 Tf
+1 0 0 1 54 330 Tm
+(- Interactive dev \(API + UI\): `bash scripts/dev/run.sh`.) Tj
+/F1 9 Tf
+1 0 0 1 54 319 Tm
+(- Validated startup + smoke tests: `bash scripts/dev/validate.sh`.) Tj
+/F1 9 Tf
+1 0 0 1 54 308 Tm
+(- Scripts create `.env` from `.env.example`; set `DEBUG=true` and \(optional\) `OPENAI_API_KEY`) Tj
+/F1 9 Tf
+1 0 0 1 54 297 Tm
+(  for RAG.) Tj
+/F1 9 Tf
+1 0 0 1 54 286 Tm
+(- Defaults: API http://localhost:8000 \(docs: /docs\), UI http://localhost:3000.) Tj
+/F1 7 Tf
+1 0 0 1 54 269 Tm
+(Evidence: README.md, docs/START_HERE.md, docs/STARTUP_SEQUENCE.md, docker-compose.yml, src/intelli/*) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000000325 00000 n 
+0000000398 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3888
+%%EOF

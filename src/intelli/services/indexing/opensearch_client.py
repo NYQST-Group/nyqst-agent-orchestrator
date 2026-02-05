@@ -32,7 +32,9 @@ class OpenSearchClient:
             base_url=self.cfg.base_url.rstrip("/"),
             timeout=30.0,
             verify=self.cfg.verify_certs,
-            auth=(self.cfg.username, self.cfg.password) if self.cfg.username and self.cfg.password else None,
+            auth=(self.cfg.username, self.cfg.password)
+            if self.cfg.username and self.cfg.password
+            else None,
         )
 
     async def aclose(self) -> None:
@@ -51,7 +53,9 @@ class OpenSearchClient:
             return True
         if resp.status_code == 404:
             return False
-        raise OpenSearchError(f"Unexpected response checking index exists: {resp.status_code} {resp.text}")
+        raise OpenSearchError(
+            f"Unexpected response checking index exists: {resp.status_code} {resp.text}"
+        )
 
     async def create_index(self, index: str, *, body: dict) -> None:
         resp = await self._client.put(f"/{index}", json=body)
@@ -60,7 +64,9 @@ class OpenSearchClient:
 
     async def delete_by_query(self, index: str, *, query: dict, refresh: bool = False) -> dict:
         params = {"refresh": "true"} if refresh else None
-        resp = await self._client.post(f"/{index}/_delete_by_query", params=params, json={"query": query})
+        resp = await self._client.post(
+            f"/{index}/_delete_by_query", params=params, json={"query": query}
+        )
         if resp.status_code != 200:
             raise OpenSearchError(f"Delete by query failed: {resp.status_code} {resp.text}")
         return resp.json()
@@ -84,4 +90,3 @@ class OpenSearchClient:
         if payload.get("errors") is True:
             raise OpenSearchError(f"Bulk contained errors: {payload}")
         return payload
-

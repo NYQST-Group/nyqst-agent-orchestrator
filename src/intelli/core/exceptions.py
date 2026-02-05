@@ -49,8 +49,10 @@ class IntelliError(Exception):
 # Client Errors (4xx)
 # ============================================================================
 
+
 class ValidationError(IntelliError):
     """Invalid input data."""
+
     message = "Validation failed"
     code = "VALIDATION_ERROR"
     status_code = 400
@@ -63,6 +65,7 @@ class ValidationError(IntelliError):
 
 class AuthenticationError(IntelliError):
     """Authentication failed."""
+
     message = "Authentication required"
     code = "AUTHENTICATION_ERROR"
     status_code = 401
@@ -70,6 +73,7 @@ class AuthenticationError(IntelliError):
 
 class AuthorizationError(IntelliError):
     """Authorization failed."""
+
     message = "Permission denied"
     code = "AUTHORIZATION_ERROR"
     status_code = 403
@@ -77,6 +81,7 @@ class AuthorizationError(IntelliError):
 
 class NotFoundError(IntelliError):
     """Resource not found."""
+
     message = "Resource not found"
     code = "NOT_FOUND"
     status_code = 404
@@ -98,6 +103,7 @@ class NotFoundError(IntelliError):
 
 class ConflictError(IntelliError):
     """Resource conflict (e.g., duplicate, version mismatch)."""
+
     message = "Resource conflict"
     code = "CONFLICT"
     status_code = 409
@@ -105,6 +111,7 @@ class ConflictError(IntelliError):
 
 class RateLimitError(IntelliError):
     """Rate limit exceeded."""
+
     message = "Rate limit exceeded"
     code = "RATE_LIMIT_EXCEEDED"
     status_code = 429
@@ -128,8 +135,10 @@ class RateLimitError(IntelliError):
 # Resource-Specific Errors
 # ============================================================================
 
+
 class ArtifactNotFoundError(NotFoundError):
     """Artifact not found."""
+
     code = "ARTIFACT_NOT_FOUND"
 
     def __init__(self, sha256: str, **kwargs):
@@ -143,6 +152,7 @@ class ArtifactNotFoundError(NotFoundError):
 
 class ManifestNotFoundError(NotFoundError):
     """Manifest not found."""
+
     code = "MANIFEST_NOT_FOUND"
 
     def __init__(self, sha256: str, **kwargs):
@@ -156,6 +166,7 @@ class ManifestNotFoundError(NotFoundError):
 
 class PointerNotFoundError(NotFoundError):
     """Pointer not found."""
+
     code = "POINTER_NOT_FOUND"
 
     def __init__(self, namespace: str = None, name: str = None, pointer_id: str = None, **kwargs):
@@ -170,6 +181,7 @@ class PointerNotFoundError(NotFoundError):
 
 class RunNotFoundError(NotFoundError):
     """Run not found."""
+
     code = "RUN_NOT_FOUND"
 
     def __init__(self, run_id: str, **kwargs):
@@ -183,6 +195,7 @@ class RunNotFoundError(NotFoundError):
 
 class VersionConflictError(ConflictError):
     """Version mismatch during optimistic locking."""
+
     code = "VERSION_CONFLICT"
 
     def __init__(self, expected: int, actual: int, **kwargs):
@@ -195,6 +208,7 @@ class VersionConflictError(ConflictError):
 
 class DuplicateResourceError(ConflictError):
     """Resource already exists."""
+
     code = "DUPLICATE_RESOURCE"
 
 
@@ -202,8 +216,10 @@ class DuplicateResourceError(ConflictError):
 # Server Errors (5xx)
 # ============================================================================
 
+
 class StorageError(IntelliError):
     """Storage backend error."""
+
     message = "Storage operation failed"
     code = "STORAGE_ERROR"
     status_code = 500
@@ -216,6 +232,7 @@ class StorageError(IntelliError):
 
 class DatabaseError(IntelliError):
     """Database operation failed."""
+
     message = "Database operation failed"
     code = "DATABASE_ERROR"
     status_code = 500
@@ -223,6 +240,7 @@ class DatabaseError(IntelliError):
 
 class ExternalServiceError(IntelliError):
     """External service (LLM, etc.) failed."""
+
     message = "External service error"
     code = "EXTERNAL_SERVICE_ERROR"
     status_code = 502

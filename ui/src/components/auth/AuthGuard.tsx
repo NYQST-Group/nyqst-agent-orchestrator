@@ -10,19 +10,21 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export function AuthGuard({ children }: AuthGuardProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!IS_DEMO && !isAuthenticated) {
       // Redirect to login, preserving the intended destination
       navigate('/login', { state: { from: location.pathname } })
     }
   }, [isAuthenticated, navigate, location])
 
-  if (!isAuthenticated) {
+  if (!IS_DEMO && !isAuthenticated) {
     return null
   }
 

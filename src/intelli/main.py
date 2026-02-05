@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from intelli.api.health import router as health_router
 from intelli.api.middleware import (
+    AuthContextMiddleware,
     CorrelationMiddleware,
     ErrorHandlerMiddleware,
     intelli_exception_handler,
@@ -35,9 +36,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         debug=settings.debug,
     )
     await init_index_backend()
+
+    # Initialize LangGraph checkpointer (creates psycopg pool + checkpoint tables)
+    from intelli.db.checkpointer import get_checkpointer
+
+    await get_checkpointer()
+
+    # Start session idle monitor
+    from intelli.core.session_monitor import start_session_monitor, stop_session_monitor
+
+    await start_session_monitor()
+
     # Note: Database tables are created via Alembic migrations, not here
     yield
+
     # Shutdown
+    await stop_session_monitor()
+    from intelli.db.checkpointer import close_checkpointer
+
+    await close_checkpointer()
     logger.info("application_shutting_down")
 
 
@@ -63,7 +80,11 @@ def create_app() -> FastAPI:
     # 2. Correlation ID - adds tracing ID to all requests/responses
     app.add_middleware(CorrelationMiddleware)
 
-    # 3. CORS - handles cross-origin requests
+    # 3. Auth context - resolves auth and sets request.state.context
+    #    Extension point for future context resolution (hierarchy, config snapshots)
+    app.add_middleware(AuthContextMiddleware)
+
+    # 4. CORS - handles cross-origin requests
     cors_origins = settings.cors_origins if not settings.debug else ["*"]
     app.add_middleware(
         CORSMiddleware,
@@ -71,7 +92,7 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*", "X-Correlation-ID"],
-        expose_headers=["X-Correlation-ID"],
+        expose_headers=["X-Correlation-ID", "X-Conversation-Id", "X-Run-Id"],
     )
 
     # Exception handler for IntelliError (backup for middleware)

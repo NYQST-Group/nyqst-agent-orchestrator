@@ -2,15 +2,15 @@
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from intelli.main import create_app
-from intelli.db.base import Base
 from intelli.api.dependencies import get_session
+from intelli.db.base import Base
+from intelli.main import create_app
 
 # Test database URL - use a separate test database
-TEST_DATABASE_URL = "postgresql+asyncpg://intelli:intelli@localhost:5432/intelli_test"
+TEST_DATABASE_URL = "postgresql+asyncpg://intelli:intelli@localhost:5433/intelli_test"
 
 
 @pytest_asyncio.fixture
@@ -41,6 +41,19 @@ async def test_session(test_engine):
     async with session_factory() as session:
         yield session
         await session.rollback()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _reset_checkpointer():
+    """Reset the checkpointer singleton between tests to avoid stale connections."""
+    yield
+    import intelli.db.checkpointer as cp
+
+    # Use the new CheckpointerManager-based API
+    try:
+        await cp._manager.close_checkpointer()
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture

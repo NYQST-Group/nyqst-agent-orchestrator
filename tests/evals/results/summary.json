@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-02-03T04:09:24.531877",
+  "model": "gpt-5-nano",
+  "total_cases": 8,
+  "passed": 8,
+  "failed": 0,
+  "pass_rate": "100%",
+  "avg_latency_ms": 4923,
+  "failures": []
+}

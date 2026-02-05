@@ -332,7 +332,9 @@ async def _handle_tool_call(session: Any, name: str, arguments: dict[str, Any]) 
             "old_sha256": diff.old_sha256,
             "new_sha256": diff.new_sha256,
             "added": [{"path": e.path, "artifact_sha256": e.artifact_sha256} for e in diff.added],
-            "removed": [{"path": e.path, "artifact_sha256": e.artifact_sha256} for e in diff.removed],
+            "removed": [
+                {"path": e.path, "artifact_sha256": e.artifact_sha256} for e in diff.removed
+            ],
             "modified": [
                 {
                     "path": m["path"],

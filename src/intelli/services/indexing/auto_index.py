@@ -87,4 +87,3 @@ async def auto_index_manifest(
         except Exception:
             await session.rollback()
             raise
-

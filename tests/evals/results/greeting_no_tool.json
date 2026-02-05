@@ -1,0 +1,14 @@
+{
+  "case_id": "greeting_no_tool",
+  "input": "Hello, how are you?",
+  "description": "Simple greeting should NOT trigger a tool call",
+  "expected_tool": null,
+  "expect_tool_call": false,
+  "actual_tool": null,
+  "actual_args": null,
+  "has_tool_call": false,
+  "content_preview": "Hi there! I\u2019m here and ready to help with your documents. What would you like to work on today?",
+  "elapsed_ms": 1728,
+  "passed": true,
+  "failure_reason": null
+}
