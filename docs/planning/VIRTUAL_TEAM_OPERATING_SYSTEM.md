@@ -221,7 +221,7 @@ cd services/index
 pytest tests/ -v
 ```
 
-**PR:** https://github.com/t3rm1nu55/nyqst-intelli-230126/pull/XX
+**PR:** https://github.com/NYQST-Group/NYQST-DocuIntelli-Build/pull/XX
 ```
 
 ---

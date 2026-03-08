@@ -1,6 +1,6 @@
 # Git Branch Map — nyqst-intelli-230126
 
-**Remote:** `https://github.com/t3rm1nu55/nyqst-intelli-230126.git`
+**Remote:** `https://github.com/NYQST-Group/NYQST-DocuIntelli-Build.git`
 
 ## Active Branches
 
