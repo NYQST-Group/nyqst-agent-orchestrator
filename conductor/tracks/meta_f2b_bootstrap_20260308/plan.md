@@ -25,9 +25,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md) 0916ff1
 
 ## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2)
-- [ ] Task: Establish Environments & Configurations
-  - [ ] Sub-task: Define `.env` templates for Dev, Staging, and Prod
-  - [ ] Sub-task: Validate Docker Compose for local PostgreSQL+pgvector and Redis
+- [x] Task: Establish Environments & Configurations e0f1c38
+  - [x] Sub-task: Define `.env` templates for Dev, Staging, and Prod
+  - [x] Sub-task: Validate Docker Compose for local PostgreSQL+pgvector and Redis
 - [ ] Task: CI/CD Pipeline Configuration (V4-INFRA-001)
   - [ ] Sub-task: Create GitHub Actions workflow for Python `pytest` and linting
   - [ ] Sub-task: Create GitHub Actions workflow for TS `vitest` and type-checking
