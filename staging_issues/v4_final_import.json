@@ -1692,6 +1692,32 @@
         "priority:p0"
       ],
       "source_pack": "V4_NEW"
+    },
+    {
+      "key": "STUDIO-003",
+      "title": "[STUDIO-003] Decisions register: decisions CRUD + citation binding to evidence",
+      "body": "## Problem\nDecision making is the output of analysis. Repo has a placeholder Decisions page and no decision model; citations need to be first-class for compliance.\n\n## Solution\nImplement Decisions:\n- DB: `decisions` table (tenant_id, project_id, title, decision, rationale, status, created_by).\n- DB: `decision_citations` linking decisions to entity/citation IDs (BL-016).\n- UI: DecisionsPage list with filters; DecisionDetail with rationale, citations, and linked artifacts.\n\n## Acceptance Criteria\n- Decisions can be created, edited, and linked to a project.\n- Decisions can display citations and open the referenced evidence.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "decisions",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-005",
+      "title": "[STUDIO-005] Diff viewer: compare artifacts/versions and render semantic diffs",
+      "body": "## Problem\nSpec and DocuIntelli require diffing across versions (contracts, reports, models). Repo has artifacts but no diff UI or diff service.\n\n## Solution\nImplement diff viewer:\n- Backend: endpoint to compute diff between two artifact versions (text/pdf via extracted text).\n- UI: Diff panel that can show side-by-side and unified diffs, with highlights.\n- Integrate with canvas nodes: diff node referencing two artifacts.\n\n## Acceptance Criteria\n- User can select two artifacts (or document versions) and view a diff in UI.\n- Diff nodes can be added to canvas and reopened.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "diff",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
     }
   ]
 }
