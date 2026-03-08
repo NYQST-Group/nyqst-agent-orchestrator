@@ -1,8 +1,0 @@
-{
-  "track_id": "lease_cd_mvp_20260308",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-08T00:00:00Z",
-  "updated_at": "2026-03-08T00:00:00Z",
-  "description": "M0.5 Lease CD MVP (Lender-Ready) - Implement the primary wedge product: Lease document ingestion, term extraction, cashflow engine, and Excel lender pack export."
-}
