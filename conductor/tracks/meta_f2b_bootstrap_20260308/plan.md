@@ -15,10 +15,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md) d584c7c
 
 ## Phase 2: Conductor & GitHub Synchronization (Week 1)
-- [~] Task: Build Sync Script (`sync-conductor.sh`)
-  - [ ] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
-  - [ ] Sub-task: Implement `gh issue view` calls to check remote state
-  - [ ] Sub-task: Implement `gh issue close` for locally completed tasks
+- [x] Task: Build Sync Script (`sync-conductor.sh`) ed574f3
+  - [x] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
+  - [x] Sub-task: Implement `gh issue view` calls to check remote state
+  - [x] Sub-task: Implement `gh issue close` for locally completed tasks
 - [ ] Task: Automate Sync Execution
   - [ ] Sub-task: Hook script into Git `pre-commit` or `post-commit`
   - [ ] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
