@@ -91,13 +91,9 @@ All tasks follow a strict lifecycle:
     -   **Step 2.1: Determine Phase Scope:** To identify the files changed in this phase, you must first find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
     -   **Step 2.2: List Changed Files:** Execute `git diff --name-only <previous_checkpoint_sha> HEAD` to get a precise list of all files modified during this phase.
     -   **Step 2.3: Verify and Create Tests:** For each file in the list:
-        -   **CRITICAL (For Code):** First, check its extension. Exclude non-code files (e.g., `.json`, `.md`, `.yaml`).
-        -   For each remaining code file (`.py`, `.ts`, `.tsx`, etc.), verify a corresponding test file exists.
+        -   **CRITICAL:** First, check its extension. Exclude non-code files (e.g., `.json`, `.md`, `.yaml`).
+        -   For each remaining code file, verify a corresponding test file exists.
         -   If a test file is missing, you **must** create one. Before writing the test, **first, analyze other test files in the repository to determine the correct naming convention and testing style.** The new tests **must** validate the functionality described in this phase's tasks (`plan.md`).
-        
-    -   **Step 2.4: Verify Non-Code Artifacts:** For the files excluded in Step 2.3:
-        -   **Config/Infra (`.yml`, `.json`, `Dockerfile`, `.env`)**: You MUST execute a structural or validation test. For example: run `docker-compose config`, execute a Python JSON schema validation script, or run `gh workflow view`. Do not just write it; test it structurally.
-        -   **Meta/Docs (`.md`, `conductor/`)**: You MUST perform an LLM-driven manual review of the generated files to ensure coherence, lack of contradictions, and architectural alignment. Do not blindly assume generated text is correct.
 
 3.  **Execute Automated Tests with Proactive Debugging:**
     -   Before execution, you **must** announce the exact shell command you will use to run the tests.
@@ -152,6 +148,15 @@ All tasks follow a strict lifecycle:
     - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
 10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+
+
+
+### [CUSTOM] Non-Code Artifact Verification Protocol
+
+**Trigger:** This protocol is executed manually when concluding tasks or phases that deal exclusively with infrastructure, configuration, or documentation (e.g., in RCA or Meta tracks) where native unit testing does not apply.
+
+1.  **Config/Infra Verification (`.yml`, `.json`, `Dockerfile`, `.env`)**: You MUST execute a structural or validation test. For example: run `docker-compose config`, execute a Python JSON schema validation script, or run `gh workflow view`. Do not just write it; test it structurally.
+2.  **Meta/Docs Verification (`.md`, `conductor/`)**: You MUST perform an LLM-driven manual review of the generated files to ensure coherence, lack of contradictions, and architectural alignment. Do not blindly assume generated text is correct.
 
 ### Pull Request & Git Hygiene Guidelines
 
