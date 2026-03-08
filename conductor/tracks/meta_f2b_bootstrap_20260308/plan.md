@@ -14,7 +14,7 @@
   - [x] Sub-task: Import 45 new issues from `V4_NEW_ISSUES.md`
 - [x] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md) d584c7c
 
-## Phase 2: Conductor & GitHub Synchronization (Week 1)
+## Phase 2: Conductor & GitHub Synchronization (Week 1) [checkpoint: 0916ff1]
 - [x] Task: Build Sync Script (`sync-conductor.sh`) ed574f3
   - [x] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
   - [x] Sub-task: Implement `gh issue view` calls to check remote state
@@ -22,7 +22,7 @@
 - [x] Task: Automate Sync Execution 6513e10
   - [x] Sub-task: Hook script into Git `pre-commit` or `post-commit`
   - [x] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md) 0916ff1
 
 ## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2)
 - [ ] Task: Establish Environments & Configurations
