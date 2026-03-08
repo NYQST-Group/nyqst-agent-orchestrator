@@ -1,0 +1,3494 @@
+{
+  "issues": [
+    {
+      "key": "EPIC-P0",
+      "type": "epic",
+      "title": "P0 repo stabilization and CI hardening",
+      "problem": "Core platform work is slowed by a small set of blocking correctness and workflow issues (async worker registration, event ordering, missing tenant FK, optional Redis, lack of PR CI).",
+      "solution": "Ship the P0 fixes as a first milestone so every subsequent wave can build on stable background jobs, reliable run streaming, tenant-aware data, and predictable CI feedback.",
+      "acceptance_criteria": [
+        "P0 issues merged: arq worker registration fixed; run event ordering race fixed; run.tenant_id added + backfilled; Redis enabled in default dev compose; CI runs backend+frontend checks on PRs.",
+        "Dev workflow: `docker compose up` brings up required services without profiles; `make test` (or equivalent) works from clean clone."
+      ],
+      "test_plan": [
+        "Add/extend unit tests for RunRepository ordering and arq worker function discovery.",
+        "CI pipeline executes lint + unit tests + minimal integration smoke for both backend and UI."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M0",
+        "priority:P0"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "partial",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-W0",
+      "type": "epic",
+      "title": "Wave 0 \u2014 Orchestrated research harness (planner + fan-out) + run events",
+      "problem": "Current research assistant is a single tool-using loop. The spec requires an orchestrated graph (planner \u2192 fan-out workers \u2192 fan-in synthesis) plus richer run events to drive Plan/Report UI.",
+      "solution": "Extend the LangGraph runtime to implement planner dispatch + worker subgraphs, add the plan/run event contract and UI primitives to prove end-to-end orchestration.",
+      "acceptance_criteria": [
+        "Research runs can execute multi-step plans with concurrent worker tasks and produce a synthesized output.",
+        "RunEvent stream includes plan lifecycle and citations lifecycle events needed by PlanViewer/ReportPanel.",
+        "System remains backwards-compatible with existing chat streaming (Vercel AI SDK stream)."
+      ],
+      "test_plan": [
+        "Integration tests: simulated run emits expected event sequence; planner \u2192 worker \u2192 synth path executed.",
+        "E2E: UI shows a plan timeline and a final draft report for a demo prompt."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M1",
+        "wave:0"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-W1",
+      "type": "epic",
+      "title": "Wave 1 \u2014 GenUI + report rendering + planning UX (PlanViewer + ReportPanel)",
+      "problem": "Spec requires a structured UI generation contract (GenUI descriptors) and a GML-based ReportPanel that can be incrementally streamed, healed, and cited.",
+      "solution": "Implement GenUI descriptor validators + component library, then a robust GML renderer with healer, plus UI surfaces to inspect plan state and report draft during the run.",
+      "acceptance_criteria": [
+        "GenUI descriptors validated at runtime; renderer can mount at least: text, table, callout, chart, citations.",
+        "ReportPanel can render partial GML, re-render on deltas, and surface validation/healing outcomes to the user.",
+        "PlanViewer shows PlanSet with live task status updates."
+      ],
+      "test_plan": [
+        "Unit: GenUI schema validators; GML parser + renderer; healer behaviour on malformed tags.",
+        "E2E: report preview updates while run progresses; plan tasks tick through states."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M2",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-W2",
+      "type": "epic",
+      "title": "Wave 2 \u2014 Deliverables pipelines (report, website, slides, document) + context",
+      "problem": "Beyond in-app report preview, NYQST needs robust deliverable generation pipelines and a context system that can scale from task \u2192 workspace with inheritance and background indexing.",
+      "solution": "Add deliverable selection (per user message), implement the deliverable store, then add pipelines for website/slides/document exports. Extend context ingestion + retrieval with inheritance and 'Cursor-like' background indexing.",
+      "acceptance_criteria": [
+        "User can select deliverable type per prompt; system stores and serves deliverable artifacts by identifier.",
+        "At least one full end-to-end run can output: in-app report + a slide deck + a downloadable document, with citations.",
+        "Context packs can be created at project/workspace scope and inherited into tasks."
+      ],
+      "test_plan": [
+        "Integration: deliverable store persists identifiers; arq jobs generate expected artifacts.",
+        "E2E: generate slides + document from the UI; artifacts are downloadable and linked to the run."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M3",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-W3",
+      "type": "epic",
+      "title": "Wave 3 \u2014 Polish, integration, and safety rails",
+      "problem": "After core capability exists, the product needs UX polish (generation overlay, clarification loops), stronger safety rails (never-confidently-wrong), and integrated provenance across surfaces.",
+      "solution": "Ship the remaining spec polish items: overlay, clarification flow, shared data brief, plus auditability and guardrails across UI and runtime.",
+      "acceptance_criteria": [
+        "Generation overlay shows run progress, plan state, citations, and artifacts being produced.",
+        "Clarification flow interrupts low-confidence or ambiguous prompts with structured questions.",
+        "Shared data brief is available and reused across deliverables."
+      ],
+      "test_plan": [
+        "E2E: ambiguous prompt triggers clarification; resolved prompt continues run.",
+        "Unit/Integration: shared data brief stored and referenced by deliverable pipelines."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M4",
+        "wave:3"
+      ],
+      "milestone": "M4-W3",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-STUDIO",
+      "type": "epic",
+      "title": "Studio surfaces: Projects, Clients/CRM, Decisions, Analysis canvas, Apps/Workflows",
+      "problem": "Repo contains module entry pages for Projects/Clients/Decisions/Analysis, but most are placeholders. Spec and your product vision require an operational Studio: entity management + notebooks + an infinite canvas that links analysis, diffs, and agent workflows.",
+      "solution": "Implement the Studio data model and UI flows: project/client CRUD, decision register with citations, analysis canvas with node linking/diffing, plus an 'Apps' surface for configured agent/workflow presets (Dify-like).",
+      "acceptance_criteria": [
+        "Projects and Clients pages are fully functional (list/detail/create/edit) with appropriate scoping and permissions.",
+        "Decisions register supports citations to evidence artifacts and is searchable.",
+        "Analysis canvas supports at least 5 node types (note, doc/artifact, chart, decision, link) with drag/drop, zoom, and persistence.",
+        "Apps surface supports saving a configured workflow/agent template and running it against a project."
+      ],
+      "test_plan": [
+        "Unit: canvas state reducer and persistence; decision citation binding logic.",
+        "E2E: create project \u2192 upload docs \u2192 run research \u2192 pin outputs to canvas \u2192 create decision with citations."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M5",
+        "surface:studio"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "partial",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-PLUGINS",
+      "type": "epic",
+      "title": "MCP tools, plugins, connectors, and skills registry",
+      "problem": "MCP scaffold exists but knowledge tools and a tool registry / connector framework are not implemented. Product needs a consistent tool protocol and enablement model across scopes (workspace/project/app).",
+      "solution": "Implement MCP tool registry + discovery, connector credential storage, tool enablement policies, and a skills registry (packaged subgraphs) so agents and apps can be composed safely and consistently.",
+      "acceptance_criteria": [
+        "Tools are discoverable and described in a registry; tool calls are permission-gated by scope.",
+        "Connector credentials can be stored and used by tools without leaking secrets into run events.",
+        "A 'skill' can be packaged, registered, enabled, and invoked inside a graph."
+      ],
+      "test_plan": [
+        "Integration: tool discovery returns expected tool list; policy denies unauthorized calls.",
+        "Security: secrets never appear in event payloads or client logs."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M5",
+        "platform:tools"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "partial",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-ENTERPRISE",
+      "type": "epic",
+      "title": "Enterprise baseline: SSO, RBAC, audit logs, billing/metering",
+      "problem": "To reach production in regulated financial workflows, NYQST needs enterprise auth, authorization, auditability, and usage/billing controls.",
+      "solution": "Add OIDC SSO, granular RBAC/ABAC, immutable audit logs, and a Stripe-backed billing/metering system tied to tenant_id and token/tool usage.",
+      "acceptance_criteria": [
+        "SSO login works (OIDC) and users are mapped to workspaces/tenants.",
+        "RBAC policies are enforced for core resources (projects, documents, runs, apps).",
+        "Audit log captures authentication, document access, tool calls, and deliverable exports.",
+        "Billing/metering records usage per tenant and supports quotas."
+      ],
+      "test_plan": [
+        "Integration: RBAC denies/permits correctly; audit records written.",
+        "Billing: usage aggregation jobs run and produce tenant summaries."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M6",
+        "enterprise"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-OBS",
+      "type": "epic",
+      "title": "Observability, evals, and production readiness",
+      "problem": "Complex agentic systems fail silently without tracing, metrics, and continuous evals. Repo has an evals folder but needs wiring into CI and runtime instrumentation (LangSmith/Langfuse/OTel).",
+      "solution": "Standardize logging/metrics/tracing, wire evals into CI/CD, and add reliability guardrails (timeouts, retries, circuit breakers) so production incidents are diagnosable and regressions are caught early.",
+      "acceptance_criteria": [
+        "Tracing provider configurable; runs include trace IDs; key tool/LLM calls are trace-linked.",
+        "Evals run in CI on a small golden set; failures block merges.",
+        "Operational dashboards exist for latency, error rates, cost/usage, and queue depth."
+      ],
+      "test_plan": [
+        "Smoke test: tracing enabled emits spans; eval harness can run headlessly.",
+        "Load test: run streaming stays stable under N concurrent runs (define N)."
+      ],
+      "depends_on": [],
+      "labels": [
+        "milestone:M6",
+        "quality"
+      ],
+      "milestone": "M6-OBS",
+      "repo_alignment": "partial",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "P0-001",
+      "type": "task",
+      "title": "Fix arq WorkerSettings.functions dynamic registration bug",
+      "problem": "`WorkerSettings.functions` is computed at class definition time from `function_registry`; later calls to `register_job()` will not be picked up by running workers.",
+      "solution": "Update `src/intelli/core/jobs.py` so `WorkerSettings.functions` is a dynamic property or is recomputed during worker startup.\n\nPreferred approach:\n- Make `WorkerSettings` expose `functions()` as a `@staticmethod` returning `list(function_registry.values())`, or\n- Implement `on_startup` hook to refresh.\n\nEnsure hot-reload and multi-worker deployments behave deterministically.",
+      "acceptance_criteria": [
+        "Registering a job via `register_job()` after module import results in the worker executing it.",
+        "Worker startup logs show the final function list and count.",
+        "No regression to existing job execution."
+      ],
+      "test_plan": [
+        "Unit test: register dummy job after import; assert WorkerSettings exposes it.",
+        "Integration test: enqueue job; assert worker executes (can use arq test utilities)."
+      ],
+      "depends_on": [
+        "EPIC-P0"
+      ],
+      "labels": [
+        "priority:P0",
+        "backend",
+        "arq"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/core/jobs.py",
+        "src/intelli/core/jobs_registry.py",
+        "tests/unit/test_jobs.py"
+      ],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (P0-1)"
+      ],
+      "notes": "This is explicitly called out as a P0 fix in the build guide."
+    },
+    {
+      "key": "P0-002",
+      "type": "task",
+      "title": "Fix run_event sequence race under concurrent writers",
+      "problem": "`RunRepository.create_run_event()` reads the current max sequence and then writes `sequence+1`. Under concurrency this can create duplicates/out-of-order sequences, breaking UI timelines and downstream logic.",
+      "solution": "Ensure run_event sequencing is monotonic and concurrency-safe.\n\nRecommended implementation:\n- Add a DB-side sequence via `run_events.sequence` populated from `nextval()` scoped by `run_id`, or\n- Use a `SELECT ... FOR UPDATE` lock on the parent `runs` row and store `last_sequence` on `runs`, or\n- Use a unique constraint on `(run_id, sequence)` plus retry loop.\n\nAlso ensure LISTEN/NOTIFY payloads preserve order or include sequence to allow client ordering.",
+      "acceptance_criteria": [
+        "Concurrent creation of N run events results in strictly increasing, gap-free sequences per run.",
+        "UI timeline ordering is stable even under high event volume.",
+        "Constraint prevents duplicates and code retries gracefully."
+      ],
+      "test_plan": [
+        "Unit test with concurrent tasks/threads creating events; assert unique & ordered.",
+        "Integration test with Postgres: verify unique constraint and retry behaviour."
+      ],
+      "depends_on": [
+        "EPIC-P0"
+      ],
+      "labels": [
+        "priority:P0",
+        "backend",
+        "runs",
+        "db"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/repositories/runs.py",
+        "src/intelli/db/models/runs.py",
+        "migrations/versions/*"
+      ],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (P0-2)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "P0-003",
+      "type": "task",
+      "title": "Add tenant_id to Run model and API filtering",
+      "problem": "Run ledger is central to billing/metering and multi-tenant isolation, but `runs` currently have no `tenant_id` foreign key, making tenant-scoped queries and usage aggregation unreliable.",
+      "solution": "Add `tenant_id` to `Run` model + migration + API filtering.\n\nSteps:\n- DB: add `runs.tenant_id` (nullable initially), index it, and backfill from `session.tenant_id` or `conversation.tenant_id` where possible.\n- App: require `tenant_id` for new runs; enforce tenant scoping in repositories and endpoints.\n- Update any aggregations/usage records to use tenant_id.",
+      "acceptance_criteria": [
+        "All new runs have `tenant_id` set and validated.",
+        "Run list/read endpoints enforce tenant scoping.",
+        "Backfill migration fills tenant_id for existing runs in dev DB fixtures."
+      ],
+      "test_plan": [
+        "Integration: create run in tenant A cannot be read by tenant B.",
+        "Migration test: backfill populates expected values for fixture rows."
+      ],
+      "depends_on": [
+        "EPIC-P0"
+      ],
+      "labels": [
+        "priority:P0",
+        "backend",
+        "multi-tenant"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/db/models/runs.py",
+        "src/intelli/repositories/runs.py",
+        "src/intelli/api/v1/runs.py",
+        "migrations/versions/*"
+      ],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (P0-3)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "P0-004",
+      "type": "task",
+      "title": "Make Redis always-on in dev compose (remove profile gating)",
+      "problem": "Redis is required for queueing/background jobs in the platform, but docker-compose currently puts redis behind an optional profile, causing inconsistent dev environments and failures.",
+      "solution": "Update `docker-compose.yml`:\n- Remove `profiles: [\"full\"]` from `redis` and `arq_worker` services (or provide a default profile).\n- Ensure `docker compose up` starts redis + worker by default.\n- Update README and any scripts accordingly.",
+      "acceptance_criteria": [
+        "`docker compose up` starts Postgres, OpenSearch, MinIO, Redis, backend, UI, and the arq worker (if intended).",
+        "No other services are unexpectedly pulled in; profiles remain only for truly optional heavy dependencies."
+      ],
+      "test_plan": [
+        "Smoke: clean clone \u2192 `docker compose up` succeeds without extra flags."
+      ],
+      "depends_on": [
+        "EPIC-P0"
+      ],
+      "labels": [
+        "priority:P0",
+        "infra",
+        "devx"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "docker-compose.yml",
+        "README.md"
+      ],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (P0-4)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "P0-005",
+      "type": "task",
+      "title": "Add GitHub Actions CI for backend + UI (lint, unit tests, minimal integration)",
+      "problem": "No PR CI means regressions slip through and parallel agent work collides.",
+      "solution": "Add `.github/workflows/ci.yml` with:\n- Backend: install deps, run ruff/format checks, run pytest (unit + lightweight integration).\n- UI: install deps, run lint, run typecheck, run unit tests (if present).\n- Optionally spin Postgres/OpenSearch/MinIO containers for integration tests using service containers.",
+      "acceptance_criteria": [
+        "CI runs on PRs and main pushes.",
+        "CI fails on lint/type/test failures and reports clearly.",
+        "A documented local equivalent exists (Make targets)."
+      ],
+      "test_plan": [
+        "CI itself is validated by a sample PR run (dry run not possible here; ensure workflow syntax is correct)."
+      ],
+      "depends_on": [
+        "EPIC-P0"
+      ],
+      "labels": [
+        "priority:P0",
+        "ci",
+        "quality"
+      ],
+      "milestone": "M0-P0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "ui/package.json",
+        "pyproject.toml"
+      ],
+      "spec_refs": [
+        "reference/archive/gap-analysis/02_GAP_ANALYSIS.md (CI gap)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-001",
+      "type": "story",
+      "title": "Extend ResearchAssistantGraph to planner \u2192 fan-out workers \u2192 synthesize (orchestrated research)",
+      "problem": "Current research graph is a single tool loop. Spec requires: planner produces a plan, workers execute tasks in parallel (Send), synthesis combines outputs into a shared data brief and report draft.",
+      "solution": "Refactor/extend `src/intelli/agents/graphs/research_assistant.py` into an orchestrated LangGraph:\n- **planner** node: takes user intent + context, outputs PlanSet (tasks + tool preferences).\n- **dispatch** node: converts PlanSet tasks into `Send(worker, task)` messages.\n- **worker** node/subgraph: wraps the existing `create_react_agent()` tool-using agent to execute a single task and returns structured `TaskResult` (summary, evidence refs, citations).\n- **fan-in synth** node: merges TaskResults into a `DataBrief` object (facts, assumptions, open questions, citations).\n- **generator** node: produces a draft deliverable (report first) and emits report preview deltas.\n\nKeep the existing AI SDK streaming contract: text chunks for assistant prose, `data` chunks for structured outputs (sources, plan updates, report deltas).",
+      "acceptance_criteria": [
+        "Graph executes at least 3 tasks in parallel for a representative research prompt and completes with a synthesized result.",
+        "Each worker task produces a structured TaskResult object including references to evidence artifacts (or placeholder IDs until EntityService is built).",
+        "Graph supports cancellation/timeouts per task (basic guardrails).",
+        "No regression to existing single-turn chat; multi-turn still works."
+      ],
+      "test_plan": [
+        "Integration: run the graph with a fixed prompt; assert planner emits tasks; workers run; synth produces DataBrief.",
+        "Unit: planner output schema validated; worker result schema validated; synth merge logic deterministic."
+      ],
+      "depends_on": [
+        "EPIC-W0",
+        "P0-001",
+        "P0-002"
+      ],
+      "labels": [
+        "backend",
+        "langgraph",
+        "wave:0"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/agents/graphs/research_assistant.py",
+        "src/intelli/agents/adapters/__init__.py",
+        "src/intelli/agents/tools/research_tools.py"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-001)",
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (Build Sequence, Wave 0)"
+      ],
+      "notes": "Design goal: wrap existing `create_react_agent()` as the worker so we don\u2019t throw away the working tool loop."
+    },
+    {
+      "key": "BL-001a",
+      "type": "task",
+      "title": "Define orchestrator state, TaskResult, and DataBrief schemas (backend)",
+      "problem": "Planner/worker/synth nodes need a shared typed state and stable payload shapes for events and persistence.",
+      "solution": "Add Pydantic models for:\n- `PlanTask` (id, title, description, status, assigned_tools, deps, citations_required)\n- `PlanSet` (version, tasks[], created_at, updated_at)\n- `TaskResult` (task_id, summary, evidence_refs[], raw_tool_artifacts[], confidence)\n- `DataBrief` (key_facts[], assumptions[], risks[], open_questions[], citations[], entities[])\n\nStore schemas in `src/intelli/contracts/` (new package) and ensure they are JSON-serializable for run_event payloads.",
+      "acceptance_criteria": [
+        "Schemas exist with JSON schema export support (for TS typing later).",
+        "TaskResult and DataBrief are serializable and versioned."
+      ],
+      "test_plan": [
+        "Unit: schema validation roundtrip (dict \u2192 model \u2192 dict)."
+      ],
+      "depends_on": [
+        "BL-001"
+      ],
+      "labels": [
+        "backend",
+        "contracts"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/contracts/* (new)",
+        "src/intelli/agents/graphs/research_assistant.py"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-001b",
+      "type": "task",
+      "title": "Implement planner node with deterministic PlanTask IDs and minimal heuristics",
+      "problem": "Without a stable planner, fan-out cannot be reliable and UI cannot track tasks over time.",
+      "solution": "Implement a `planner()` node that:\n- Generates 3\u20137 tasks (bounded) with stable IDs (e.g., `t1`, `t2` or UUIDv7) and explicit dependencies.\n- Uses a prompt template that requests structured JSON output matching `PlanSet`.\n- Applies guardrails: dedupe near-duplicate tasks, cap recursion, ensure at least 1 synthesis task.\n\nKeep heuristics simple in Wave 0; richer prompting is BL-012.",
+      "acceptance_criteria": [
+        "Planner returns a valid PlanSet under normal prompts; invalid JSON is retried with a repair prompt.",
+        "Task IDs remain stable within a run and appear in events."
+      ],
+      "test_plan": [
+        "Unit: prompt \u2192 parse PlanSet; malformed output triggers repair path."
+      ],
+      "depends_on": [
+        "BL-001a"
+      ],
+      "labels": [
+        "backend",
+        "langgraph"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-001c",
+      "type": "task",
+      "title": "Implement worker execution using Send() fan-out and structured TaskResult returns",
+      "problem": "Parallelizing tasks requires reliable fan-out and a standard way for workers to return structured results (not just text).",
+      "solution": "Implement worker dispatch:\n- `dispatch()` converts PlanSet tasks to `Send(\"worker\", {task})`.\n- Each worker runs the existing tool-using agent with task context and returns `TaskResult`.\n- Capture tool outputs as artifacts (temporary) and attach refs in TaskResult (align with BL-011 later).",
+      "acceptance_criteria": [
+        "Workers execute tasks concurrently and return TaskResult objects.",
+        "Failure in one task is captured and surfaced (does not crash run)."
+      ],
+      "test_plan": [
+        "Integration: run with 3 tasks; assert 3 TaskResults returned."
+      ],
+      "depends_on": [
+        "BL-001b"
+      ],
+      "labels": [
+        "backend",
+        "langgraph"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-001d",
+      "type": "task",
+      "title": "Implement fan-in synth node to build DataBrief from TaskResults",
+      "problem": "Deliverables need a consistent shared data brief (facts, citations, open questions). Without synthesis, results stay fragmented.",
+      "solution": "Implement `synthesize()` node:\n- Input: list of TaskResults.\n- Output: DataBrief.\n- Use a synthesis prompt that requires citations to reference evidence refs.\n- De-duplicate facts and normalize confidence/risk fields.",
+      "acceptance_criteria": [
+        "DataBrief produced for successful runs and is attached to run state.",
+        "Synthesis preserves links to evidence refs for later citation binding."
+      ],
+      "test_plan": [
+        "Unit: deterministic merge for duplicate facts; stable ordering."
+      ],
+      "depends_on": [
+        "BL-001c"
+      ],
+      "labels": [
+        "backend",
+        "langgraph"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-002",
+      "type": "story",
+      "title": "Extend RunEvent contract + UI typing for plan/report/citation events",
+      "problem": "Run ledger currently focuses on operational debug events. Spec requires user-facing events to drive PlanViewer, ReportPanel preview, and citation workflows.",
+      "solution": "Extend `RunEventType` + payload schemas to include:\n- Plan lifecycle: `plan_created`, `plan_updated`, `plan_task_status_changed`\n- Report preview: `report_preview_started`, `report_preview_delta`, `report_preview_completed`\n- Citations: `references_found`, `citations_bound`, `citations_updated`\n- Deliverables: `artifact_created`, `deliverable_ready`\n\nProvide a TS discriminated union + zod validators in UI (new `ui/src/types/run-events.ts`), and update `RunTimeline` to render these events.",
+      "acceptance_criteria": [
+        "Backend can emit the new event types and stores them in run_events with validated payload schema.",
+        "UI can parse and display plan/report/citation events; unknown events fall back to generic renderer.",
+        "SSE reconnection logic is improved (exponential backoff, resume by last sequence)."
+      ],
+      "test_plan": [
+        "Unit: payload validation for each new event type.",
+        "E2E: a run emits plan and report preview events and they render in UI."
+      ],
+      "depends_on": [
+        "EPIC-W0",
+        "P0-002"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "runs",
+        "wave:0"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/db/models/runs.py",
+        "src/intelli/api/v1/streams.py",
+        "ui/src/hooks/use-sse.ts",
+        "ui/src/components/runs/RunTimeline.tsx",
+        "ui/src/types/* (new)"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-002)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-002a",
+      "type": "task",
+      "title": "Add new RunEventType enum values + payload schemas (backend)",
+      "problem": "Event type expansion needs DB + model updates plus validation so payloads are stable across clients.",
+      "solution": "- Extend `RunEventType` enum in `src/intelli/db/models/runs.py`.\n- Add Pydantic payload models for each new event type (in `src/intelli/contracts/run_events.py`).\n- Validate payloads before insert; store `schema_version` in payload.",
+      "acceptance_criteria": [
+        "New enum values exist and are used by adapter/graphs.",
+        "Invalid payloads are rejected server-side with clear errors."
+      ],
+      "test_plan": [
+        "Unit: validate payloads for each event type."
+      ],
+      "depends_on": [
+        "BL-002"
+      ],
+      "labels": [
+        "backend",
+        "contracts"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-002b",
+      "type": "task",
+      "title": "Improve SSE stream reliability: resume by last sequence + backoff",
+      "problem": "Current SSE hook reconnects with a fixed delay and replays from scratch; high-volume runs risk missing events or showing duplicates.",
+      "solution": "- Backend: add optional `since_sequence` query param to `/streams/runs/{run_id}` to replay from last seen sequence (or use `Last-Event-ID`).\n- Frontend: store last received sequence; reconnect with exponential backoff; request replay from `since_sequence`.",
+      "acceptance_criteria": [
+        "Disconnect/reconnect does not lose events; events are deduped by (run_id, sequence).",
+        "Backoff increases up to a max and stops after a cap (configurable)."
+      ],
+      "test_plan": [
+        "Integration: simulate network drop; reconnect continues stream correctly."
+      ],
+      "depends_on": [
+        "BL-002",
+        "P0-002"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "sse"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-003",
+      "type": "story",
+      "title": "Add web research toolset (Brave/Tavily + Jina Reader) with provenance",
+      "problem": "Research harness needs reliable web search and page fetch/reader tools with provenance and rate limiting. Repo currently has placeholder web search and no dedicated page reader.",
+      "solution": "Implement web research tools as LangChain tools (and MCP-compatible wrappers later):\n- `search_web(query)` using Brave Search (or Tavily as interchangeable provider).\n- `fetch_page(url)` using Jina Reader (or equivalent) to return clean markdown.\n- `extract_facts(text)` lightweight extractor (optional).\n\nAll outputs must be stored as immutable artifacts with content hashes, and referenced in TaskResults / citations.",
+      "acceptance_criteria": [
+        "Planner/worker can call search + fetch and receive consistent results.",
+        "Tool outputs are stored as artifacts (with sha256) and linked to run events (`references_found`).",
+        "Basic rate limiting and retries exist."
+      ],
+      "test_plan": [
+        "Unit: tool adapter handles provider errors with retry/backoff.",
+        "Integration: store artifacts and verify retrieval by hash."
+      ],
+      "depends_on": [
+        "EPIC-W0",
+        "BL-001"
+      ],
+      "labels": [
+        "backend",
+        "tools",
+        "wave:0"
+      ],
+      "milestone": "M1-W0",
+      "repo_alignment": "partial",
+      "repo_paths": [
+        "src/intelli/agents/tools/research_tools.py",
+        "src/intelli/services/knowledge/*",
+        "src/intelli/services/substrate/*"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-003)"
+      ],
+      "notes": "Repo already has `search_web` stub; extend + add reader + provenance."
+    },
+    {
+      "key": "BL-004",
+      "type": "story",
+      "title": "Implement GenUI descriptor contracts + base component renderer",
+      "problem": "Spec requires that LLM outputs can include structured UI component descriptors (GenUI) validated client-side to render charts/tables/callouts reliably. Repo currently has no GenUI layer.",
+      "solution": "Add a GenUI contract and renderer in the UI:\n- Define zod schemas for supported component descriptors (v1: TextBlock, Table, Callout, Metric, ChartPlaceholder, CitationList).\n- Implement a `GenUIRenderer` that maps descriptors \u2192 React components (shadcn primitives).\n- Support streaming/incremental updates by applying descriptor patches or replacing components by id.\n\nKeep descriptors simple; avoid overfitting to a single deliverable.",
+      "acceptance_criteria": [
+        "UI can render a GenUI payload containing at least 5 component types.",
+        "Invalid descriptors fail gracefully (with a visible error state) and do not break the app.",
+        "Renderer supports id-based replacement for streaming updates."
+      ],
+      "test_plan": [
+        "Unit: zod schema validation for each component type.",
+        "UI test: render sample descriptor payload and snapshot expected DOM output."
+      ],
+      "depends_on": [
+        "EPIC-W1",
+        "BL-002"
+      ],
+      "labels": [
+        "frontend",
+        "genui",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/components/genui/* (new)",
+        "ui/src/components/report/* (new)"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-004)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-004a",
+      "type": "task",
+      "title": "Create zod schemas for GenUI descriptors + discriminated unions",
+      "problem": "Without strict runtime validation, LLM-produced UI descriptors will cause brittle client errors.",
+      "solution": "Add `ui/src/contracts/genui.ts` defining:\n- Base fields: `id`, `type`, `version`, `data`\n- Discriminated union by `type`\n- `safeParse()` wrappers that return typed results or validation errors.",
+      "acceptance_criteria": [
+        "Schemas cover initial component set and export TS types via `z.infer<>`.",
+        "Validation errors are serializable and can be shown in UI."
+      ],
+      "test_plan": [
+        "Unit tests for schema parsing and invalid cases."
+      ],
+      "depends_on": [
+        "BL-004"
+      ],
+      "labels": [
+        "frontend",
+        "contracts"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-004b",
+      "type": "task",
+      "title": "Implement GenUIRenderer + base component set",
+      "problem": "Need a stable mapping from descriptor types to UI components.",
+      "solution": "Implement `GenUIRenderer`:\n- Switch on descriptor `type`\n- Render using shadcn components\n- Provide `onAction` callback for interactive components (later)",
+      "acceptance_criteria": [
+        "Renderer handles all v1 descriptor types.",
+        "Unknown descriptor types render a safe fallback."
+      ],
+      "test_plan": [
+        "UI component tests or storybook-style harness."
+      ],
+      "depends_on": [
+        "BL-004a"
+      ],
+      "labels": [
+        "frontend"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-005",
+      "type": "story",
+      "title": "Build ReportPanel: GML renderer + incremental healing + citation slots",
+      "problem": "Spec expects a ReportPanel that renders a structured report markup language (GML tags), updates incrementally via stream deltas, and heals malformed markup.",
+      "solution": "Implement `ReportPanel` in UI with:\n- A lightweight GML parser (XML-like tags: `<gml-chart>`, `<gml-table>` etc) that supports partial/incomplete streams.\n- A renderer that maps tags to GenUI components (BL-004) and standard markdown blocks.\n- A healer flow: when parse/validation fails, call backend `POST /api/v1/report/heal` (new) to repair markup; re-render.\n- Citation slots: tags can reference `citation_ids`; renderer shows clickable citations and can open SourcesPanel.",
+      "acceptance_criteria": [
+        "ReportPanel can render a full report including at least: headings, paragraphs, tables, charts placeholders, callouts.",
+        "ReportPanel remains usable under streaming partial markup (no hard crashes).",
+        "Healer flow repairs common malformed tags and clearly indicates when healing occurred."
+      ],
+      "test_plan": [
+        "Unit: parser handles partial tags; renderer handles unknown tags safely.",
+        "Integration: healer endpoint repairs a set of malformed samples."
+      ],
+      "depends_on": [
+        "EPIC-W1",
+        "BL-004"
+      ],
+      "labels": [
+        "frontend",
+        "report",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/components/report/* (new)",
+        "src/intelli/api/v1/* (new report healer endpoint)"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-005)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-005a",
+      "type": "task",
+      "title": "Define GML tag set + parsing rules (contract doc + tests)",
+      "problem": "Teams need a canonical, minimal GML tag vocabulary and parsing behaviour to avoid backend/frontend drift.",
+      "solution": "Create `contracts/GML_TAG_SPEC.md` defining:\n- Allowed tags and required attributes\n- Nesting rules\n- Streaming/partial parsing expectations\n- Error recovery semantics\n\nAdd sample fixtures for valid/invalid markup to drive parser and healer tests.",
+      "acceptance_criteria": [
+        "Tag spec document exists and is referenced by both backend and frontend implementations.",
+        "Fixture set includes at least 10 valid and 10 invalid examples."
+      ],
+      "test_plan": [
+        "Parser test suite uses fixtures."
+      ],
+      "depends_on": [
+        "BL-005"
+      ],
+      "labels": [
+        "contracts",
+        "frontend"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-005b",
+      "type": "task",
+      "title": "Implement incremental GML parser (client-side)",
+      "problem": "Streaming preview needs incremental parsing; naive full-string parsing breaks on partial tags.",
+      "solution": "Implement a tolerant parser strategy:\n- Maintain a buffer of received text\n- Attempt parse on each delta; if parse fails due to incomplete tail, keep last valid AST and wait\n- When parse fails due to structural error, trigger healer",
+      "acceptance_criteria": [
+        "Parser can handle deltas arriving mid-tag and mid-attribute.",
+        "AST remains stable between deltas until a new valid parse succeeds."
+      ],
+      "test_plan": [
+        "Unit tests using streaming fixtures."
+      ],
+      "depends_on": [
+        "BL-005a"
+      ],
+      "labels": [
+        "frontend"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-005c",
+      "type": "task",
+      "title": "Add backend report healer endpoint (LLM repair) with strict input/output contracts",
+      "problem": "Client-side healer needs a backend that can repair malformed GML safely and deterministically (bounded retries).",
+      "solution": "Add `POST /api/v1/report/heal`:\n- Input: `{ draft: string, error: {type, message}, allowed_tags: [...] }`\n- Output: `{ healed_draft: string, changes: [...], warnings: [...] }`\n- Use an LLM prompt that only outputs corrected markup; validate output length and allowed tags.",
+      "acceptance_criteria": [
+        "Endpoint returns healed markup that validates against GML tag spec.",
+        "Healer is bounded (max retries, max output size) and does not leak secrets."
+      ],
+      "test_plan": [
+        "Integration tests with invalid fixtures."
+      ],
+      "depends_on": [
+        "BL-005a"
+      ],
+      "labels": [
+        "backend",
+        "llm"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/api/v1/report.py (new)",
+        "src/intelli/services/llm/* (new healer helper)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-006",
+      "type": "story",
+      "title": "Stream report preview deltas during run (backend \u2192 UI)",
+      "problem": "ReportPanel needs incremental preview updates (report_delta) while the run is executing. Repo currently streams assistant text via AI SDK, but not structured report preview events.",
+      "solution": "Implement report preview streaming:\n- Backend graph emits `report_preview_started` and `report_preview_delta` run events while generating report draft.\n- Adapter also forwards report deltas as AI SDK `data` chunks to the UI so ReportPanel can update without polling.\n- UI subscribes to both: AI SDK data stream for content + SSE run stream for metadata and ordering.",
+      "acceptance_criteria": [
+        "During a run, ReportPanel updates at least every N seconds (configurable) with new draft content.",
+        "Final report preview is stored as an artifact or deliverable record for later retrieval."
+      ],
+      "test_plan": [
+        "Integration: run triggers report deltas; UI test harness receives and applies updates."
+      ],
+      "depends_on": [
+        "BL-005",
+        "BL-001d",
+        "BL-002"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "streaming",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-007",
+      "type": "story",
+      "title": "PlanSet persistence and API: store plan state and expose to UI",
+      "problem": "PlanViewer needs a stable, queryable plan state, not just ephemeral events. Repo does not persist plan sets.",
+      "solution": "Add PlanSet storage:\n- Option A (fast): store `plan_set` JSONB on `runs` table (and keep history via run_events).\n- Option B (clean): new `plan_sets` table keyed by `run_id` with version + updated_at.\n\nAdd API:\n- `GET /api/v1/runs/{run_id}/plan` returns latest PlanSet\n- `PATCH /api/v1/runs/{run_id}/plan` for internal updates (graph only)",
+      "acceptance_criteria": [
+        "PlanSet is retrievable for any run after planner completes.",
+        "Updates are versioned and monotonic; UI can rehydrate from API on refresh."
+      ],
+      "test_plan": [
+        "Integration: create run \u2192 planner \u2192 plan API returns expected structure."
+      ],
+      "depends_on": [
+        "BL-001b",
+        "BL-002a"
+      ],
+      "labels": [
+        "backend",
+        "runs",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-007a",
+      "type": "task",
+      "title": "Add PlanSet storage (runs.plan_set JSONB + migration) and repository helpers",
+      "problem": "Need a place to persist plan sets with versioning and partial updates.",
+      "solution": "Implement Option A:\n- Migration: add `runs.plan_set` JSONB nullable + `runs.plan_version` int default 0.\n- Repository: `set_plan(run_id, plan_set, version)` with optimistic concurrency (version increments).",
+      "acceptance_criteria": [
+        "Migration applies cleanly; repository can write and read plan_set.",
+        "Concurrent plan updates do not overwrite silently (optimistic check)."
+      ],
+      "test_plan": [
+        "Integration test using Postgres transaction."
+      ],
+      "depends_on": [
+        "BL-007"
+      ],
+      "labels": [
+        "backend",
+        "db"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "migrations/versions/*",
+        "src/intelli/db/models/runs.py",
+        "src/intelli/repositories/runs.py"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-008",
+      "type": "story",
+      "title": "PlanViewer UI: render PlanSet with live task status updates",
+      "problem": "UI currently lacks a plan inspector. Users need to see what the agent is doing, task-by-task, and how far along it is.",
+      "solution": "Implement `PlanViewer` component and integrate into ResearchPage layout:\n- Render tasks grouped by status (queued/running/completed/failed)\n- Show task details, evidence links, and timestamps\n- Live update via run_event stream (plan_task_status_changed etc)\n- On reload, rehydrate from `GET /runs/{run_id}/plan`",
+      "acceptance_criteria": [
+        "PlanViewer shows tasks with live status updates during a run.",
+        "Refreshing the page reloads plan state and continues streaming updates."
+      ],
+      "test_plan": [
+        "UI test: render plan set and update a task state; verify DOM updates."
+      ],
+      "depends_on": [
+        "BL-007",
+        "BL-002b"
+      ],
+      "labels": [
+        "frontend",
+        "plan",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/components/plans/* (new)",
+        "ui/src/pages/ResearchPage.tsx"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-009",
+      "type": "story",
+      "title": "Emit Plan events from graph (plan_created/task_updated) and map to UI",
+      "problem": "Even with PlanSet storage, UI needs live events to show task-level progress and to coordinate overlays.",
+      "solution": "In the orchestrated graph:\n- Emit `plan_created` run_event after planner returns PlanSet.\n- Emit `plan_task_status_changed` when each worker starts/completes/fails.\n- Optionally emit `plan_updated` when planner refines tasks (Wave 2).\n\nUpdate adapter/run_event logger to accept explicit plan events.",
+      "acceptance_criteria": [
+        "Run timeline shows plan created + per-task status change events.",
+        "PlanViewer updates from these events without polling."
+      ],
+      "test_plan": [
+        "Integration: run emits expected plan events in order."
+      ],
+      "depends_on": [
+        "BL-001",
+        "BL-002",
+        "BL-007"
+      ],
+      "labels": [
+        "backend",
+        "runs",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-010",
+      "type": "story",
+      "title": "Citation binding UI: allow user to bind report claims to evidence",
+      "problem": "Spec requires provenance and that users can review/bind citations. Repo shows sources but doesn't allow binding claims to evidence spans.",
+      "solution": "Implement citation binding UX:\n- In ReportPanel, allow selecting a sentence/paragraph and clicking \u201cAdd citation\u201d.\n- Show SourcesPanel with candidate evidence (from retrieval + tool artifacts).\n- On select, create a `citation_binding` record (local state first; persisted later in BL-016).\n- Render inline citation markers `[1]` linking to evidence viewer.",
+      "acceptance_criteria": [
+        "User can bind at least one citation to a highlighted claim and see inline markers.",
+        "Evidence viewer opens the referenced artifact (pdf/web page) or snippet."
+      ],
+      "test_plan": [
+        "UI test: select text \u2192 open sources \u2192 bind \u2192 marker renders."
+      ],
+      "depends_on": [
+        "BL-005",
+        "BL-003"
+      ],
+      "labels": [
+        "frontend",
+        "citations",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/components/report/*",
+        "ui/src/components/sources/*"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-011",
+      "type": "story",
+      "title": "EntityService v0: store all tool outputs as artifacts with stable references",
+      "problem": "To support citations and auditability, all tool outputs (search results, fetched pages, extracted tables) must be stored immutably and referenced by hash/id; currently many tool outputs are ephemeral strings.",
+      "solution": "Implement an `EntityService` wrapper around `ArtifactService` + `ManifestService`:\n- Provide `store_tool_output(run_id, tool_name, content, media_type, source_url?, meta?) -> entity_ref`\n- entity_ref includes `artifact_sha256` and a deterministic `entity_id` (can be same as sha256 in v0)\n- Update research tools to store outputs and return refs, not raw blobs.",
+      "acceptance_criteria": [
+        "Calling web search and fetch tools results in stored artifacts in MinIO and DB rows in `artifacts`.",
+        "TaskResult objects reference artifact hashes rather than embedding large blobs.",
+        "UI can fetch and display stored artifacts (existing artifact viewer)."
+      ],
+      "test_plan": [
+        "Integration: tool output stored and retrievable by sha256; manifest references increment reference_count."
+      ],
+      "depends_on": [
+        "BL-003"
+      ],
+      "labels": [
+        "backend",
+        "substrate",
+        "wave:1"
+      ],
+      "milestone": "M2-W1",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/services/substrate/*",
+        "src/intelli/agents/tools/research_tools.py"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-012",
+      "type": "story",
+      "title": "Planner prompt library + heuristics (quality improvements)",
+      "problem": "Wave 0 planner is intentionally minimal. For production, planning quality needs reusable prompt templates, better decomposition, tool selection hints, and guardrails against over-planning/under-planning.",
+      "solution": "Build a planner prompt library:\n- Centralize prompts in `src/intelli/prompts/` with versioning.\n- Add heuristics: cap tasks, enforce deliverable structure, require citations for factual claims, ensure at least one verification task.\n- Add optional 'reflect and revise plan' step if confidence is low or tasks are missing key dimensions.\n\nAdd eval fixtures to measure plan quality.",
+      "acceptance_criteria": [
+        "Planner produces higher-quality plans on a golden prompt set (define rubric in docs).",
+        "Prompt templates are versioned and testable; changes are reviewed like code."
+      ],
+      "test_plan": [
+        "Eval: run planner against prompt fixtures; assert rubric score >= threshold."
+      ],
+      "depends_on": [
+        "BL-001b",
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "backend",
+        "prompts",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/prompts/* (new)",
+        "tests/evals/*"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-012)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-013",
+      "type": "story",
+      "title": "Deepen Docs/Notebooks integration into research runs (selected notebook as context)",
+      "problem": "UI passes `pointer_id` and `manifest_sha256`, but the graph/tools do not yet use that selection to scope retrieval and context. Users need NotebookLM-style behaviour: ask within notebook context, cite notebook docs, and reuse extracted notes.",
+      "solution": "Implement notebook-scoped context:\n- Backend: when `pointer_id`/`manifest_sha256` are provided, resolve the notebook manifest and restrict retrieval tools to those document hashes.\n- Add `search_notebook_docs(query, notebook_id)` tool that filters by manifest members.\n- Add a 'notebook notes' store (simple markdown notes linked to notebook) that can be retrieved as context.\n- UI: surface \"Notebook context active\" badge and allow toggling notebook scope on/off.",
+      "acceptance_criteria": [
+        "When a notebook is selected, retrieval results come only from that notebook\u2019s documents (unless user explicitly requests web).",
+        "Citations can reference notebook documents and open the correct PDF/page in the viewer.",
+        "Notebook notes are searchable and can be included in context."
+      ],
+      "test_plan": [
+        "Integration: create two notebooks; ensure notebook-scoped search does not leak docs across notebooks.",
+        "E2E: select notebook \u2192 ask question \u2192 sources show only notebook docs."
+      ],
+      "depends_on": [
+        "BL-003",
+        "BL-011"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "docs",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "partial",
+      "repo_paths": [
+        "src/intelli/api/v1/agent.py",
+        "src/intelli/agents/graphs/research_assistant.py",
+        "ui/src/pages/ResearchPage.tsx",
+        "ui/src/pages/NotebookPage.tsx"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-013)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-014",
+      "type": "story",
+      "title": "Context management & inheritance (task \u2192 app \u2192 project \u2192 workspace) with background indexing",
+      "problem": "Spec requires context packs and inheritance similar to Cursor: background indexing of documents, conversations, and project knowledge, plus the ability for tasks to inherit context from higher scopes.",
+      "solution": "Implement context packs and inheritance:\n- Data model: `ContextPack` with scope (workspace/project/app/task), content sources (docs, notes, links), and derived embeddings.\n- Ingestion: background jobs build/update embeddings and indexes on changes.\n- Retrieval: tools accept `context_pack_ids` and merge results with precedence rules (task overrides project overrides workspace).\n- UI: context manager page with pack creation, attachment to projects/apps, and visibility into indexed sources.",
+      "acceptance_criteria": [
+        "Context packs can be created at project/workspace scope and attached to runs.",
+        "Runs inherit context automatically based on conversation scope.",
+        "Background indexing keeps embeddings up-to-date without manual triggers."
+      ],
+      "test_plan": [
+        "Integration: create workspace pack + project pack; run inherits both with correct precedence.",
+        "Load test: indexing queue handles N docs without falling behind (define N)."
+      ],
+      "depends_on": [
+        "BL-013",
+        "EPIC-PLUGINS"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "context",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/db/models/* (new context packs)",
+        "src/intelli/services/indexing/*",
+        "ui/src/pages/SettingsPage.tsx (new)",
+        "ui/src/components/context/* (new)"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-014)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-015",
+      "type": "story",
+      "title": "DeliverableStore + per-message deliverable selection (report / website / slides / document)",
+      "problem": "Deliverables are core UX: user must be able to select output type per prompt. Repo currently has deliverable_type at conversation level and lacks a deliverable store/service.",
+      "solution": "Implement deliverable selection and storage:\n- DB: add `messages.deliverable_type` (string enum) and migrate/backfill from `conversation.deliverable_type`.\n- API: agent chat endpoint accepts deliverable_type per message.\n- DeliverableStore: maps `reportIdentifier` \u2192 list of artifacts + metadata; supports versions, refresh, and retrieval by identifier.\n- UI: add a DeliverableSelector control in Chat input (defaults to report/chat).",
+      "acceptance_criteria": [
+        "User can choose deliverable type per prompt without creating a new conversation.",
+        "Generated deliverables are stored and can be reopened by identifier later.",
+        "Backwards compatible: existing conversations continue working with a default deliverable type."
+      ],
+      "test_plan": [
+        "Migration test: deliverable_type backfill and default behaviour.",
+        "E2E: switch deliverable types between turns and see correct pipeline invoked."
+      ],
+      "depends_on": [
+        "BL-002",
+        "BL-006"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "deliverables",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/db/models/conversations.py",
+        "src/intelli/api/v1/agent.py",
+        "ui/src/providers/assistant-runtime.tsx"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-015)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-015a",
+      "type": "task",
+      "title": "DB migration: add messages.deliverable_type + backfill from conversation.deliverable_type",
+      "problem": "Spec requires deliverable selection per message; schema currently does not support it.",
+      "solution": "- Add column `messages.deliverable_type` (nullable initially, then not null with default).\n- Backfill from `conversations.deliverable_type` for existing messages.\n- Keep conversation.deliverable_type as a default value (optional) to avoid breaking existing code paths.",
+      "acceptance_criteria": [
+        "Migration applies cleanly and preserves existing data.",
+        "New messages must have deliverable_type set (validated)."
+      ],
+      "test_plan": [
+        "Migration test + model validation unit tests."
+      ],
+      "depends_on": [
+        "BL-015"
+      ],
+      "labels": [
+        "backend",
+        "db"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "migrations/versions/*",
+        "src/intelli/db/models/conversations.py"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-015b",
+      "type": "task",
+      "title": "UI: add DeliverableSelector control and send deliverable_type via AI SDK transport",
+      "problem": "Frontend currently sends only module/pointer/manifest ids. It must send deliverable_type with each user message.",
+      "solution": "- Add DeliverableSelector (dropdown) in ChatPanel input row.\n- Store current selection in local state.\n- Extend `NyqstAITransport` request body to include deliverable_type on send.",
+      "acceptance_criteria": [
+        "Deliverable type selection is visible, persists per conversation (or per tab), and is included in outbound requests."
+      ],
+      "test_plan": [
+        "UI unit test: selection changes request payload."
+      ],
+      "depends_on": [
+        "BL-015a"
+      ],
+      "labels": [
+        "frontend"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/components/chat/*",
+        "ui/src/providers/assistant-runtime.tsx"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-016",
+      "type": "story",
+      "title": "Entity + citation substrate (DB + APIs) and provenance enforcement",
+      "problem": "Provenance is non-negotiable: tool outputs, extracted snippets, and citations must be stored immutably and referenced consistently across reports, decisions, and dashboards. Repo lacks entity/citation tables and APIs.",
+      "solution": "Implement entity/citation substrate:\n- DB: add `entities` table (content-addressed, points to artifact_sha256), and `citations` table (binds report span \u2192 entity_id + locator).\n- APIs: CRUD/read for entities and citations; bulk fetch for UI.\n- Enforce: report generation must emit citations; UI must display and allow review.\n- Extend Artifact model with optional `entity_type`, `source_url`, `title`, `published_at`, `hashes` (if needed).",
+      "acceptance_criteria": [
+        "Entity can be created for a web page, PDF, or tool output, with stable ID and artifact linkage.",
+        "Citations can be created/bound and retrieved for a report and displayed inline.",
+        "Run events include `references_found` and `citations_bound` with entity/citation IDs."
+      ],
+      "test_plan": [
+        "Integration: create entity + citation; fetch and verify joins and tenant scoping.",
+        "Security: entity access respects workspace/project permissions."
+      ],
+      "depends_on": [
+        "BL-011",
+        "BL-015",
+        "P0-003"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "provenance",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/db/models/* (new entities/citations)",
+        "src/intelli/api/v1/entities.py (new)",
+        "ui/src/components/citations/* (new)"
+      ],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-016)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-017",
+      "type": "story",
+      "title": "Meta-reasoning node: validate citations, detect low-confidence claims, suggest repairs",
+      "problem": "To avoid confidently wrong output, spec includes a meta-reasoning (self-critic) pass to validate citations coverage, coherence, and risk before finalizing deliverables.",
+      "solution": "Add a `meta_reasoning` node after synthesis / report draft:\n- Check that factual claims have citations.\n- Flag contradictions, missing evidence, and outdated sources.\n- Produce a structured `MetaReview` artifact and optionally trigger plan revisions or clarification questions.",
+      "acceptance_criteria": [
+        "Runs produce a MetaReview artifact with clear pass/fail and recommended fixes.",
+        "When MetaReview fails, system either revises plan or triggers clarification flow (BL-021)."
+      ],
+      "test_plan": [
+        "Eval: prompts with deliberate unsupported claims are flagged."
+      ],
+      "depends_on": [
+        "BL-016",
+        "BL-001d"
+      ],
+      "labels": [
+        "backend",
+        "quality",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-017)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-018",
+      "type": "story",
+      "title": "Slides deliverable pipeline (Reveal-based) with citations and charts",
+      "problem": "Spec requires a slide deck output that can be generated from DataBrief/report content and stored as artifacts. Repo has no slide generation pipeline.",
+      "solution": "Implement slide generation:\n- Prompt: generate `slides.json` (title, sections, bullets, speaker notes, citations).\n- Renderer: convert slides.json \u2192 Reveal.js HTML deck (and optionally PDF).\n- Store as artifact bundle: `slides.html`, assets, and a manifest.\n- UI: add download/open link in deliverable panel.",
+      "acceptance_criteria": [
+        "A run can produce a slide deck artifact that opens locally (static HTML) and is linked to the run.",
+        "Slides include citations (footnote markers) where required."
+      ],
+      "test_plan": [
+        "Integration: generate slides.json fixture \u2192 render deck \u2192 validate HTML contains expected sections."
+      ],
+      "depends_on": [
+        "BL-015",
+        "BL-022"
+      ],
+      "labels": [
+        "backend",
+        "deliverables",
+        "slides",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-018)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-019",
+      "type": "story",
+      "title": "Document deliverable pipeline (DOCX/PDF) from report + citations",
+      "problem": "Users in financial services need a downloadable Word/PDF version of deliverables. Repo lacks document generation.",
+      "solution": "Implement document generation:\n- Input: report content + citations + figures.\n- Output: `.docx` and/or `.pdf` artifacts with consistent styling (NYQST templates).\n- Include appendix: sources table, methodology, disclaimers.\n- Store artifacts + manifest; link from deliverable store.",
+      "acceptance_criteria": [
+        "Document deliverable can be generated and downloaded from UI.",
+        "Document includes citations and a sources appendix."
+      ],
+      "test_plan": [
+        "Integration: generate a doc from fixture report; verify file exists and non-empty."
+      ],
+      "depends_on": [
+        "BL-015",
+        "BL-016",
+        "BL-005"
+      ],
+      "labels": [
+        "backend",
+        "deliverables",
+        "doc",
+        "wave:2"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-019)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-019a",
+      "type": "task",
+      "title": "Website deliverable pipeline (standalone Next.js or static site) generated from report",
+      "problem": "Spec includes a Website deliverable (v0-style) deployed as standalone output; repo currently has no pipeline for it.",
+      "solution": "Build a 'website generator' arq job:\n- Input: report + DataBrief + assets\n- Output: a folder artifact containing either:\n  - a Next.js app scaffold (if you want interactivity), or\n  - a static site (HTML/CSS/JS) for simpler hosting.\n- Include `README` with run identifier and deploy instructions.",
+      "acceptance_criteria": [
+        "Website deliverable artifacts are generated and downloadable as a zip or browsable directory.",
+        "Generated site includes citations and at least one interactive element (e.g., expandable sections)."
+      ],
+      "test_plan": [
+        "Integration: generator produces deterministic output for fixture input."
+      ],
+      "depends_on": [
+        "BL-015",
+        "BL-022"
+      ],
+      "labels": [
+        "backend",
+        "deliverables",
+        "website"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (Deliverables: Website)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-020",
+      "type": "story",
+      "title": "Generation overlay UI: unified run progress, plan, citations, and artifacts",
+      "problem": "Users need a single, clear view of what the system is doing during long runs: which tasks are executing, what evidence was found, what artifacts are being produced.",
+      "solution": "Implement Generation Overlay:\n- A right-side or bottom drawer overlay that shows:\n  - PlanViewer (tasks + statuses)\n  - Run timeline key events\n  - Citations/references found\n  - Artifacts created (download links)\n- Overlay opens automatically on run start; collapsible and non-blocking.",
+      "acceptance_criteria": [
+        "Overlay opens on run start and updates in real-time.",
+        "Overlay remains responsive under high event volume.",
+        "User can jump from overlay to artifact viewer or sources."
+      ],
+      "test_plan": [
+        "E2E: start run \u2192 overlay shows plan progress and artifact links."
+      ],
+      "depends_on": [
+        "BL-008",
+        "BL-002",
+        "BL-011"
+      ],
+      "labels": [
+        "frontend",
+        "ux",
+        "wave:3"
+      ],
+      "milestone": "M4-W3",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-020)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-021",
+      "type": "story",
+      "title": "Clarification flow (interactive): structured questions when intent/constraints missing",
+      "problem": "For ambiguous prompts, the system should ask clarifying questions instead of generating low-confidence output. Repo does not yet support a structured clarification loop.",
+      "solution": "Add clarification flow:\n- Backend: detect ambiguity/insufficient constraints (via planner confidence + meta reasoning).\n- Emit `clarification_requested` event with structured questions + multiple-choice options when possible.\n- UI: show an interstitial question card; user responses feed back into graph as additional context; run resumes.",
+      "acceptance_criteria": [
+        "Ambiguous prompts trigger clarification instead of immediate generation.",
+        "User answers are persisted and appended to the run context.",
+        "Run can resume and produce deliverable after clarification."
+      ],
+      "test_plan": [
+        "E2E: ambiguous prompt triggers clarification; answering resumes run and completes."
+      ],
+      "depends_on": [
+        "BL-017",
+        "BL-002"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "wave:3"
+      ],
+      "milestone": "M4-W3",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-021)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-022",
+      "type": "story",
+      "title": "Shared data brief: persist DataBrief and reuse across deliverables",
+      "problem": "DataBrief is the canonical set of facts/assumptions/citations that should power all deliverables (report/slides/document/website). Without persistence/reuse, outputs drift.",
+      "solution": "Persist DataBrief:\n- Store as an artifact (`data_brief.json`) linked to run + deliverable identifier.\n- Provide API to fetch DataBrief by run_id or reportIdentifier.\n- Update deliverable pipelines to consume DataBrief, not re-query sources independently.",
+      "acceptance_criteria": [
+        "A completed run has a stored DataBrief artifact and API to retrieve it.",
+        "Slides/document/website pipelines reuse the same DataBrief and citations set."
+      ],
+      "test_plan": [
+        "Integration: ensure deliverable pipelines read DataBrief and produce consistent citations list."
+      ],
+      "depends_on": [
+        "BL-001d",
+        "BL-016"
+      ],
+      "labels": [
+        "backend",
+        "deliverables",
+        "wave:3"
+      ],
+      "milestone": "M4-W3",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/archive/plans/BACKLOG.md (BL-022)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-001",
+      "type": "story",
+      "title": "Projects: backend model + API + UI list/detail (replace placeholder ProjectsPage)",
+      "problem": "UI has a Projects page placeholder but no project data model or CRUD APIs. Project scoping is required for context inheritance, document organisation, and downstream CRM/intelligence workflows.",
+      "solution": "Implement Projects end-to-end:\n- DB: `projects` table (tenant_id, name, description, status, tags, created_by, timestamps).\n- API: CRUD endpoints under `/api/v1/projects`.\n- UI: ProjectsPage shows list with search/filter; ProjectDetail shows notebooks, runs, deliverables, context packs.\n- Integrate with existing Conversation scopes: allow conversations to be attached to a project_id.",
+      "acceptance_criteria": [
+        "User can create/edit/archive projects; list view shows projects scoped to tenant.",
+        "Research conversations can be created within a project and appear in project detail.",
+        "Project can own notebooks and context packs (even if minimal initially)."
+      ],
+      "test_plan": [
+        "Integration: project CRUD with tenant scoping.",
+        "E2E: create project \u2192 navigate \u2192 run research in project scope."
+      ],
+      "depends_on": [
+        "EPIC-STUDIO",
+        "P0-003"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "projects"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/pages/ProjectsPage.tsx",
+        "src/intelli/api/v1/* (new projects router)",
+        "src/intelli/db/models/* (new projects model)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-002",
+      "type": "story",
+      "title": "Clients/CRM: backend model + API + UI list/detail (replace placeholder ClientsPage)",
+      "problem": "CRM is required for commercial property workflows, but Clients page is placeholder and no client entity model exists.",
+      "solution": "Implement Clients/CRM MVP:\n- DB: `clients` table (tenant_id, name, type, sector, notes, identifiers), optional `contacts`.\n- API: CRUD endpoints `/api/v1/clients` (+ `/contacts` optional).\n- UI: ClientsPage list; ClientDetail with related projects, documents, decisions.",
+      "acceptance_criteria": [
+        "User can create clients and attach projects to a client.",
+        "Client detail shows related projects and recent runs."
+      ],
+      "test_plan": [
+        "Integration: client CRUD with tenant scoping."
+      ],
+      "depends_on": [
+        "STUDIO-001"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "crm"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/pages/ClientsPage.tsx",
+        "src/intelli/db/models/* (new clients model)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-003",
+      "type": "story",
+      "title": "Decisions register: decisions CRUD + citation binding to evidence",
+      "problem": "Decision making is the output of analysis. Repo has a placeholder Decisions page and no decision model; citations need to be first-class for compliance.",
+      "solution": "Implement Decisions:\n- DB: `decisions` table (tenant_id, project_id, title, decision, rationale, status, created_by).\n- DB: `decision_citations` linking decisions to entity/citation IDs (BL-016).\n- UI: DecisionsPage list with filters; DecisionDetail with rationale, citations, and linked artifacts.",
+      "acceptance_criteria": [
+        "Decisions can be created, edited, and linked to a project.",
+        "Decisions can display citations and open the referenced evidence."
+      ],
+      "test_plan": [
+        "E2E: create decision with a citation bound to a report claim."
+      ],
+      "depends_on": [
+        "BL-016",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "decisions"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/pages/DecisionsPage.tsx",
+        "src/intelli/db/models/* (new decisions model)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-004",
+      "type": "story",
+      "title": "Analysis canvas MVP: infinite canvas with persisted nodes and links",
+      "problem": "AnalysisPage is currently a placeholder. Product vision requires an unlimited canvas where analysis blocks, documents, outputs, diffs, and workflows can be composed and linked.",
+      "solution": "Implement canvas MVP:\n- Data model: `canvas_boards` (project_id), `canvas_nodes`, `canvas_edges` with JSON payload.\n- UI: zoom/pan infinite canvas (use a proven lib like React Flow or custom minimal engine).\n- Node types v1: Note, Artifact, ReportSnippet, ChartPlaceholder, Decision.\n- Persistence: autosave to backend; optimistic updates.",
+      "acceptance_criteria": [
+        "User can create a board within a project and add/move nodes, create links, and persist state.",
+        "Artifacts and report snippets can be pinned to canvas nodes and opened.",
+        "Canvas performance remains acceptable for at least 200 nodes."
+      ],
+      "test_plan": [
+        "Unit: canvas reducer and serialization.",
+        "E2E: create board \u2192 add nodes \u2192 refresh \u2192 state persists."
+      ],
+      "depends_on": [
+        "STUDIO-001",
+        "BL-011"
+      ],
+      "labels": [
+        "frontend",
+        "backend",
+        "canvas"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/pages/AnalysisPage.tsx",
+        "ui/src/components/canvas/* (new)",
+        "src/intelli/api/v1/* (canvas router)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-005",
+      "type": "story",
+      "title": "Diff viewer: compare artifacts/versions and render semantic diffs",
+      "problem": "Spec and DocuIntelli require diffing across versions (contracts, reports, models). Repo has artifacts but no diff UI or diff service.",
+      "solution": "Implement diff viewer:\n- Backend: endpoint to compute diff between two artifact versions (text/pdf via extracted text).\n- UI: Diff panel that can show side-by-side and unified diffs, with highlights.\n- Integrate with canvas nodes: diff node referencing two artifacts.",
+      "acceptance_criteria": [
+        "User can select two artifacts (or document versions) and view a diff in UI.",
+        "Diff nodes can be added to canvas and reopened."
+      ],
+      "test_plan": [
+        "Integration: diff endpoint returns expected hunks for text fixtures."
+      ],
+      "depends_on": [
+        "STUDIO-004"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "diff"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-006",
+      "type": "story",
+      "title": "Apps surface (Dify-like): save configured agent workflows and run them",
+      "problem": "To scale beyond ad-hoc chat, users need reusable 'apps' that package graphs + context + toolsets into repeatable workflows.",
+      "solution": "Implement Apps MVP:\n- DB: `apps` table (tenant_id, name, description, graph_template, config JSON, enabled_tools, default_context_packs).\n- UI: Apps list/detail/create. Create wizard: pick template (research, lease CD, debt), select tools, select context packs.\n- Run: allow launching an app run against a project; results stored as runs/deliverables.",
+      "acceptance_criteria": [
+        "User can create an app configuration and run it against a project.",
+        "App run uses configured tool set and context packs."
+      ],
+      "test_plan": [
+        "E2E: create app \u2192 run \u2192 see deliverable output."
+      ],
+      "depends_on": [
+        "EPIC-PLUGINS",
+        "BL-014",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "apps"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-007",
+      "type": "story",
+      "title": "Workflow builder MVP (n8n-like): compose multi-step workflows from skills/tools",
+      "problem": "Some tasks are deterministic pipelines rather than chat (ingest \u2192 extract \u2192 validate \u2192 publish). A lightweight workflow builder unlocks repeatable production processes.",
+      "solution": "Implement workflow builder MVP:\n- Represent workflows as DAGs of nodes (skills/tools/subgraphs).\n- UI: drag/drop workflow canvas with node catalog (inspired by Dify/n8n).\n- Execution: compile DAG to LangGraph and run under the same run ledger.\n- Triggering: manual run now; schedules/webhooks later.",
+      "acceptance_criteria": [
+        "User can define a workflow with at least 3 nodes and run it end-to-end.",
+        "Workflow execution emits run events and stores artifacts like any other run."
+      ],
+      "test_plan": [
+        "Integration: compile workflow DAG \u2192 run graph; assert node order and outputs."
+      ],
+      "depends_on": [
+        "STUDIO-006",
+        "EPIC-W0"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "workflow"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-001",
+      "type": "story",
+      "title": "MCP tool registry + discovery service (list, describe, enable by scope)",
+      "problem": "MCP tools exist but there is no registry/discovery surface, nor an enablement model per workspace/project/app. This blocks safe composition of tools and Dify-like app configuration.",
+      "solution": "Implement Tool Registry:\n- DB: `tools` table (name, domain, schema, version, provider, enabled_default).\n- Runtime discovery: scan local MCP server tools and register/refresh.\n- Enablement: `tool_enablements` table linking tool \u2192 scope (tenant/workspace/project/app).\n- API: list tools, describe schema, update enablements.",
+      "acceptance_criteria": [
+        "Tool list API returns all available tools with schemas.",
+        "Tool enablement can be toggled per project/app and enforced at runtime."
+      ],
+      "test_plan": [
+        "Integration: disabling a tool prevents it being callable by the agent (policy check)."
+      ],
+      "depends_on": [
+        "EPIC-PLUGINS",
+        "P0-003"
+      ],
+      "labels": [
+        "backend",
+        "mcp",
+        "tools"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/mcp/*",
+        "src/intelli/db/models/* (new tools)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-002",
+      "type": "story",
+      "title": "Implement MCP knowledge tools (documents, notebooks, web research) and wire into graphs",
+      "problem": "`knowledge_tools.py` is stubbed. Without it, tools cannot be exposed uniformly or reused across apps/workflows.",
+      "solution": "Implement MCP knowledge tools:\n- `knowledge.search_documents` (RAG search with filters)\n- `knowledge.fetch_document` (artifact fetch, snippets)\n- `knowledge.search_web` (Brave/Tavily)\n- `knowledge.fetch_page` (Jina Reader)\n\nAdd LangChain tool wrappers that call MCP tools so graphs can use them transparently.",
+      "acceptance_criteria": [
+        "MCP knowledge tools respond correctly and return structured outputs.",
+        "Graphs can call the MCP-wrapped tools and store outputs as artifacts."
+      ],
+      "test_plan": [
+        "Integration: MCP server responds; tool wrapper works in a graph run."
+      ],
+      "depends_on": [
+        "PLUG-001",
+        "BL-003"
+      ],
+      "labels": [
+        "backend",
+        "mcp",
+        "tools"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/mcp/tools/knowledge_tools.py",
+        "src/intelli/agents/tools/*"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-003",
+      "type": "story",
+      "title": "Connector framework: credentials, OAuth flows, and ingestion sync jobs",
+      "problem": "To support enterprise workflows (SharePoint/Drive/Slack/Email/CRM), NYQST needs connectors with secure credential storage and ingestion jobs.",
+      "solution": "Build connectors foundation:\n- DB: `connectors` and `connector_accounts` (tenant_id, type, encrypted secrets ref, status).\n- Secrets storage: integrate with env-based KMS or at minimum Fernet encryption with master key.\n- OAuth: implement generic OAuth callback endpoints for supported connectors.\n- Sync jobs: arq jobs to pull docs/messages and store as artifacts + index into RAG/context packs.",
+      "acceptance_criteria": [
+        "At least one connector type (e.g., Google Drive or Slack) can be configured and sync a small dataset into a project notebook.",
+        "Secrets are encrypted at rest and never emitted to clients."
+      ],
+      "test_plan": [
+        "Security test: secrets redaction; integration test: sync job stores artifacts."
+      ],
+      "depends_on": [
+        "EPIC-PLUGINS",
+        "BL-011"
+      ],
+      "labels": [
+        "backend",
+        "connectors",
+        "security"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-004",
+      "type": "story",
+      "title": "Plugin/Tools manager UI: list tools, configure connectors, enable per project/app",
+      "problem": "Without a UI, tool/connector management is invisible and cannot be delegated to users/admins.",
+      "solution": "Add Settings \u2192 Tools & Connectors UI:\n- Tools list with schemas and toggle switches per scope.\n- Connector setup forms and status indicators.\n- Logs/last sync timestamps.",
+      "acceptance_criteria": [
+        "Admin can enable/disable tools for a project and configure at least one connector.",
+        "UI reflects current enablement state and sync health."
+      ],
+      "test_plan": [
+        "E2E: toggle tool enablement; connector setup persists."
+      ],
+      "depends_on": [
+        "PLUG-001",
+        "PLUG-003"
+      ],
+      "labels": [
+        "frontend",
+        "tools",
+        "settings"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "ui/src/pages/SettingsPage.tsx (new)",
+        "ui/src/components/tools/* (new)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-005",
+      "type": "story",
+      "title": "Skills registry: package reusable subgraphs with metadata, permissions, and tests",
+      "problem": "Scaling workflows requires reusable building blocks ('skills') with clear contracts. Repo has graphs and tools but no registry, versioning, or permission model for reusable skills.",
+      "solution": "Implement Skills:\n- Define a Skill manifest format: id, name, description, inputs/outputs schema, required tools, permissions, eval tests.\n- Provide a registry (code-based first) and optionally DB-backed publishing later.\n- Provide a CLI to scaffold a skill and its tests.",
+      "acceptance_criteria": [
+        "At least 3 skills are registered (e.g., WebResearch, DocSummarize, TableExtract) and invokable.",
+        "Each skill has a contract test and at least one eval fixture."
+      ],
+      "test_plan": [
+        "Unit/integration: skill invocation; eval harness for skill fixtures."
+      ],
+      "depends_on": [
+        "PLUG-002",
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "backend",
+        "skills"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "ENT-001",
+      "type": "story",
+      "title": "OIDC SSO login flow + workspace membership mapping",
+      "problem": "Current auth is local/API-key based. Enterprise users need SSO (OIDC) and mapping to tenant/workspace membership.",
+      "solution": "Implement OIDC:\n- Add OIDC provider config (issuer, client_id, client_secret, redirect URIs).\n- Implement login redirect + callback to exchange code for tokens.\n- Create/update user records based on OIDC claims; map to tenant/workspace (email domain rules or explicit invites).\n- Store refresh tokens securely if needed.",
+      "acceptance_criteria": [
+        "User can log in via OIDC provider and receives a session/JWT in NYQST.",
+        "User is assigned to the correct tenant/workspace on first login (configurable)."
+      ],
+      "test_plan": [
+        "Integration: mocked OIDC provider callback; user provisioning works."
+      ],
+      "depends_on": [
+        "EPIC-ENTERPRISE"
+      ],
+      "labels": [
+        "backend",
+        "auth",
+        "sso"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "missing",
+      "repo_paths": [
+        "src/intelli/api/v1/auth.py",
+        "src/intelli/services/auth/* (new)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "ENT-002",
+      "type": "story",
+      "title": "RBAC/ABAC policy engine enforced across APIs and UI",
+      "problem": "Tenant isolation is necessary but not sufficient. Need role-based access at workspace/project/app level (viewer/editor/admin) plus fine-grained permissions for documents and tools.",
+      "solution": "Implement authorization:\n- Define roles and permissions (RBAC) plus scope checks (ABAC) using tenant_id, project_id, app_id.\n- Add middleware/dependency to enforce policies in each router.\n- Add UI guards: hide/disable actions based on role.",
+      "acceptance_criteria": [
+        "Core resources (projects, docs, runs, apps, tools) enforce permissions.",
+        "Audit logs capture permission denials and privileged actions."
+      ],
+      "test_plan": [
+        "Integration: verify access matrix for key endpoints."
+      ],
+      "depends_on": [
+        "ENT-001",
+        "P0-003"
+      ],
+      "labels": [
+        "backend",
+        "security",
+        "rbac"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "partial",
+      "repo_paths": [
+        "src/intelli/api/deps.py",
+        "src/intelli/db/models/auth.py",
+        "src/intelli/security/* (new)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "ENT-003",
+      "type": "story",
+      "title": "Audit log: expand coverage (runs, docs, tool calls) + admin UI viewer",
+      "problem": "Audit log model exists but coverage is incomplete; admins need visibility for compliance and debugging.",
+      "solution": "- Ensure audit events are written for: login/logout, document upload/download, run start/stop, tool calls, deliverable exports, permission changes.\n- Add `/api/v1/audit` endpoints (admin-only) for querying.\n- Add UI page/table for audit log review with filtering.",
+      "acceptance_criteria": [
+        "Audit records exist for core actions and include actor, target, timestamp, metadata.",
+        "Admin can query and export audit logs."
+      ],
+      "test_plan": [
+        "Integration: actions create audit entries; RBAC prevents non-admin access."
+      ],
+      "depends_on": [
+        "ENT-002"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "audit"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "partial",
+      "repo_paths": [
+        "src/intelli/db/models/auth.py",
+        "src/intelli/api/v1/*",
+        "ui/src/pages/* (new audit page)"
+      ],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "ENT-004",
+      "type": "story",
+      "title": "Billing & metering: usage records per tenant (tokens, tools, storage) + Stripe integration",
+      "problem": "Spec includes Stripe-backed billing and quotas. Repo has no billing pipeline and run ledger lacks tenant_id (P0-003).",
+      "solution": "Implement metering:\n- Record usage: tokens in/out, tool calls, search requests, storage bytes.\n- Aggregate per tenant daily/monthly.\n- Integrate Stripe for subscription plans and invoices (minimal).\n- Enforce quotas via middleware (reject when exceeded).",
+      "acceptance_criteria": [
+        "Usage records can be generated and aggregated per tenant.",
+        "Stripe customer + subscription can be linked to tenant.",
+        "Quotas can be configured and enforced."
+      ],
+      "test_plan": [
+        "Integration: simulate usage; aggregation job produces expected totals."
+      ],
+      "depends_on": [
+        "P0-003",
+        "EPIC-ENTERPRISE"
+      ],
+      "labels": [
+        "backend",
+        "billing"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (Platform Primitive #10)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "ENT-005",
+      "type": "story",
+      "title": "Data retention, deletion, and export (GDPR baseline)",
+      "problem": "Production deployments require retention policies, right-to-delete, and export of tenant data, especially for regulated clients.",
+      "solution": "- Define retention policy configuration per tenant.\n- Implement deletion workflows for: documents, artifacts, runs, conversations (with tombstones for audit).\n- Implement export endpoints/jobs producing a tenant export bundle.",
+      "acceptance_criteria": [
+        "Admin can request export; system produces a downloadable bundle.",
+        "Delete requests remove data or anonymize appropriately while preserving audit logs."
+      ],
+      "test_plan": [
+        "Integration: delete workflow removes rows and blobs; export contains expected data."
+      ],
+      "depends_on": [
+        "ENT-003"
+      ],
+      "labels": [
+        "backend",
+        "compliance"
+      ],
+      "milestone": "M6-ENTERPRISE",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "OBS-001",
+      "type": "story",
+      "title": "Tracing integration (LangSmith + optional Langfuse/OTel) across graphs and tools",
+      "problem": "Without tracing, debugging agentic workflows and regressions is slow. Repo currently does not integrate LangSmith/Langfuse tracing.",
+      "solution": "Add tracing provider abstraction:\n- Configure LangChain tracing env vars for LangSmith (and optionally Langfuse).\n- Add trace IDs to run metadata and propagate to run events.\n- Instrument tool wrappers and key graph nodes with spans.",
+      "acceptance_criteria": [
+        "When tracing enabled, a run produces a trace with nodes/tools and timings.",
+        "Trace ID is visible in NYQST UI (run details) and stored with run record."
+      ],
+      "test_plan": [
+        "Smoke: run with tracing enabled emits spans (can be mocked)."
+      ],
+      "depends_on": [
+        "EPIC-OBS",
+        "BL-001"
+      ],
+      "labels": [
+        "backend",
+        "observability",
+        "tracing"
+      ],
+      "milestone": "M6-OBS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "OBS-002",
+      "type": "story",
+      "title": "Metrics + health endpoints (queue depth, latency, error rates, cost)",
+      "problem": "Production readiness requires metrics dashboards and health checks for services and queues.",
+      "solution": "- Add `/healthz` and `/readyz` endpoints.\n- Export Prometheus metrics: request latency, errors, token usage, queue depth, OpenSearch latency.\n- Document dashboards and alert thresholds.",
+      "acceptance_criteria": [
+        "Metrics endpoint exists and emits core metrics.",
+        "Health endpoints reflect dependencies status (db, redis, opensearch)."
+      ],
+      "test_plan": [
+        "Integration: healthz returns unhealthy when db down (mock)."
+      ],
+      "depends_on": [
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "backend",
+        "observability"
+      ],
+      "milestone": "M6-OBS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "OBS-003",
+      "type": "story",
+      "title": "Evals and regression suite wired into CI (golden prompts, output scoring)",
+      "problem": "Repo has evals folder but evals are not enforced. Agentic systems regress subtly; evals must run in CI.",
+      "solution": "- Define a small golden prompt set per module (research, notebook Q&A, deliverables).\n- Implement scoring: plan quality, citation coverage, output format validity, latency bounds.\n- Wire into CI with a fast subset on PR and a larger nightly suite.",
+      "acceptance_criteria": [
+        "PR CI runs eval smoke suite and blocks merges on failures.",
+        "Nightly suite runs and stores results (artifact or dashboard)."
+      ],
+      "test_plan": [
+        "Meta: eval harness has tests; sample fixture yields expected score."
+      ],
+      "depends_on": [
+        "P0-005",
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "quality",
+        "evals",
+        "ci"
+      ],
+      "milestone": "M6-OBS",
+      "repo_alignment": "partial",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "OBS-004",
+      "type": "story",
+      "title": "Load testing and streaming reliability tests (N concurrent runs)",
+      "problem": "Streaming and run event systems often fail under concurrency; need a repeatable load test harness.",
+      "solution": "- Add a load test tool (locust/k6) to simulate concurrent runs and SSE clients.\n- Measure: event loss, ordering, latency, memory usage.\n- Gate releases on a minimum stability threshold.",
+      "acceptance_criteria": [
+        "Load test can run locally and in CI nightly, producing a report artifact."
+      ],
+      "test_plan": [
+        "N/A (this is the test harness)."
+      ],
+      "depends_on": [
+        "BL-002b",
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "quality",
+        "loadtest"
+      ],
+      "milestone": "M6-OBS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-DOCUINTELLI",
+      "type": "epic",
+      "title": "DocuIntelli domain module (document intelligence and corpus analysis)",
+      "problem": "DocuIntelli requires multi-phase corpus analysis, dimension discovery, anomaly detection, and explainable outputs. It depends on platform primitives (context, provenance, streaming, tools) and introduces module-specific capabilities.",
+      "solution": "Implement DocuIntelli as the first deep domain module: corpus ingestion, profiling, framework selection, dimension discovery, anomaly/gap detection, visualization, and report exports.",
+      "acceptance_criteria": [
+        "DocuIntelli can ingest a corpus (docs + metadata), profile it, run at least one framework, and output a cited analysis report + anomalies list.",
+        "DocuIntelli UI exists inside Studio with corpus explorer, dimension builder, and anomaly dashboards."
+      ],
+      "test_plan": [
+        "Integration: run DocuIntelli analysis on fixture corpus; verify outputs and citations."
+      ],
+      "depends_on": [
+        "EPIC-STUDIO",
+        "BL-016",
+        "PLUG-002"
+      ],
+      "labels": [
+        "domain:docuintelli"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": "DocuIntelli-specific BL extensions are captured as BL-023..BL-030."
+    },
+    {
+      "key": "DI-001",
+      "type": "story",
+      "title": "DocuIntelli foundation: document bundles, versions, and corpus metadata model",
+      "problem": "DocuIntelli workflows require grouping documents into corpora/bundles with versioning and metadata (source, date, counterparty). Current substrate stores artifacts but lacks higher-level corpus organization.",
+      "solution": "Add DocuIntelli corpus primitives:\n- DB: `corpora` (tenant_id, name, description, tags), `corpus_documents` linking to artifacts/manifests with metadata + version fields.\n- Provide APIs to create corpora, add/remove documents, and manage versions.\n- UI: corpus explorer (list/detail) with version timeline and filters.",
+      "acceptance_criteria": [
+        "A corpus can be created and populated with document versions.",
+        "Corpus documents carry metadata usable for filtering and analysis (source, date, type)."
+      ],
+      "test_plan": [
+        "Integration: corpus CRUD; version linking; permissions."
+      ],
+      "depends_on": [
+        "EPIC-DOCUINTELLI",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "DI-002",
+      "type": "story",
+      "title": "DocuIntelli processing pipeline: DocIR extraction and normalized representations",
+      "problem": "Higher-order analysis needs consistent text/layout extraction (DocIR) for PDFs and docs; current RAG chunking is insufficient for clause-level analysis and diffing.",
+      "solution": "Implement DocIR pipeline:\n- Extract: text, headings, tables, page coords, structural blocks.\n- Normalize into a DocIR JSON format stored as artifacts.\n- Index: store embeddings per block and allow clause-level retrieval.\n- Provide UI viewer that can highlight referenced spans by locator.",
+      "acceptance_criteria": [
+        "Uploading a PDF produces a DocIR artifact and block-level index entries.",
+        "Citations can reference a DocIR locator and UI can highlight it."
+      ],
+      "test_plan": [
+        "Integration: process fixture PDF \u2192 DocIR produced; locator highlight works."
+      ],
+      "depends_on": [
+        "DI-001",
+        "PLUG-003"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-023",
+      "type": "story",
+      "title": "DocuIntelli: cross-framework reconciliation tool (compare/resolve multiple frameworks)",
+      "problem": "DocuIntelli requires reconciling outputs across multiple frameworks (IFRS vs internal model, regulatory vs operational) to identify conflicts and coverage gaps.",
+      "solution": "Implement reconciliation:\n- Input: two or more framework outputs (dimensions + findings + citations).\n- Output: reconciliation matrix highlighting overlaps, conflicts, and missing coverage.\n- Store as artifacts and render in UI (table + filters + citations).",
+      "acceptance_criteria": [
+        "System can generate a reconciliation artifact for at least two frameworks on a fixture corpus.",
+        "UI can display matrix and drill into evidence for a selected cell."
+      ],
+      "test_plan": [
+        "Integration: reconciliation on fixture outputs produces deterministic matrix."
+      ],
+      "depends_on": [
+        "EPIC-DOCUINTELLI",
+        "DI-002"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [
+        "reference/NYQST_Platform_Production_Intelligence_Build_Guide_v5.md (DocuIntelli new BL items)"
+      ],
+      "notes": ""
+    },
+    {
+      "key": "BL-024",
+      "type": "story",
+      "title": "DocuIntelli: mental model prompt library (templated reasoning patterns per framework)",
+      "problem": "Different frameworks require different reasoning patterns and output schemas. Without a prompt library, behaviour is inconsistent and not auditable.",
+      "solution": "Create a mental-model prompt library:\n- Templates per framework (dimensions, pattern matching, anomaly detection).\n- Versioned prompts with tests.\n- Output schemas enforced via validators (Pydantic + zod).",
+      "acceptance_criteria": [
+        "At least 3 prompt templates exist and are versioned with tests.",
+        "Prompt outputs validate against schemas reliably."
+      ],
+      "test_plan": [
+        "Eval: prompt templates on fixtures produce valid outputs."
+      ],
+      "depends_on": [
+        "EPIC-DOCUINTELLI",
+        "BL-012"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "prompts"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-025",
+      "type": "story",
+      "title": "DocuIntelli: dimension discovery agent (derive new dimensions from corpus)",
+      "problem": "DocuIntelli should not rely solely on predefined dimensions; it must discover emergent dimensions and propose them with evidence.",
+      "solution": "Implement dimension discovery:\n- Agent scans corpus summaries/DocIR blocks to propose candidate dimensions.\n- Each dimension includes: name, description, evidence examples, suggested scoring method.\n- Human-in-the-loop approval in UI before adding to model.",
+      "acceptance_criteria": [
+        "On a fixture corpus, system proposes a list of candidate dimensions with evidence references.",
+        "UI supports approving/rejecting dimensions and saving them to a dimension library."
+      ],
+      "test_plan": [
+        "Integration: discovery run produces candidate dimensions; approvals persist."
+      ],
+      "depends_on": [
+        "EPIC-DOCUINTELLI",
+        "DI-002"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-026",
+      "type": "story",
+      "title": "DocuIntelli: pattern library + matcher (detect patterns/anomalies across corpus)",
+      "problem": "Detecting contract/regulatory patterns requires a reusable pattern library and a matcher that returns matches with citations and confidence.",
+      "solution": "Build pattern library:\n- Store patterns as structured definitions (clauses, regex/semantic, examples).\n- Matcher runs across DocIR blocks and returns matches with locators + scores.\n- Store results as artifacts and render in UI (filterable list + heatmaps later).",
+      "acceptance_criteria": [
+        "Patterns can be created/edited and matched against a corpus.",
+        "Matches include citations/locators that can be opened in viewer."
+      ],
+      "test_plan": [
+        "Integration: matcher finds expected patterns in fixtures."
+      ],
+      "depends_on": [
+        "BL-025"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-027",
+      "type": "story",
+      "title": "DocuIntelli: process template engine (turn analysis into repeatable workflows)",
+      "problem": "Once patterns and dimensions exist, users need repeatable processes (templates) to run analyses consistently across corpora.",
+      "solution": "Implement process templates:\n- A template defines: selected frameworks, dimensions, patterns, thresholds, deliverables.\n- Templates can be run as workflows (compile to LangGraph) and emit standard outputs.\n- UI: template builder with presets; run history and comparisons.",
+      "acceptance_criteria": [
+        "User can create a template and run it on a corpus; outputs are consistent and versioned."
+      ],
+      "test_plan": [
+        "Integration: template run generates expected artifacts."
+      ],
+      "depends_on": [
+        "STUDIO-007",
+        "BL-026"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "workflow"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-028",
+      "type": "story",
+      "title": "DocuIntelli: anomaly detection engine (rank gaps, contradictions, outliers)",
+      "problem": "Core value is identifying anomalies and gaps with evidence and severity ranking.",
+      "solution": "Implement anomaly detection:\n- Inputs: dimension scores + pattern matches + reconciliation matrices.\n- Outputs: anomaly list (type, severity, description, impacted docs, evidence locators).\n- UI: anomaly dashboard with filters and drilldown to evidence.",
+      "acceptance_criteria": [
+        "Anomaly dashboard shows ranked anomalies with evidence and severity.",
+        "Anomalies can be exported into Decisions or tasks."
+      ],
+      "test_plan": [
+        "Integration: anomalies generated from fixture corpus and stable ranking."
+      ],
+      "depends_on": [
+        "BL-023",
+        "BL-026"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-029",
+      "type": "story",
+      "title": "DocuIntelli: dimensional visualization engine (heatmaps, matrices, timelines) with GenUI",
+      "problem": "Corpus analysis results need clear visualizations (dimension heatmaps, coverage matrices) with citations and drilldown.",
+      "solution": "Implement visualization:\n- Define visualization descriptors (heatmap, matrix, timeline) using GenUI contracts.\n- Render in UI with interactivity (hover to show evidence, click to open doc span).\n- Ensure visualizations can be exported to slides and reports.",
+      "acceptance_criteria": [
+        "At least 2 visualization types render from DocuIntelli outputs with drilldown."
+      ],
+      "test_plan": [
+        "UI: render visualization fixtures; interactions work."
+      ],
+      "depends_on": [
+        "BL-004",
+        "BL-028"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "frontend",
+        "genui"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-030",
+      "type": "story",
+      "title": "DocuIntelli: corpus comparison agent (compare two corpora or versions)",
+      "problem": "Users need to compare corpora over time (version diffs, framework deltas, anomalies trending).",
+      "solution": "Implement corpus comparison:\n- Input: corpus A vs corpus B (or version sets).\n- Output: diff summary, dimension deltas, new/removed anomalies, key changes with citations.\n- UI: comparison view + linkable diff nodes on canvas.",
+      "acceptance_criteria": [
+        "System can compare two corpora and produce a cited comparison report.",
+        "UI comparison view supports filtering and drilldowns."
+      ],
+      "test_plan": [
+        "Integration: comparison on fixture corpora produces expected deltas."
+      ],
+      "depends_on": [
+        "DI-001",
+        "STUDIO-005"
+      ],
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend"
+      ],
+      "milestone": "M7-DOCUINTELLI",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-LEASECD",
+      "type": "epic",
+      "title": "Lease CD module (commercial property lease cashflow and covenant analysis)",
+      "problem": "Lease CD requires extracting structured lease terms from documents and producing deterministic cashflow/obligation schedules with auditable calculations and evidence links.",
+      "solution": "Build Lease CD on platform primitives: DocIR extraction + entity/citation, deterministic calc engine, and Studio surfaces for lease entities and scenarios.",
+      "acceptance_criteria": [
+        "A lease document can be ingested, key terms extracted with citations, and a cashflow schedule generated deterministically.",
+        "Outputs are exportable to report/slides/document and traceable to source clauses."
+      ],
+      "test_plan": [
+        "Integration: fixture lease \u2192 extracted terms \u2192 schedule matches expected values."
+      ],
+      "depends_on": [
+        "BL-016",
+        "DI-002",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "domain:leasecd"
+      ],
+      "milestone": "M8-LEASECD",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "LEASECD-001",
+      "type": "story",
+      "title": "Lease data model + CRUD (lease, parties, dates, rent schedule, options)",
+      "problem": "Need a canonical lease entity model to store extracted terms and user overrides.",
+      "solution": "- DB: `leases` table (project_id, client_id, property_id optional) + child tables for rent steps, break options, indexation, covenants.\n- API: CRUD endpoints + versioning of extracted vs edited values.\n- Link extracted values to citations/locators.",
+      "acceptance_criteria": [
+        "Lease terms can be stored and updated with version history and citations."
+      ],
+      "test_plan": [
+        "Integration: lease CRUD; citation linkage."
+      ],
+      "depends_on": [
+        "EPIC-LEASECD"
+      ],
+      "labels": [
+        "backend",
+        "domain:leasecd"
+      ],
+      "milestone": "M8-LEASECD",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "LEASECD-002",
+      "type": "story",
+      "title": "Lease extraction skill: parse DocIR blocks into structured lease terms with citations",
+      "problem": "Automated extraction is required to scale. Must be auditable and correctable.",
+      "solution": "Implement extraction workflow:\n- Use DocIR blocks and pattern library to find candidate clauses.\n- LLM extracts structured fields with locators.\n- Store extracted fields as proposed values; user can confirm/edit.",
+      "acceptance_criteria": [
+        "On fixture lease docs, extraction produces a populated lease record with citations to source blocks."
+      ],
+      "test_plan": [
+        "Eval: extraction accuracy on fixtures; citations coverage."
+      ],
+      "depends_on": [
+        "LEASECD-001",
+        "DI-002",
+        "PLUG-005"
+      ],
+      "labels": [
+        "backend",
+        "domain:leasecd",
+        "skills"
+      ],
+      "milestone": "M8-LEASECD",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "LEASECD-003",
+      "type": "story",
+      "title": "Deterministic lease calculation engine (cashflows, indexation, scenarios)",
+      "problem": "Lease cashflow outputs must be deterministic, testable, and explainable. LLM-only calculations are unacceptable.",
+      "solution": "Build a deterministic calc engine:\n- Inputs: structured lease terms (dates, rent steps, indexation rules).\n- Outputs: cashflow schedule, NPV, key dates, scenario comparisons.\n- Provide explain() outputs for each computed line item.",
+      "acceptance_criteria": [
+        "Engine produces expected schedules for known examples and passes unit tests.",
+        "UI can show explain traces per line item and link back to terms and citations."
+      ],
+      "test_plan": [
+        "Unit: calc engine with golden fixtures; property-based tests for edge cases."
+      ],
+      "depends_on": [
+        "LEASECD-001"
+      ],
+      "labels": [
+        "backend",
+        "domain:leasecd",
+        "calc"
+      ],
+      "milestone": "M8-LEASECD",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "LEASECD-004",
+      "type": "story",
+      "title": "Lease CD UI: term review, scenario builder, export to deliverables",
+      "problem": "Users need a UI to review extracted terms, correct them, run scenarios, and export outputs to report/slides/document.",
+      "solution": "Implement Lease CD pages:\n- Lease list/detail under Projects.\n- Term review table with citations and edit controls.\n- Scenario builder for assumptions (inflation, break exercise).\n- Export: generate deliverables using shared DataBrief + calc outputs.",
+      "acceptance_criteria": [
+        "User can review/edit lease terms, run scenarios, and export a deliverable with charts."
+      ],
+      "test_plan": [
+        "E2E: lease extraction \u2192 review \u2192 scenario \u2192 export slides."
+      ],
+      "depends_on": [
+        "LEASECD-003",
+        "BL-018",
+        "BL-019"
+      ],
+      "labels": [
+        "frontend",
+        "domain:leasecd"
+      ],
+      "milestone": "M8-LEASECD",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-DEBT",
+      "type": "epic",
+      "title": "Debt module (term sheets, amortization, covenant monitoring)",
+      "problem": "Debt MVP requires extracting terms from loan docs and producing deterministic amortization schedules, covenant checks, and alerts.",
+      "solution": "Build on platform primitives: DocIR extraction + entity/citation + deterministic calc engine + dashboards and alerts.",
+      "acceptance_criteria": [
+        "A debt instrument can be ingested and modeled; amortization schedule and key ratios computed deterministically.",
+        "Covenant checks and exceptions are traceable to source clauses and assumptions."
+      ],
+      "test_plan": [
+        "Integration: fixture term sheet \u2192 model \u2192 schedule matches expected values."
+      ],
+      "depends_on": [
+        "BL-016",
+        "DI-002",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "domain:debt"
+      ],
+      "milestone": "M9-DEBT",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "DEBT-001",
+      "type": "story",
+      "title": "Debt instrument data model + CRUD (facilities, tranches, rates, covenants)",
+      "problem": "Need canonical debt model with versioning and citations.",
+      "solution": "- DB: `debt_instruments`, `tranches`, `rate_terms`, `covenants`, `events`.\n- APIs: CRUD and versioning.\n- Link key fields to citations/locators.",
+      "acceptance_criteria": [
+        "Debt instruments can be stored/updated with citations."
+      ],
+      "test_plan": [
+        "Integration: CRUD + scoping."
+      ],
+      "depends_on": [
+        "EPIC-DEBT"
+      ],
+      "labels": [
+        "backend",
+        "domain:debt"
+      ],
+      "milestone": "M9-DEBT",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "DEBT-002",
+      "type": "story",
+      "title": "Debt extraction skill: parse DocIR into structured debt terms with citations",
+      "problem": "Automated extraction required for scale; must be auditable and editable.",
+      "solution": "- Use DocIR blocks and patterns to locate key clauses.\n- LLM extracts structured fields with locators.\n- Store proposed values and allow user edits.",
+      "acceptance_criteria": [
+        "On fixtures, extraction yields a populated debt model with citations."
+      ],
+      "test_plan": [
+        "Eval: extraction fixtures and citation coverage."
+      ],
+      "depends_on": [
+        "DEBT-001",
+        "DI-002",
+        "PLUG-005"
+      ],
+      "labels": [
+        "backend",
+        "domain:debt",
+        "skills"
+      ],
+      "milestone": "M9-DEBT",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "DEBT-003",
+      "type": "story",
+      "title": "Deterministic debt calculation engine (amortization, interest, covenant ratios)",
+      "problem": "Debt schedules must be deterministic and testable; LLM arithmetic is unacceptable.",
+      "solution": "- Compute amortization schedules under fixed/floating rates.\n- Compute covenant ratios based on financial inputs.\n- Provide explain() traces per period and ratio.",
+      "acceptance_criteria": [
+        "Engine passes golden tests; outputs stable."
+      ],
+      "test_plan": [
+        "Unit: golden amortization fixtures; edge-case tests."
+      ],
+      "depends_on": [
+        "DEBT-001"
+      ],
+      "labels": [
+        "backend",
+        "domain:debt",
+        "calc"
+      ],
+      "milestone": "M9-DEBT",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "DEBT-004",
+      "type": "story",
+      "title": "Debt dashboards + alerts (exceptions, covenant breaches) with provenance",
+      "problem": "Value comes from monitoring and surfacing exceptions with evidence.",
+      "solution": "- UI dashboards for schedules and covenant status.\n- Alert rules (thresholds) stored per project.\n- Evidence links to source clauses and calculation assumptions.",
+      "acceptance_criteria": [
+        "Dashboard shows covenant status and exceptions; alerts can be configured."
+      ],
+      "test_plan": [
+        "E2E: configure alert \u2192 simulate breach \u2192 alert appears."
+      ],
+      "depends_on": [
+        "DEBT-003",
+        "STUDIO-004"
+      ],
+      "labels": [
+        "frontend",
+        "domain:debt"
+      ],
+      "milestone": "M9-DEBT",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-REGSYGNAL",
+      "type": "epic",
+      "title": "RegSygnal module (regulatory intelligence, reconciliation, alerts)",
+      "problem": "RegSygnal needs continuous monitoring of regulatory sources, mapping to internal policy frameworks, and producing actionable diffs and tasks with provenance.",
+      "solution": "Use web connectors + DocuIntelli pattern engine to ingest regulations, extract obligations, reconcile against internal controls, and output alerts/reports.",
+      "acceptance_criteria": [
+        "System can ingest a regulatory update feed and produce a summarized diff with citations and impacted controls."
+      ],
+      "test_plan": [
+        "Integration: ingest fixture regulatory update \u2192 diff report produced."
+      ],
+      "depends_on": [
+        "BL-016",
+        "PLUG-003",
+        "BL-020"
+      ],
+      "labels": [
+        "domain:regsygnal"
+      ],
+      "milestone": "M10-REGSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "REG-001",
+      "type": "story",
+      "title": "Regulatory source ingestion (web feeds, PDFs) into corpus with provenance",
+      "problem": "Need reliable ingestion of regulatory sources with metadata and update detection.",
+      "solution": "- Connectors for RSS/web pages/PDFs.\n- Detect changes and version documents.\n- Store as artifacts + DocIR; index for retrieval.",
+      "acceptance_criteria": [
+        "Reg source documents are ingested, versioned, and searchable with citations."
+      ],
+      "test_plan": [
+        "Integration: ingest 2 versions; diff detected."
+      ],
+      "depends_on": [
+        "EPIC-REGSYGNAL",
+        "DI-002"
+      ],
+      "labels": [
+        "backend",
+        "domain:regsygnal"
+      ],
+      "milestone": "M10-REGSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "REG-002",
+      "type": "story",
+      "title": "Obligation extraction + mapping to internal controls framework",
+      "problem": "Need to extract obligations and map them to internal controls/policies for reconciliation.",
+      "solution": "- Define controls framework model (controls, policies, owners).\n- Extract obligations from DocIR and map to controls via embeddings + LLM.\n- Produce mapping artifacts with evidence.",
+      "acceptance_criteria": [
+        "Obligations extracted and mapped with citations; gaps identified."
+      ],
+      "test_plan": [
+        "Eval: mapping accuracy on fixture controls set."
+      ],
+      "depends_on": [
+        "REG-001",
+        "BL-023"
+      ],
+      "labels": [
+        "backend",
+        "domain:regsygnal"
+      ],
+      "milestone": "M10-REGSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "REG-003",
+      "type": "story",
+      "title": "RegSygnal UI: regulatory dashboard, diffs, tasks, and decision linking",
+      "problem": "Need UX to view changes, impacted controls, and create tasks/decisions.",
+      "solution": "- Dashboard for latest updates and impacted areas.\n- Diff viewer and evidence drilldown.\n- Ability to create decisions and tasks linked to evidence.",
+      "acceptance_criteria": [
+        "Users can browse updates, see diffs, and create decisions/tasks with citations."
+      ],
+      "test_plan": [
+        "E2E: ingest update \u2192 view diff \u2192 create decision."
+      ],
+      "depends_on": [
+        "REG-002",
+        "STUDIO-003"
+      ],
+      "labels": [
+        "frontend",
+        "domain:regsygnal"
+      ],
+      "milestone": "M10-REGSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "EPIC-PROPSYGNAL",
+      "type": "epic",
+      "title": "PropSygnal module (commercial property signal aggregation and analytics)",
+      "problem": "PropSygnal requires combining internal property data with market signals, documents, and analytics to support investment decisions.",
+      "solution": "Implement asset model + connectors for market data/news + analysis dashboards + decision workflows with provenance.",
+      "acceptance_criteria": [
+        "System can create an asset/project and attach signals and documents; dashboards show key metrics and cited insights."
+      ],
+      "test_plan": [
+        "Integration: ingest sample signal feed and render dashboard."
+      ],
+      "depends_on": [
+        "BL-016",
+        "PLUG-003",
+        "STUDIO-001"
+      ],
+      "labels": [
+        "domain:propsygnal"
+      ],
+      "milestone": "M11-PROPSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PROP-001",
+      "type": "story",
+      "title": "Asset data model + CRUD (properties, portfolios, KPIs)",
+      "problem": "Need canonical property/portfolio models to anchor signals and analysis.",
+      "solution": "- DB: `assets`, `portfolios`, `asset_kpis`.\n- APIs + UI under Projects or separate PropSygnal section.",
+      "acceptance_criteria": [
+        "Assets can be created and linked to projects/clients."
+      ],
+      "test_plan": [
+        "Integration: CRUD + scoping."
+      ],
+      "depends_on": [
+        "EPIC-PROPSYGNAL"
+      ],
+      "labels": [
+        "backend",
+        "domain:propsygnal"
+      ],
+      "milestone": "M11-PROPSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PROP-002",
+      "type": "story",
+      "title": "Signal ingestion: news/market feeds + web research into asset context packs",
+      "problem": "Need to ingest signals with provenance and attach to assets.",
+      "solution": "- Connectors for news feeds and market data providers.\n- Store signal items as entities/artifacts.\n- Index into context packs for asset/project.",
+      "acceptance_criteria": [
+        "Signals ingested and searchable; linked to assets with citations."
+      ],
+      "test_plan": [
+        "Integration: ingest fixture feed and retrieve signals by asset."
+      ],
+      "depends_on": [
+        "PROP-001",
+        "PLUG-003"
+      ],
+      "labels": [
+        "backend",
+        "domain:propsygnal"
+      ],
+      "milestone": "M11-PROPSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PROP-003",
+      "type": "story",
+      "title": "PropSygnal dashboards: KPIs, trends, and cited insights",
+      "problem": "Need dashboards to summarize signals and metrics with drilldown to evidence.",
+      "solution": "- UI dashboards using GenUI charts/tables.\n- Drilldown to underlying signals/doc evidence.\n- Export to deliverables.",
+      "acceptance_criteria": [
+        "Dashboards render and support drilldown and export."
+      ],
+      "test_plan": [
+        "E2E: view dashboard and export to slides."
+      ],
+      "depends_on": [
+        "PROP-002",
+        "BL-029",
+        "BL-018"
+      ],
+      "labels": [
+        "frontend",
+        "domain:propsygnal"
+      ],
+      "milestone": "M11-PROPSYGNAL",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-014a",
+      "type": "task",
+      "title": "DB model for ContextPacks + attachments to projects/apps/conversations",
+      "problem": "Context inheritance needs persistent ContextPack objects and attachments to scopes.",
+      "solution": "Create `context_packs` and `context_pack_attachments` tables with scope fields and ordering/precedence rules.",
+      "acceptance_criteria": [
+        "ContextPack tables exist and are tenant-scoped; attachments enforce uniqueness per scope."
+      ],
+      "test_plan": [
+        "Migration test; repository CRUD unit tests."
+      ],
+      "depends_on": [
+        "BL-014"
+      ],
+      "labels": [
+        "backend",
+        "db",
+        "context"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-014b",
+      "type": "task",
+      "title": "Indexing jobs for context packs (background embeddings + OpenSearch index updates)",
+      "problem": "Context packs must be kept fresh automatically as documents and notes change.",
+      "solution": "Add arq jobs that watch for changes and re-embed/re-index affected sources; record status and last indexed timestamps.",
+      "acceptance_criteria": [
+        "Updating a document triggers re-index of affected context packs within acceptable lag."
+      ],
+      "test_plan": [
+        "Integration: simulate document update and assert indexing job runs and updates index."
+      ],
+      "depends_on": [
+        "BL-014a",
+        "P0-001"
+      ],
+      "labels": [
+        "backend",
+        "indexing",
+        "arq"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-014c",
+      "type": "task",
+      "title": "Retrieval tools merge context pack results with precedence rules",
+      "problem": "Even with packs indexed, retrieval must respect scope precedence and avoid duplicate/low-quality results.",
+      "solution": "Update retrieval tool implementations to accept context_pack_ids and merge results (task > app > project > workspace), dedup by entity_id, and optionally rerank.",
+      "acceptance_criteria": [
+        "Given overlapping packs, results are merged deterministically with precedence and dedup."
+      ],
+      "test_plan": [
+        "Unit: merge and dedup logic; integration: retrieval constrained to packs."
+      ],
+      "depends_on": [
+        "BL-014b"
+      ],
+      "labels": [
+        "backend",
+        "retrieval"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-014d",
+      "type": "task",
+      "title": "UI: Context manager (create packs, attach to project/app, view indexing status)",
+      "problem": "Users need to manage context packs and understand what is indexed.",
+      "solution": "Add Settings/Context UI: pack list/detail, attach/detach, show sources, indexing status, and retrieval test box.",
+      "acceptance_criteria": [
+        "User can create a pack, attach to project, and run a retrieval test from UI."
+      ],
+      "test_plan": [
+        "E2E: create pack \u2192 attach \u2192 run test \u2192 see results."
+      ],
+      "depends_on": [
+        "BL-014a"
+      ],
+      "labels": [
+        "frontend",
+        "context"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-016a",
+      "type": "task",
+      "title": "DB migrations for entities + citations tables + indexes",
+      "problem": "Need schema for entities and citations with performance indexes and tenant scoping.",
+      "solution": "Add migrations to create `entities`, `citations`, and join tables (e.g., `report_citations`, `decision_citations`) with indexes on tenant_id, entity_type, and foreign keys.",
+      "acceptance_criteria": [
+        "Migrations apply cleanly; indexes exist for common query patterns."
+      ],
+      "test_plan": [
+        "Migration tests; repository CRUD unit tests."
+      ],
+      "depends_on": [
+        "BL-016"
+      ],
+      "labels": [
+        "backend",
+        "db"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-016b",
+      "type": "task",
+      "title": "Entity/Citation API endpoints (create, bulk fetch, search) with RBAC",
+      "problem": "UI needs APIs to bind and fetch citations; also needed for exports.",
+      "solution": "Add routers `/api/v1/entities` and `/api/v1/citations` with bulk fetch endpoints and RBAC checks.",
+      "acceptance_criteria": [
+        "APIs support: create entity, list/search entities, create citation, list citations for report/run/decision."
+      ],
+      "test_plan": [
+        "Integration: RBAC enforced; bulk fetch works."
+      ],
+      "depends_on": [
+        "BL-016a",
+        "ENT-002"
+      ],
+      "labels": [
+        "backend",
+        "api",
+        "security"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-016c",
+      "type": "task",
+      "title": "UI components for citations (CitationPopover, CitationList, EvidenceViewer integration)",
+      "problem": "Users must be able to inspect evidence quickly without losing context.",
+      "solution": "Implement Citation UI primitives and integrate into ReportPanel and Decisions; clicking opens artifact viewer at correct locator/snippet.",
+      "acceptance_criteria": [
+        "Clicking an inline citation opens a popover with source metadata and a link to evidence viewer."
+      ],
+      "test_plan": [
+        "UI test: citation click opens popover and navigates to evidence."
+      ],
+      "depends_on": [
+        "BL-016b"
+      ],
+      "labels": [
+        "frontend",
+        "citations"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-016d",
+      "type": "task",
+      "title": "Emit references_found and citations_bound events from tools and binder",
+      "problem": "Overlay and timeline require explicit events for evidence discovery and citation binding.",
+      "solution": "Update tool wrappers and binder to emit RunEvents: `references_found` when new entities stored; `citations_bound` when citation records created.",
+      "acceptance_criteria": [
+        "Run stream shows references_found and citations_bound with IDs; UI updates accordingly."
+      ],
+      "test_plan": [
+        "Integration: run emits events in correct order."
+      ],
+      "depends_on": [
+        "BL-016b",
+        "BL-002"
+      ],
+      "labels": [
+        "backend",
+        "runs"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-018a",
+      "type": "task",
+      "title": "Define slides.json schema and export contract (with citations and assets)",
+      "problem": "Slides pipeline needs a stable intermediate representation for renderer and tests.",
+      "solution": "Define Pydantic + TS schema for slides.json (deck metadata, slides array, blocks, citations, assets).",
+      "acceptance_criteria": [
+        "Schema exists and fixtures validate."
+      ],
+      "test_plan": [
+        "Unit: schema validation + fixture tests."
+      ],
+      "depends_on": [
+        "BL-018"
+      ],
+      "labels": [
+        "contracts",
+        "slides"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-018b",
+      "type": "task",
+      "title": "Implement Reveal deck renderer (slides.json \u2192 HTML) + asset bundling",
+      "problem": "Need deterministic renderer and packaging so decks can be served/downloaded reliably.",
+      "solution": "Implement renderer that produces Reveal HTML, copies assets, and writes a manifest; store as artifact bundle.",
+      "acceptance_criteria": [
+        "Renderer produces a working deck for fixtures; bundle is downloadable."
+      ],
+      "test_plan": [
+        "Integration: render fixture and validate output files."
+      ],
+      "depends_on": [
+        "BL-018a"
+      ],
+      "labels": [
+        "backend",
+        "slides"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-018c",
+      "type": "task",
+      "title": "Wire slide generation into arq job and deliverable store",
+      "problem": "Renderer must run asynchronously and results must be discoverable by identifier.",
+      "solution": "Create arq job `generate_slides(run_id, reportIdentifier)`; store outputs in deliverable store and emit `deliverable_ready` event.",
+      "acceptance_criteria": [
+        "Job runs end-to-end and deliverable is linked to run."
+      ],
+      "test_plan": [
+        "Integration: enqueue job and assert deliverable_ready event + artifacts."
+      ],
+      "depends_on": [
+        "BL-015",
+        "BL-018b"
+      ],
+      "labels": [
+        "backend",
+        "arq",
+        "deliverables"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-019b",
+      "type": "task",
+      "title": "Implement DOCX template + generator library (report \u2192 docx)",
+      "problem": "Document generation must be templated and consistent with branding/legal appendices.",
+      "solution": "Create templates and generator code to transform report sections and citations into docx; support tables and charts as images.",
+      "acceptance_criteria": [
+        "Generator produces docx with headings, tables, and citations for fixture report."
+      ],
+      "test_plan": [
+        "Integration: generate docx and validate with python-docx (structure checks)."
+      ],
+      "depends_on": [
+        "BL-019"
+      ],
+      "labels": [
+        "backend",
+        "docx"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "BL-019c",
+      "type": "task",
+      "title": "Wire document generation into deliverable store and UI download links",
+      "problem": "Output must be linked to runs and accessible from UI.",
+      "solution": "Add arq job to generate document, store artifact, emit deliverable_ready; UI shows download links and status.",
+      "acceptance_criteria": [
+        "User can download generated document from UI; status updates via run events."
+      ],
+      "test_plan": [
+        "E2E: run doc generation and download file."
+      ],
+      "depends_on": [
+        "BL-019b",
+        "BL-020"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "deliverables"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-004a",
+      "type": "task",
+      "title": "Select canvas implementation (React Flow vs custom) and build base pan/zoom/drag interactions",
+      "problem": "Canvas UX is non-trivial; choosing a stable library early avoids rework.",
+      "solution": "Evaluate React Flow (or similar) for licensing/perf; implement base board with pan/zoom, node drag, edge creation.",
+      "acceptance_criteria": [
+        "Canvas base interactions work smoothly and meet perf target for 200 nodes."
+      ],
+      "test_plan": [
+        "UI test: add/move node and ensure state updates."
+      ],
+      "depends_on": [
+        "STUDIO-004"
+      ],
+      "labels": [
+        "frontend",
+        "canvas"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-004b",
+      "type": "task",
+      "title": "Canvas persistence API + optimistic sync",
+      "problem": "Canvas nodes must persist and support multi-session reload; eventual collaboration later.",
+      "solution": "Implement backend CRUD for boards/nodes/edges; UI uses optimistic updates with debounced autosave.",
+      "acceptance_criteria": [
+        "Refresh restores state; conflicts resolved by last-write-wins (v1)."
+      ],
+      "test_plan": [
+        "Integration: save/load board; UI e2e refresh retains state."
+      ],
+      "depends_on": [
+        "STUDIO-004a",
+        "P0-003"
+      ],
+      "labels": [
+        "backend",
+        "frontend",
+        "canvas"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "STUDIO-004c",
+      "type": "task",
+      "title": "Implement v1 node types (Note, Artifact, ReportSnippet, ChartPlaceholder, Decision)",
+      "problem": "Canvas needs meaningful node types that connect to existing platform primitives.",
+      "solution": "Implement node components and serialization for each type; add node creation palette; integrate with artifact and decision APIs.",
+      "acceptance_criteria": [
+        "All v1 node types can be created and persisted; clicking opens relevant viewer."
+      ],
+      "test_plan": [
+        "UI test: create each node type; persist; reopen."
+      ],
+      "depends_on": [
+        "STUDIO-004b",
+        "STUDIO-003"
+      ],
+      "labels": [
+        "frontend",
+        "canvas"
+      ],
+      "milestone": "M5-STUDIO",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-003a",
+      "type": "task",
+      "title": "Secrets storage abstraction (encryption at rest + redaction)",
+      "problem": "Connector credentials must be stored securely and never leak into logs/events.",
+      "solution": "Implement secrets manager abstraction: encrypt/decrypt with master key, redact in logs, and restrict access by RBAC.",
+      "acceptance_criteria": [
+        "Secrets are encrypted in DB and redacted in logs and API responses."
+      ],
+      "test_plan": [
+        "Security unit test: ensure redaction; integration: encryption roundtrip."
+      ],
+      "depends_on": [
+        "PLUG-003",
+        "ENT-002"
+      ],
+      "labels": [
+        "backend",
+        "security"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-003b",
+      "type": "task",
+      "title": "Generic OAuth flow endpoints + connector account linking",
+      "problem": "Connectors need OAuth in many cases; implement generic flow to avoid custom per-connector code.",
+      "solution": "Add endpoints: start OAuth, callback; store tokens via secrets manager; create connector_account rows.",
+      "acceptance_criteria": [
+        "OAuth flow works for at least one connector type end-to-end."
+      ],
+      "test_plan": [
+        "Integration: mock OAuth callback and verify account linking."
+      ],
+      "depends_on": [
+        "PLUG-003a"
+      ],
+      "labels": [
+        "backend",
+        "connectors"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "PLUG-003c",
+      "type": "task",
+      "title": "Implement first production connector (Google Drive or SharePoint) + sync job",
+      "problem": "Framework must be proven with a real connector used in workflows.",
+      "solution": "Pick one connector and implement: list folders/files, download docs, store as artifacts, update corpus/notebook, index.",
+      "acceptance_criteria": [
+        "Connector sync imports documents into a project notebook and indexes them for retrieval."
+      ],
+      "test_plan": [
+        "Integration: sync job stores artifacts; retrieval finds imported content."
+      ],
+      "depends_on": [
+        "PLUG-003b",
+        "BL-013"
+      ],
+      "labels": [
+        "backend",
+        "connectors"
+      ],
+      "milestone": "M5-PLUGINS",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    },
+    {
+      "key": "RAG-001",
+      "type": "story",
+      "title": "Hybrid retrieval (vector + keyword) + reranking + metadata filters",
+      "problem": "Basic vector search often returns irrelevant chunks. Dify/NotebookLM-style quality requires hybrid retrieval, metadata filters, and reranking.",
+      "solution": "Improve retrieval:\n- Implement hybrid query in OpenSearch combining BM25 + vector kNN.\n- Add metadata filters (doc_id, notebook_id, corpus_id, tags, date ranges).\n- Add optional reranker stage (cross-encoder or LLM rerank) with budget limits.",
+      "acceptance_criteria": [
+        "Retrieval quality improves on a benchmark set (define: top-k precision).",
+        "Filters allow restricting results to notebook/corpus/project contexts reliably."
+      ],
+      "test_plan": [
+        "Eval: retrieval benchmark harness; integration tests for filters."
+      ],
+      "depends_on": [
+        "BL-013",
+        "EPIC-OBS"
+      ],
+      "labels": [
+        "backend",
+        "rag",
+        "quality"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": "Inspired by Dify/SurfSense patterns (hybrid + rerank + filters)."
+    },
+    {
+      "key": "RAG-002",
+      "type": "story",
+      "title": "Knowledge base UI: chunk preview, retrieval test console, and tuning controls",
+      "problem": "Users/admins need visibility and control over indexing and retrieval (chunk sizes, overlap, filters).",
+      "solution": "Extend Docs/Notebooks UI:\n- Show chunk previews and metadata.\n- Add a retrieval test console with query \u2192 results scoring.\n- Expose tuning controls (chunk size/overlap, hybrid weights) guarded by admin role.",
+      "acceptance_criteria": [
+        "Admin can run retrieval test and view chunk previews; tuning changes take effect after reindex."
+      ],
+      "test_plan": [
+        "E2E: retrieval test console returns expected results."
+      ],
+      "depends_on": [
+        "RAG-001",
+        "ENT-002"
+      ],
+      "labels": [
+        "frontend",
+        "rag"
+      ],
+      "milestone": "M3-W2",
+      "repo_alignment": "missing",
+      "repo_paths": [],
+      "spec_refs": [],
+      "notes": ""
+    }
+  ]
+}

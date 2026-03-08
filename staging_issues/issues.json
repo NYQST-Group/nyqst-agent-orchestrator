@@ -1,0 +1,2531 @@
+{
+  "issues": [
+    {
+      "key": "EPIC-PLATFORM",
+      "title": "Platform baseline, core primitives, and CI",
+      "type": "epic",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:epic"
+      ],
+      "depends_on": [],
+      "problem": "The repo must be a stable baseline so parallel agents can work without breaking each other.",
+      "solution": "Establish repeatable local setup, fix P0 bugs (worker, event ordering, tenancy linkage), and implement professional CI gating.",
+      "acceptance_criteria": [
+        "One-command local startup documented and reproducible",
+        "P0 fixes merged and regression tested",
+        "CI runs unit + integration + contract checks deterministically",
+        "Run events are ordered correctly under concurrency",
+        "Worker processes jobs reliably (no silent fallbacks)"
+      ],
+      "test_plan": [
+        "Integration tests for worker round trip",
+        "Concurrency test for RunEvent sequencing",
+        "CI pipeline green on PRs"
+      ],
+      "notes": [
+        "See docs/04_BUILD_STAGES_TO_PROD.md Stage 0"
+      ]
+    },
+    {
+      "key": "EPIC-CONTRACTS",
+      "title": "Contracts locked (events, apps, bundles, provenance)",
+      "type": "epic",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Parallel work will drift without stable contracts for data and events.",
+      "solution": "Define and version JSON schemas for core entities and streaming events; add fixtures and contract tests.",
+      "acceptance_criteria": [
+        "contracts/ JSON schemas exist for apps, context packs, bundles, run events, evidence, insights, CRM, models, workflows",
+        "Fixtures validate against schemas in CI",
+        "Frontend TS types align with contracts (compile + runtime dev assertions)"
+      ],
+      "test_plan": [
+        "Contract tests validate fixtures against JSON Schema",
+        "Backend unit tests validate Pydantic schemas (if used as source)",
+        "Frontend typecheck compiles generated/handwritten types"
+      ],
+      "notes": [
+        "See contracts/00_index.md and docs/08_CONTRACTS_OVERVIEW.md"
+      ]
+    },
+    {
+      "key": "EPIC-FE-SHELL",
+      "title": "Frontend shell (navigation, routes, base screens)",
+      "type": "epic",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:XL",
+        "track:frontend",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "We need a real UI shell early to keep UX coherent and allow parallel screen implementation.",
+      "solution": "Implement app-wide navigation and route map with placeholder screens backed by fixtures.",
+      "acceptance_criteria": [
+        "Left nav and route map implemented (Projects, Apps, Studio, Documents, CRM, Models, Dashboards, Workflows, Runs, Settings)",
+        "Screens render loading/empty/error states",
+        "Fixture-driven screens for Apps and Runs work without backend",
+        "Mockup component integrated as a dev-only route"
+      ],
+      "test_plan": [
+        "Vitest component tests for nav + routing",
+        "Typecheck passes",
+        "Playwright smoke test: open each route"
+      ],
+      "notes": [
+        "Use mockups/NyqstPortalMockupV2.tsx as reference"
+      ]
+    },
+    {
+      "key": "EPIC-DOCUMENTS",
+      "title": "Document management (bundles, versions, ingest, diff)",
+      "type": "epic",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:critical",
+        "size:XL",
+        "track:documents",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-CONTRACTS",
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Documents are the foundation. Everything must attach to bundle versions and be diffable.",
+      "solution": "Implement bundle/version data model, ingest pipeline, extraction outputs, and diff surfaces; wire into UI.",
+      "acceptance_criteria": [
+        "Bundles and versions are stored and retrievable",
+        "Ingest pipeline produces normalized text + extraction outputs",
+        "Diff view shows document diff + extraction diff + impact diff",
+        "Every extraction output links to source spans and run id"
+      ],
+      "test_plan": [
+        "Integration tests: upload bundle, ingest pipeline completes on fixtures",
+        "Unit tests: diff algorithms",
+        "E2E: upload v1 then v2 then open diff view"
+      ],
+      "notes": [
+        "See docs/02_USER_FLOWS_MASTER.md Flow 1"
+      ]
+    },
+    {
+      "key": "EPIC-STUDIO",
+      "title": "Studio (notebook + infinite canvas) with provenance",
+      "type": "epic",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:XL",
+        "track:studio",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-CONTRACTS",
+        "EPIC-FE-SHELL"
+      ],
+      "problem": "Users need a workspace to build intelligence: narrative notebook + spatial canvas with links and diffs.",
+      "solution": "Implement notebook pages/blocks and an infinite canvas with block library, linking, inspector, and pinning from other modules.",
+      "acceptance_criteria": [
+        "Notebook supports pages and blocks (text, evidence embed, app output embed)",
+        "Canvas supports pan/zoom, blocks, edges, inspector",
+        "Can pin app outputs and diffs to canvas",
+        "Provenance inspector shows run and source links"
+      ],
+      "test_plan": [
+        "Vitest: stores and block reducers",
+        "E2E: pin output to canvas and reload persists layout (if persistence in scope)"
+      ],
+      "notes": [
+        "See docs/02_USER_FLOWS_MASTER.md Flow 4"
+      ]
+    },
+    {
+      "key": "EPIC-INTEL",
+      "title": "Evidence + insights + audit-first provenance",
+      "type": "epic",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:critical",
+        "size:XL",
+        "track:intelligence",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-DOCUMENTS",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "The system must produce auditable intelligence: evidence supports insights; insights go stale on doc changes.",
+      "solution": "Implement evidence and insight lifecycle, review queues, stale propagation, and provenance rules.",
+      "acceptance_criteria": [
+        "Evidence always links to bundle version or web snapshot",
+        "Insights require evidence links",
+        "Stale insights flagged when upstream changes",
+        "Review queue exists for low confidence/conflicts"
+      ],
+      "test_plan": [
+        "Unit: stale propagation graph logic",
+        "Integration: evidence/insight CRUD + linkage",
+        "E2E: create insight then upload new doc version and see stale badge"
+      ],
+      "notes": [
+        "See docs/02_USER_FLOWS_MASTER.md Flow 2"
+      ]
+    },
+    {
+      "key": "EPIC-CRM",
+      "title": "CRM entities, relationships, and timelines",
+      "type": "epic",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:medium",
+        "size:L",
+        "track:intelligence",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-INTEL"
+      ],
+      "problem": "Users need entity-centric views to understand and act: companies, assets, relationships, timelines.",
+      "solution": "Implement CRM entity store, relationship graph, entity detail screens, and link evidence/insights to entities.",
+      "acceptance_criteria": [
+        "CRUD for CRM entities",
+        "Relationships between entities stored and viewable",
+        "Entity detail shows linked bundles/evidence/insights",
+        "Saved views support CRM segmentation (later can be View Apps)"
+      ],
+      "test_plan": [
+        "Integration: entity relationships queries",
+        "E2E: link evidence to entity and view it on entity page"
+      ],
+      "notes": [
+        "See docs/01_MODULES_AND_SCREENS.md CRM screens"
+      ]
+    },
+    {
+      "key": "EPIC-APPS",
+      "title": "Apps system (Dify-style) + context packs + runs",
+      "type": "epic",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-CONTRACTS",
+        "EPIC-FE-SHELL",
+        "EPIC-STUDIO"
+      ],
+      "problem": "Apps are the unit of repeatable work. Without Apps, the product becomes a pile of screens and tools.",
+      "solution": "Implement app schema, builder UI, versioning/diff, runner, triggers (manual + schedule + event), and output mapping into Studio.",
+      "acceptance_criteria": [
+        "Create app from template, publish, run, and view run history",
+        "App versions are immutable after publish; editing creates new draft",
+        "App diff shows changes (inputs, context pack, engine, outputs)",
+        "Run outputs can be pinned to Studio and are auditable"
+      ],
+      "test_plan": [
+        "Integration: app runs create run logs + artifacts",
+        "E2E: create app and run it",
+        "Contract: app config fixtures validate"
+      ],
+      "notes": [
+        "See docs/02_USER_FLOWS_MASTER.md Flow 3"
+      ]
+    },
+    {
+      "key": "EPIC-AGENTS",
+      "title": "Agents + skills + MCP tool system + evals",
+      "type": "epic",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:XL",
+        "track:agents",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-APPS",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Agents and skills are a core differentiator. They must be safe, versioned, and testable.",
+      "solution": "Implement a skill registry, MCP tool integration, agent management UI, and evaluation harness (LangSmith-style).",
+      "acceptance_criteria": [
+        "Skills can be registered with metadata, permissions, and versions",
+        "MCP tools can be enabled per app/context pack",
+        "Agent definitions are versioned and auditable",
+        "Evaluation suite catches regressions on fixed fixtures"
+      ],
+      "test_plan": [
+        "Unit: tool permission enforcement",
+        "Integration: MCP tool invocation with sandboxed http client",
+        "Live: provider tests manual trigger"
+      ],
+      "notes": [
+        "Use research docs for Superagent/Dify patterns; see research/NYQST_Platform_Proposal_Docs/06_SKILLS_AND_CONTEXT_ENGINEERING.md"
+      ]
+    },
+    {
+      "key": "EPIC-MODELS",
+      "title": "Models + validation + impact diffs",
+      "type": "epic",
+      "milestone": "M6 Models + validation",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:XL",
+        "track:intelligence",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-INTEL",
+        "EPIC-CRM"
+      ],
+      "problem": "To drive dashboards and automation, intelligence must be modeled and validated, with explainable deltas.",
+      "solution": "Implement model registry, rule engine, validation runs, and impact diffs that link to evidence.",
+      "acceptance_criteria": [
+        "Model definitions are versioned and editable",
+        "Validation runs produce pass/fail results with evidence coverage gaps",
+        "Document updates produce explainable model deltas",
+        "Model diffs show schema and field changes"
+      ],
+      "test_plan": [
+        "Unit: rule evaluation correctness",
+        "Integration: validation run persistence",
+        "E2E: doc update triggers model delta"
+      ],
+      "notes": [
+        "See docs/02_USER_FLOWS_MASTER.md Flow 5"
+      ]
+    },
+    {
+      "key": "EPIC-DASH",
+      "title": "Dashboards with provenance drilldowns",
+      "type": "epic",
+      "milestone": "M7 Dashboards + provenance",
+      "labels": [
+        "phase:6-dashboards",
+        "priority:medium",
+        "size:XL",
+        "track:frontend",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-MODELS",
+        "EPIC-INTEL"
+      ],
+      "problem": "Dashboards must be trustworthy: every KPI must link to evidence and explain deltas.",
+      "solution": "Implement dashboard builder and runtime with provenance panels and exception drilldowns.",
+      "acceptance_criteria": [
+        "Dashboard tiles can be configured and saved",
+        "Every tile has provenance link to evidence/model fields",
+        "Exceptions list supports drilldown into sources and runs",
+        "Refresh updates are explainable with deltas"
+      ],
+      "test_plan": [
+        "E2E: create dashboard, add tile, drilldown provenance",
+        "Integration: dashboard persistence and queries"
+      ],
+      "notes": []
+    },
+    {
+      "key": "EPIC-WORKFLOWS",
+      "title": "Workflow builder + triggers + schedules (n8n-like)",
+      "type": "epic",
+      "milestone": "M8 Workflows + triggers",
+      "labels": [
+        "phase:7-workflows",
+        "priority:medium",
+        "size:XL",
+        "track:workflows",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-APPS",
+        "EPIC-DOCUMENTS",
+        "EPIC-MODELS"
+      ],
+      "problem": "Automation is needed for scale: ingest, extract, validate, refresh, notify.",
+      "solution": "Implement workflow definitions, runner, builder UI, triggers and schedules, and node-level logs.",
+      "acceptance_criteria": [
+        "Workflows can be created from templates",
+        "Triggers fire reliably (schedule, event)",
+        "Node logs visible and linked to runs",
+        "Retries and partial success supported"
+      ],
+      "test_plan": [
+        "Integration: workflow runner executes a template with mocks",
+        "E2E: new bundle version triggers workflow"
+      ],
+      "notes": []
+    },
+    {
+      "key": "EPIC-BILLING",
+      "title": "Billing, subscriptions, usage and quota",
+      "type": "epic",
+      "milestone": "M9 Billing + quota",
+      "labels": [
+        "phase:8-prod",
+        "priority:low",
+        "size:L",
+        "track:billing",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Production monetization and abuse prevention requires usage tracking and quotas.",
+      "solution": "Implement subscriptions + usage records + quota enforcement and (optional) Stripe integration.",
+      "acceptance_criteria": [
+        "Usage recorded per run and linked to tenant/project",
+        "Quota middleware blocks over-limit usage",
+        "Billing UI shows plan and usage",
+        "Stripe integration works in test mode (if enabled)"
+      ],
+      "test_plan": [
+        "Integration: usage record creation on run completion",
+        "Integration: quota blocks new runs",
+        "Live: Stripe webhook validation (manual)"
+      ],
+      "notes": []
+    },
+    {
+      "key": "EPIC-PROD",
+      "title": "Production hardening (deploy, security, observability, perf)",
+      "type": "epic",
+      "milestone": "M10 Production hardening",
+      "labels": [
+        "phase:8-prod",
+        "priority:critical",
+        "size:XL",
+        "track:infra",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-DOCUMENTS",
+        "EPIC-STUDIO",
+        "EPIC-APPS",
+        "EPIC-MODELS",
+        "EPIC-WORKFLOWS"
+      ],
+      "problem": "Without hardening, the system cannot be deployed safely or operated reliably.",
+      "solution": "Containerize, add observability, rate limits, backup/restore, security scanning, and deploy runbooks.",
+      "acceptance_criteria": [
+        "Staging deploy is automated and repeatable",
+        "Health checks, rollbacks, and migrations are safe",
+        "Observability covers API, pipelines, and runs",
+        "Security baseline controls are implemented",
+        "Performance smoke tests meet minimum SLOs"
+      ],
+      "test_plan": [
+        "Load smoke test in staging",
+        "Security scan gates in CI",
+        "Disaster recovery drill (backup/restore) documented"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-PLAT-001",
+      "title": "Baseline dev scripts + validation harness",
+      "type": "story",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:critical",
+        "size:M",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Developers/agents need one reliable way to start the system and verify it works.",
+      "solution": "Add/standardize scripts: run.sh, validate.sh, start-worker.sh; add .env.example; document Step-0 baseline checks.",
+      "acceptance_criteria": [
+        "scripts/dev/run.sh starts infra + backend + frontend (or prints exact terminal commands)",
+        "scripts/dev/validate.sh runs: deps, migrations, backend health, unit/integration tests, UI typecheck/build",
+        "docs/05_DEV_ENVIRONMENT.md matches actual scripts",
+        ".env.example exists and matches code requirements"
+      ],
+      "test_plan": [
+        "CI: validate.sh (or equivalent) runs in integration job",
+        "Local smoke: /health/ready returns 200"
+      ],
+      "notes": [
+        "Stage 0 in docs/04_BUILD_STAGES_TO_PROD.md"
+      ]
+    },
+    {
+      "key": "TASK-PLAT-P0-ARQ",
+      "title": "P0: Fix arq worker registration + Redis always-on",
+      "type": "task",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:critical",
+        "size:S",
+        "track:platform",
+        "type:task"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Worker starts but processes zero jobs due to function registry snapshot; Redis not started by default can cause silent sync fallback.",
+      "solution": "Make WorkerSettings.functions dynamic; ensure Redis is started in docker-compose; require REDIS_URL; add start-worker script.",
+      "acceptance_criteria": [
+        "Worker sees registered jobs at startup",
+        "Redis starts by default in docker compose",
+        "Enqueued job executes via worker (not sync fallback)",
+        "Regression test/prototype exists for enqueue -> execute round trip"
+      ],
+      "test_plan": [
+        "Integration: enqueue job and assert worker processes within timeout"
+      ],
+      "notes": [
+        "Mirror the P0-1 fix described in your plan"
+      ]
+    },
+    {
+      "key": "TASK-PLAT-P0-EVENTSEQ",
+      "title": "P0: Fix RunEvent sequence_num race condition",
+      "type": "task",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:critical",
+        "size:S",
+        "track:platform",
+        "type:task"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Parallel event writers can collide on sequence_num, causing IntegrityError and breaking fan-out.",
+      "solution": "Make append_event use atomic insert with sequence subquery, with bounded retries.",
+      "acceptance_criteria": [
+        "10 concurrent append_event calls for same run succeed",
+        "sequence_num are contiguous and unique (1..10)",
+        "no IntegrityError under normal concurrency"
+      ],
+      "test_plan": [
+        "Unit/integration test for concurrent append_event"
+      ],
+      "notes": [
+        "Mirror P0-2 fix"
+      ]
+    },
+    {
+      "key": "TASK-PLAT-P0-TENANTRUN",
+      "title": "P0: Add tenant_id to runs and propagate",
+      "type": "task",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:high",
+        "size:S",
+        "track:platform",
+        "type:task"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Billing, quotas, and audit require direct tenant linkage on runs; joining via created_by is brittle/slow.",
+      "solution": "Add tenant_id FK to Run; set at run creation; add filters in run queries.",
+      "acceptance_criteria": [
+        "New run records tenant_id reliably",
+        "API endpoints filter runs by tenant/project",
+        "Index exists for aggregation queries"
+      ],
+      "test_plan": [
+        "Integration: run created via API has correct tenant_id"
+      ],
+      "notes": [
+        "Mirror P0-3 fix"
+      ]
+    },
+    {
+      "key": "STORY-PLAT-002",
+      "title": "CI: unit/integration/contract/live split + secrets discipline",
+      "type": "story",
+      "milestone": "M0 Baseline + P0 fixes",
+      "labels": [
+        "phase:0-baseline",
+        "priority:critical",
+        "size:M",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM"
+      ],
+      "problem": "CI cannot run tests that require real API keys; without split, PRs become flaky or blocked.",
+      "solution": "Define pytest markers, update workflows, add manual live workflow, and enforce contract tests.",
+      "acceptance_criteria": [
+        "pytest markers defined (unit, integration, live)",
+        "CI runs unit on push and integration on PR (or your chosen cadence)",
+        "Live workflow exists and is manual-trigger only",
+        "No real secrets in repo; CI uses GitHub secrets"
+      ],
+      "test_plan": [
+        "CI verifies unit+integration pass without live keys",
+        "Manual live workflow runs provider tests"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-CON-001",
+      "title": "Contract governance: versioning rules + fixtures discipline",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:S",
+        "track:testing",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Contracts drift unless there is a simple governance rule and fixtures that enforce it.",
+      "solution": "Define contract versioning rules and required fixtures; add contract test runner.",
+      "acceptance_criteria": [
+        "contracts/00_index.md defines versioning policy",
+        "fixtures/ folder exists with golden examples",
+        "contract tests run in CI and fail on schema mismatch"
+      ],
+      "test_plan": [
+        "Contract test job in CI"
+      ],
+      "notes": [
+        "docs/08_CONTRACTS_OVERVIEW.md"
+      ]
+    },
+    {
+      "key": "TASK-CON-002",
+      "title": "Implement run_event schema + fixtures + validators",
+      "type": "task",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:S",
+        "track:platform",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-CON-001"
+      ],
+      "problem": "Streaming UI depends on stable event envelopes and payload types.",
+      "solution": "Finalize run_event.schema.json, add fixture streams (NDJSON/SSE), implement validators (backend and frontend dev assertions).",
+      "acceptance_criteria": [
+        "run_event.schema.json exists and is used in tests",
+        "At least 3 fixture streams exist: ingest run, app run, validation run",
+        "Frontend can render fixture stream without runtime errors"
+      ],
+      "test_plan": [
+        "Contract tests validate fixture streams"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-CON-003",
+      "title": "Implement app + context_pack schemas + fixtures",
+      "type": "task",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:S",
+        "track:platform",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-CON-001"
+      ],
+      "problem": "Apps are central; without a stable schema, app builder and runner cannot be developed in parallel.",
+      "solution": "Finalize app.schema.json and context_pack.schema.json and add template fixtures.",
+      "acceptance_criteria": [
+        "Schema validates apps of all four types (VIEW/AGENT/ANALYSIS/WORKFLOW)",
+        "At least 4 template fixtures: Research Notebook, Lease Review, Weekly Refresh, Bundle Review Queue",
+        "Fixtures include triggers and output mappings"
+      ],
+      "test_plan": [
+        "Contract tests validate fixtures"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-CON-004",
+      "title": "Implement bundle/version + evidence + insight schemas + fixtures",
+      "type": "task",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:M",
+        "track:documents",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-CON-001"
+      ],
+      "problem": "Document/versioning + provenance are the foundation for diff, evidence, and stale propagation.",
+      "solution": "Finalize bundle.schema.json, evidence.schema.json, insight.schema.json and add fixtures (v1/v2 + deltas).",
+      "acceptance_criteria": [
+        "Bundle fixture includes two versions and ingest run ids",
+        "Evidence fixture includes source spans and confidence",
+        "Insight fixture includes evidence links and stale flag example"
+      ],
+      "test_plan": [
+        "Contract tests validate fixtures"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-CON-005",
+      "title": "Generate TS types from contracts + runtime dev assertions",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:medium",
+        "size:M",
+        "track:testing",
+        "type:story"
+      ],
+      "depends_on": [
+        "TASK-CON-002",
+        "TASK-CON-003",
+        "TASK-CON-004",
+        "EPIC-FE-SHELL"
+      ],
+      "problem": "Type drift between backend and frontend causes late integration pain.",
+      "solution": "Add a typegen pipeline (JSON schema \u2192 TS) and dev-time assertion helpers for event payloads.",
+      "acceptance_criteria": [
+        "Type generation script exists and is documented",
+        "Frontend uses generated types in reducers and renderers",
+        "CI verifies types are up-to-date (diff check)"
+      ],
+      "test_plan": [
+        "CI job fails if generated types differ from committed output"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-FE-001",
+      "title": "Implement app shell: routing + left nav + project selector",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-FE-SHELL"
+      ],
+      "problem": "Without a shell, teams build isolated pages that don't integrate.",
+      "solution": "Implement layout with persistent nav, top bar project selector, and route placeholders.",
+      "acceptance_criteria": [
+        "Routes exist for all primary modules",
+        "Left nav highlights active route",
+        "Project selector changes project context (at least in state)",
+        "All pages have loading/empty/error skeletons"
+      ],
+      "test_plan": [
+        "Vitest: nav + routing",
+        "Playwright smoke: route navigation"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-FE-002",
+      "title": "Apps screens v1 (gallery + detail tabs) fixture-driven",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-FE-001",
+        "TASK-CON-003"
+      ],
+      "problem": "Apps are the primary UX. We need screens early even before backend integration.",
+      "solution": "Implement Apps gallery and App detail (Run/Configure/Runs/Outputs/Permissions) using contract fixtures.",
+      "acceptance_criteria": [
+        "Apps gallery renders cards with type/status/triggers/last run",
+        "App detail Run tab shows inputs + context toggles + run button",
+        "Runs tab shows run history list",
+        "Outputs tab shows artifacts list",
+        "All views work with fixtures and will later swap to API"
+      ],
+      "test_plan": [
+        "Vitest component tests for Apps screens"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-FE-003",
+      "title": "Runs screens v1 (list + run detail timeline) fixture-driven",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:medium",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-FE-001",
+        "TASK-CON-002"
+      ],
+      "problem": "Audit is non-negotiable; run timeline UI must exist early.",
+      "solution": "Implement Runs list and Run detail timeline renderer driven by run_event fixtures.",
+      "acceptance_criteria": [
+        "Runs list shows kind/status/duration/cost",
+        "Run detail renders ordered events and handles unknown event types gracefully",
+        "Artifacts produced are shown in sidebar",
+        "Error and warning events are visible"
+      ],
+      "test_plan": [
+        "Vitest: timeline renderer",
+        "Playwright smoke open run detail"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-FE-004",
+      "title": "Integrate mockups route (dev-only) and keep in sync with contracts",
+      "type": "task",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:medium",
+        "size:S",
+        "track:frontend",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-FE-001"
+      ],
+      "problem": "The mockup is a high-signal reference. It should be visible in-dev and remain coherent with the evolving system.",
+      "solution": "Add /mockups route rendering NyqstPortalMockupV2.tsx and a checklist to update it when screens change.",
+      "acceptance_criteria": [
+        "/mockups route exists in dev build",
+        "Mockup compiles with repo shadcn paths",
+        "README explains how to use it"
+      ],
+      "test_plan": [
+        "Typecheck passes"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-001",
+      "title": "Backend: bundles + versions data model and migrations",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:critical",
+        "size:M",
+        "track:documents",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-DOCUMENTS",
+        "EPIC-PLATFORM",
+        "TASK-CON-004"
+      ],
+      "problem": "We need canonical document objects with versioning to attach provenance.",
+      "solution": "Add tables for bundles and bundle_versions (and bundle_files if needed), linking to artifacts and runs.",
+      "acceptance_criteria": [
+        "Bundle and BundleVersion tables exist with project/tenant scoping",
+        "Version increments are enforced per bundle",
+        "BundleVersion links to ingest run and artifact ids",
+        "Migrations are reversible where possible"
+      ],
+      "test_plan": [
+        "Integration: create bundle, add version, query versions"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-002",
+      "title": "Backend: bundle upload API and artifact storage integration",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:critical",
+        "size:L",
+        "track:documents",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-DOCS-001"
+      ],
+      "problem": "Upload must create bundle versions and store raw docs reliably.",
+      "solution": "Implement upload endpoints that store files as artifacts (S3/MinIO) and create bundle_version records.",
+      "acceptance_criteria": [
+        "Upload creates bundle_version and artifact entries",
+        "Deduping by hash prevents duplicates (or surfaces them)",
+        "Large uploads supported with clear limits and errors",
+        "All writes are tenant/project scoped"
+      ],
+      "test_plan": [
+        "Integration: upload fixture files; assert artifacts exist in storage"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-003",
+      "title": "Pipeline: ingest runner (parse/normalize/chunk/index) with run logs",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:critical",
+        "size:L",
+        "track:documents",
+        "type:story"
+      ],
+      "depends_on": [
+        "TASK-PLAT-P0-ARQ",
+        "STORY-DOCS-002"
+      ],
+      "problem": "Ingest must be reliable, resumable, and observable.",
+      "solution": "Implement ingest pipeline as jobs (worker) emitting RunEvents for progress and producing normalized artifacts and index entries.",
+      "acceptance_criteria": [
+        "Ingest pipeline runs async via worker",
+        "Pipeline emits structured RunEvents (start/step/progress/complete)",
+        "Normalized text artifacts created and linked to bundle_version",
+        "Index backend is updated (OpenSearch or pgvector)"
+      ],
+      "test_plan": [
+        "Integration: ingest pipeline on fixtures",
+        "Contract: ingest event stream fixture"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-004",
+      "title": "Pipeline: extraction to structured JSON + evidence spans",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:high",
+        "size:L",
+        "track:documents",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-DOCS-003",
+        "EPIC-INTEL"
+      ],
+      "problem": "To make NotebookLM-style intelligence, we need structured extraction that links to evidence spans.",
+      "solution": "Implement extraction stage producing structured JSON artifact plus evidence objects with spans and confidence.",
+      "acceptance_criteria": [
+        "Extraction output stored as artifact linked to bundle_version",
+        "Evidence records created with source spans and confidence",
+        "Failures degrade gracefully (partial output + errors surfaced)",
+        "Extraction is idempotent and re-runnable"
+      ],
+      "test_plan": [
+        "Integration: extraction fixtures",
+        "Unit: span mapping logic"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-005",
+      "title": "Diff engine: document diff + extraction diff + impact diff outputs",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:high",
+        "size:L",
+        "track:documents",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-DOCS-004",
+        "EPIC-MODELS"
+      ],
+      "problem": "Users must see what changed between versions and why it matters.",
+      "solution": "Compute diffs across text, structured extraction, and downstream impacted model fields/insights.",
+      "acceptance_criteria": [
+        "Document diff highlights changed passages",
+        "Extraction diff shows field-level deltas and confidence changes",
+        "Impact diff lists stale insights and changed model fields",
+        "Diff outputs can be represented as artifacts and pinned to canvas"
+      ],
+      "test_plan": [
+        "Unit: diff algorithms",
+        "Integration: v1/v2 fixture yields deterministic diffs"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DOCS-006",
+      "title": "Frontend: Documents screens (bundles list, detail, version compare)",
+      "type": "story",
+      "milestone": "M2 Documents (bundles/versions/ingest/diff)",
+      "labels": [
+        "phase:2-documents",
+        "priority:high",
+        "size:L",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-FE-001",
+        "TASK-CON-004",
+        "STORY-DOCS-001"
+      ],
+      "problem": "Documents UI must support upload, status, versions, and compare.",
+      "solution": "Implement Documents screens aligned to contract fixtures then wire to API.",
+      "acceptance_criteria": [
+        "Bundles list renders and supports basic search/filter",
+        "Bundle detail shows version list and processing status",
+        "Compare view shows diff tabs (doc/extraction/impact)",
+        "Users can pin diffs to Studio (calls stub handler)"
+      ],
+      "test_plan": [
+        "Vitest: documents screens",
+        "E2E: upload + open compare (later when API wired)"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-STUDIO-001",
+      "title": "Notebook v1: pages, blocks, and citations",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:L",
+        "track:studio",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-STUDIO",
+        "EPIC-CONTRACTS",
+        "EPIC-INTEL"
+      ],
+      "problem": "Notebook is the narrative surface; it must support sources and evidence embeds.",
+      "solution": "Implement notebook pages and basic block types with citation/evidence embedding.",
+      "acceptance_criteria": [
+        "Create/edit notebook pages",
+        "Block types: text, evidence embed, app output embed",
+        "Citations panel shows linked evidence and sources",
+        "Notebook blocks link to provenance inspector"
+      ],
+      "test_plan": [
+        "Vitest: notebook store and block rendering",
+        "E2E: create page and add evidence block"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-STUDIO-002",
+      "title": "Canvas v1: pan/zoom, blocks, edges, inspector",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:XL",
+        "track:studio",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-STUDIO",
+        "EPIC-FE-SHELL",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Canvas is the spatial analysis core. Must be usable before advanced features.",
+      "solution": "Implement an infinite canvas component with block library, edge linking, selection, and inspector.",
+      "acceptance_criteria": [
+        "Pan/zoom works smoothly",
+        "Blocks can be created, moved, selected",
+        "Edges can be created between blocks (supports/derived-from/contradicts)",
+        "Inspector shows block metadata and provenance links"
+      ],
+      "test_plan": [
+        "Vitest: canvas reducers",
+        "E2E: create blocks and link them"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-STUDIO-003",
+      "title": "Canvas persistence v1: save/load layout per project",
+      "type": "task",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:medium",
+        "size:M",
+        "track:studio",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-STUDIO-002"
+      ],
+      "problem": "Users need their canvas layouts saved; otherwise the canvas is a demo toy.",
+      "solution": "Persist canvas state (blocks/edges/positions) to backend per project and reload on open.",
+      "acceptance_criteria": [
+        "Canvas layout persists across refresh",
+        "Save is debounced and resilient",
+        "Versioning approach defined (simple v1: latest only)"
+      ],
+      "test_plan": [
+        "Integration: save/load endpoints",
+        "E2E: layout persists across reload"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-STUDIO-004",
+      "title": "Pinning: pin app outputs and diffs into canvas + notebook",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:M",
+        "track:studio",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-APPS",
+        "STORY-DOCS-005",
+        "STORY-STUDIO-002"
+      ],
+      "problem": "Pinning is how work becomes reusable and shareable.",
+      "solution": "Implement pin actions from Apps and Documents into Studio surfaces with provenance.",
+      "acceptance_criteria": [
+        "Pin app output creates canvas block linked to run",
+        "Pin diff creates diff block linked to bundle versions",
+        "Pinning can also create a notebook page/section"
+      ],
+      "test_plan": [
+        "E2E: run app (fixture) then pin to canvas"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-INTEL-001",
+      "title": "Backend: evidence model + API + provenance enforcement",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:critical",
+        "size:M",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-INTEL",
+        "TASK-CON-004",
+        "STORY-DOCS-004"
+      ],
+      "problem": "Evidence must be first-class and must always have provenance.",
+      "solution": "Create evidence tables/API; enforce source references (bundle version or web snapshot) and run linkage when applicable.",
+      "acceptance_criteria": [
+        "Evidence CRUD endpoints exist",
+        "Evidence requires a source reference",
+        "Evidence can link to run_id and bundle_version_id",
+        "Evidence can be attached to insights and model fields"
+      ],
+      "test_plan": [
+        "Integration: create evidence with source span",
+        "Authz tests: tenant isolation"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-INTEL-002",
+      "title": "Backend: insights lifecycle + linkage to evidence/CRM/models",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:high",
+        "size:M",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-INTEL-001",
+        "EPIC-CRM",
+        "EPIC-MODELS"
+      ],
+      "problem": "Insights are how humans make decisions; they must be linked to evidence and have lifecycle states.",
+      "solution": "Implement insights model/API with status transitions, evidence links, and optional CRM/model links.",
+      "acceptance_criteria": [
+        "Insights require at least one evidence link",
+        "Status transitions recorded (audit)",
+        "Insights can link to CRM entities and model fields",
+        "Insights can be marked stale"
+      ],
+      "test_plan": [
+        "Integration: create insight with evidence, change status"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-INTEL-003",
+      "title": "Review queue: low confidence and conflicts view + actions",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:medium",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-INTEL-001",
+        "STORY-INTEL-002",
+        "EPIC-FE-SHELL"
+      ],
+      "problem": "Users need an operational way to review and approve extracted intelligence.",
+      "solution": "Implement a review queue screen (can later be saved as a View App) showing evidence needing attention.",
+      "acceptance_criteria": [
+        "Queue shows low confidence evidence and conflicts",
+        "Actions: approve, edit (creates new version), mark conflict, link to insight",
+        "Queue filters and sorting"
+      ],
+      "test_plan": [
+        "Vitest: review queue UI",
+        "E2E: approve evidence (when API wired)"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-INTEL-004",
+      "title": "Stale propagation engine (doc change \u2192 evidence/insight/model stale)",
+      "type": "task",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:high",
+        "size:L",
+        "track:intelligence",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-DOCS-005",
+        "STORY-INTEL-002"
+      ],
+      "problem": "When documents change, downstream intelligence must be flagged and explainable.",
+      "solution": "Build a dependency graph from bundle_version to evidence to insight to model fields, and mark stale when upstream changes.",
+      "acceptance_criteria": [
+        "Uploading bundle v2 marks dependent insights stale",
+        "UI shows stale badges with explanation of upstream delta",
+        "Stale computation is deterministic and testable"
+      ],
+      "test_plan": [
+        "Unit: stale propagation logic",
+        "Integration: stale marks after v2 upload"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-CRM-001",
+      "title": "Backend: CRM entities + relationships tables and API",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:medium",
+        "size:M",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-CRM",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "CRM entities anchor intelligence in real-world objects.",
+      "solution": "Implement entity CRUD with relationship edges and tenant/project scoping.",
+      "acceptance_criteria": [
+        "Entity CRUD endpoints exist",
+        "Relationship edges stored and queryable",
+        "Tenant/project scoping enforced"
+      ],
+      "test_plan": [
+        "Integration: create entity + relationship"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-CRM-002",
+      "title": "Frontend: CRM list + entity detail + timeline + linked items",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:medium",
+        "size:L",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-CRM-001",
+        "STORY-FE-001"
+      ],
+      "problem": "Users need to see evidence/insights per entity and navigate relationships.",
+      "solution": "Implement CRM list and entity detail screens with relationship panel and linked evidence/insights/bundles.",
+      "acceptance_criteria": [
+        "Entity list supports filters",
+        "Entity detail shows linked bundles, evidence, insights",
+        "Relationship panel shows connected entities"
+      ],
+      "test_plan": [
+        "Vitest: CRM screens"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-APPS-001",
+      "title": "Backend: apps + app_versions + app_runs data model and API",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:critical",
+        "size:L",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-APPS",
+        "TASK-CON-003",
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Apps require versioned definitions and auditable runs.",
+      "solution": "Create tables for apps and app_versions; implement CRUD; ensure runs reference specific app_version.",
+      "acceptance_criteria": [
+        "Published app versions immutable",
+        "App edit creates new draft version",
+        "Runs reference app_version and store inputs/context pack",
+        "Tenant/project scoping enforced"
+      ],
+      "test_plan": [
+        "Integration: create app, publish, edit to v2, verify immutability"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-APPS-002",
+      "title": "Frontend: App builder wizard (template \u2192 publish)",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:XL",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-FE-002",
+        "STORY-APPS-001"
+      ],
+      "problem": "Without a builder, Apps remain developer-only artifacts.",
+      "solution": "Implement a multi-step wizard: basics \u2192 type \u2192 inputs \u2192 context pack \u2192 engine \u2192 outputs \u2192 triggers \u2192 publish.",
+      "acceptance_criteria": [
+        "Wizard supports saving draft and publishing",
+        "Templates prefill inputs/context/outputs",
+        "Validation prevents publishing invalid configs",
+        "Diff preview before publish (optional v1)"
+      ],
+      "test_plan": [
+        "Vitest: wizard state machine",
+        "E2E: create and publish app"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-APPS-003",
+      "title": "App runner v1: start run, stream events, persist outputs",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-APPS-001",
+        "TASK-CON-002",
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Apps must run and produce artifacts, not just exist as configs.",
+      "solution": "Implement app runner that creates a Run, executes engine (agent/workflow/query/pipeline), streams events, and writes outputs mapping.",
+      "acceptance_criteria": [
+        "Run created with app_version and inputs stored",
+        "Streaming events emitted and consumable by UI",
+        "Outputs are written and linked to run (notebook/canvas/evidence/insights)",
+        "Failures produce run status FAILED and error events"
+      ],
+      "test_plan": [
+        "Integration: run app with mocked engine produces artifacts",
+        "Contract: event stream matches fixtures"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-APPS-004",
+      "title": "Triggers v1: schedule + event trigger for apps",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:L",
+        "track:workflows",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-APPS-003",
+        "EPIC-WORKFLOWS"
+      ],
+      "problem": "Repeatability requires scheduling and event triggers.",
+      "solution": "Implement scheduler and event trigger dispatcher that calls app runner with specified inputs/context.",
+      "acceptance_criteria": [
+        "Cron schedule triggers app run",
+        "Bundle version created triggers app run (configured)",
+        "Trigger runs are audited with run logs"
+      ],
+      "test_plan": [
+        "Integration: trigger fires and creates run"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-APPS-005",
+      "title": "App diff UI: compare v1 vs v2 config",
+      "type": "task",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:M",
+        "track:frontend",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-APPS-001",
+        "STORY-APPS-002"
+      ],
+      "problem": "Users need to understand what changed between app versions.",
+      "solution": "Implement diff view for app config: inputs/context/engine/outputs/triggers.",
+      "acceptance_criteria": [
+        "Diff view shows changed fields clearly",
+        "Runs link back to the exact app version",
+        "User can open previous version read-only"
+      ],
+      "test_plan": [
+        "Vitest: diff renderer"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-AGENT-001",
+      "title": "Backend: skill registry + permissions + versioning",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:agents",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-AGENTS",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Skills/tools must be controlled and auditable. Agents should not have arbitrary power.",
+      "solution": "Implement skills table with metadata (name, description, permissions, provider), versions, and enablement per context pack.",
+      "acceptance_criteria": [
+        "Skills are versioned",
+        "Skills have declared permissions (web, storage, write models, etc.)",
+        "Apps/context packs can enable/disable skills",
+        "Audit records skill usage in runs"
+      ],
+      "test_plan": [
+        "Integration: create skill, enable in context pack, enforce permissions"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-AGENT-002",
+      "title": "MCP integration: stdio tool runner + sandboxed HTTP",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:L",
+        "track:agents",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-AGENT-001"
+      ],
+      "problem": "MCP provides hot-swappable tool providers; it must be safe and predictable.",
+      "solution": "Implement MCP tool runner with stdio transport; wrap HTTP client with allowlist/timeouts/rate limits; capture tool I/O as run events.",
+      "acceptance_criteria": [
+        "MCP tool processes can be started and invoked",
+        "Tool invocation emits TOOL_CALL_* events with redaction",
+        "HTTP is sandboxed (timeouts, size limits)",
+        "Failure surfaces as WARNING/ERROR events without crashing run"
+      ],
+      "test_plan": [
+        "Integration: invoke a test MCP tool",
+        "Security test: SSRF attempt blocked"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-AGENT-003",
+      "title": "Frontend: agent/skills management screens",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-AGENT-001",
+        "STORY-FE-001"
+      ],
+      "problem": "Admin users need to see and configure agents/skills.",
+      "solution": "Add Settings subpages for agents and skills; enable/disable per project/context pack.",
+      "acceptance_criteria": [
+        "List skills with permissions and versions",
+        "Enable/disable skills per project or context pack",
+        "Show last used and recent runs"
+      ],
+      "test_plan": [
+        "Vitest: management screens"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-AGENT-004",
+      "title": "Evals harness: fixed fixtures + regression tests for core apps",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:L",
+        "track:testing",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-APPS-003",
+        "STORY-AGENT-002"
+      ],
+      "problem": "Without evals, agent quality regresses and bugs are found late.",
+      "solution": "Implement evaluation harness that runs core app templates on fixed fixtures and checks structured outputs and required events.",
+      "acceptance_criteria": [
+        "Evals run in CI (mocked) and in manual live pipeline (real providers)",
+        "Evals report deltas and failures clearly",
+        "Cost caps enforced for live evals"
+      ],
+      "test_plan": [
+        "CI: evals mocked",
+        "Manual live: evals real"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-MODEL-001",
+      "title": "Backend: model registry + versioning + field definitions",
+      "type": "story",
+      "milestone": "M6 Models + validation",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-MODELS",
+        "EPIC-CONTRACTS",
+        "EPIC-CRM"
+      ],
+      "problem": "Model definitions are the structure for validation and dashboards.",
+      "solution": "Create model tables and APIs: model, model_version, fields, field-to-evidence requirements.",
+      "acceptance_criteria": [
+        "Models are versioned",
+        "Fields can declare evidence requirements",
+        "Model versions immutable after publish"
+      ],
+      "test_plan": [
+        "Integration: create model, publish, edit to v2"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-MODEL-002",
+      "title": "Frontend: model editor (schema + fields + requirements)",
+      "type": "story",
+      "milestone": "M6 Models + validation",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:XL",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-MODEL-001",
+        "STORY-FE-001"
+      ],
+      "problem": "Users must be able to define and evolve domain models without code changes.",
+      "solution": "Implement model editor UI with schema builder, field definitions, and evidence requirements.",
+      "acceptance_criteria": [
+        "Create/edit model draft",
+        "Publish model version",
+        "Configure evidence requirements per field"
+      ],
+      "test_plan": [
+        "Vitest: model editor state",
+        "E2E: create model and publish"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-MODEL-003",
+      "title": "Validation engine v1: rule evaluation + run logs",
+      "type": "story",
+      "milestone": "M6 Models + validation",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:L",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-MODEL-001",
+        "EPIC-INTEL",
+        "TASK-CON-002"
+      ],
+      "problem": "Validation ensures intelligence is trustworthy and produces actionable exceptions.",
+      "solution": "Implement rule engine (deterministic) and validation runs that emit events and store results linked to evidence.",
+      "acceptance_criteria": [
+        "Rules can be defined and evaluated",
+        "Validation run produces pass/fail per rule",
+        "Results link to evidence or gaps",
+        "Run log shows validation steps"
+      ],
+      "test_plan": [
+        "Unit: rule evaluation",
+        "Integration: validation run persistence"
+      ],
+      "notes": []
+    },
+    {
+      "key": "TASK-MODEL-004",
+      "title": "Impact diff: explain model field changes from doc version diffs",
+      "type": "task",
+      "milestone": "M6 Models + validation",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:L",
+        "track:intelligence",
+        "type:task"
+      ],
+      "depends_on": [
+        "STORY-DOCS-005",
+        "STORY-MODEL-003",
+        "TASK-INTEL-004"
+      ],
+      "problem": "Users need explainability: what changed in the model and why.",
+      "solution": "Compute model field deltas and link them to evidence deltas and document diffs.",
+      "acceptance_criteria": [
+        "Model field delta list produced for v1\u2192v2",
+        "Each delta links to evidence/diff blocks",
+        "Dashboards can consume delta feed (later)"
+      ],
+      "test_plan": [
+        "Integration: fixture v1/v2 produces deterministic impact diff"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DASH-001",
+      "title": "Backend: dashboards model + API (tiles, queries, provenance)",
+      "type": "story",
+      "milestone": "M7 Dashboards + provenance",
+      "labels": [
+        "phase:6-dashboards",
+        "priority:medium",
+        "size:M",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-DASH",
+        "EPIC-MODELS"
+      ],
+      "problem": "Dashboards need persistence and a data contract for tiles and drilldowns.",
+      "solution": "Implement dashboards tables and APIs; tiles reference model fields and provenance rules.",
+      "acceptance_criteria": [
+        "Dashboard CRUD endpoints exist",
+        "Tiles reference model fields and can load data",
+        "Provenance links included in responses"
+      ],
+      "test_plan": [
+        "Integration: create dashboard, add tile, query tile data"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DASH-002",
+      "title": "Frontend: dashboard builder and runtime + provenance panel",
+      "type": "story",
+      "milestone": "M7 Dashboards + provenance",
+      "labels": [
+        "phase:6-dashboards",
+        "priority:medium",
+        "size:XL",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-DASH-001",
+        "STORY-FE-001"
+      ],
+      "problem": "A dashboard must be editable, understandable, and trusted.",
+      "solution": "Implement dashboard builder (add/edit tiles) and runtime view with provenance drilldown.",
+      "acceptance_criteria": [
+        "Add/remove/reorder tiles",
+        "Tile drilldown shows model field + evidence",
+        "Exceptions view supports navigation to Studio blocks"
+      ],
+      "test_plan": [
+        "Vitest: dashboard screens",
+        "E2E: create and drilldown"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-WF-001",
+      "title": "Backend: workflow definitions + versioning + API",
+      "type": "story",
+      "milestone": "M8 Workflows + triggers",
+      "labels": [
+        "phase:7-workflows",
+        "priority:medium",
+        "size:M",
+        "track:workflows",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-WORKFLOWS",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Workflows require a stored graph and versioned definitions.",
+      "solution": "Create workflow and workflow_version tables; CRUD API; validation of node graph.",
+      "acceptance_criteria": [
+        "Workflow definitions stored with versioning",
+        "Graph validation prevents cycles unless allowed",
+        "Version immutability after publish"
+      ],
+      "test_plan": [
+        "Integration: create workflow, publish, validate graph"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-WF-002",
+      "title": "Workflow runner: node execution + logs + retries",
+      "type": "story",
+      "milestone": "M8 Workflows + triggers",
+      "labels": [
+        "phase:7-workflows",
+        "priority:high",
+        "size:XL",
+        "track:workflows",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-WF-001",
+        "TASK-PLAT-P0-ARQ",
+        "TASK-CON-002"
+      ],
+      "problem": "Workflow value comes from reliable execution with node-level visibility and retries.",
+      "solution": "Implement workflow runner using worker/jobs; each node emits events and stores node-run records.",
+      "acceptance_criteria": [
+        "Runner executes a workflow graph deterministically",
+        "Node logs visible and linked to overall run",
+        "Retries supported per-node with backoff",
+        "Partial success recorded"
+      ],
+      "test_plan": [
+        "Integration: execute workflow template on fixtures"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-WF-003",
+      "title": "Scheduler/triggers: schedule + event triggers for workflows",
+      "type": "story",
+      "milestone": "M8 Workflows + triggers",
+      "labels": [
+        "phase:7-workflows",
+        "priority:medium",
+        "size:L",
+        "track:workflows",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-WF-002",
+        "STORY-APPS-004"
+      ],
+      "problem": "Automation needs triggers; manual-only workflows don't scale.",
+      "solution": "Implement trigger dispatcher for schedules and project events (bundle version created, validation failed).",
+      "acceptance_criteria": [
+        "Schedule triggers fire",
+        "Event triggers fire",
+        "Trigger events create audited runs"
+      ],
+      "test_plan": [
+        "Integration: trigger simulation"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-WF-004",
+      "title": "Frontend: workflow builder UI (node canvas) + run logs",
+      "type": "story",
+      "milestone": "M8 Workflows + triggers",
+      "labels": [
+        "phase:7-workflows",
+        "priority:medium",
+        "size:XL",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-WF-001",
+        "STORY-FE-001"
+      ],
+      "problem": "Users need to build workflows visually (n8n-style) and debug them.",
+      "solution": "Implement workflow builder UI: node palette, edge creation, node config, validation warnings, and run log viewer.",
+      "acceptance_criteria": [
+        "Create workflow graph via UI",
+        "Configure node ops (run app, ingest bundle, validate, notify)",
+        "View run logs per node",
+        "Publish workflow version"
+      ],
+      "test_plan": [
+        "Vitest: workflow builder store",
+        "E2E: create workflow and publish"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-BILL-001",
+      "title": "Billing tables migration (subscriptions, usage_records)",
+      "type": "story",
+      "milestone": "M9 Billing + quota",
+      "labels": [
+        "phase:8-prod",
+        "priority:low",
+        "size:S",
+        "track:billing",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-BILLING",
+        "TASK-PLAT-P0-TENANTRUN"
+      ],
+      "problem": "Need data model for subscription and usage tracking.",
+      "solution": "Add subscriptions and usage_records tables with tenant linkage.",
+      "acceptance_criteria": [
+        "Migrations create tables with FKs and indexes",
+        "ORM models exist",
+        "Autogenerate import wiring works"
+      ],
+      "test_plan": [
+        "Integration: migrate up/down"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-BILL-002",
+      "title": "Usage recording on run completion",
+      "type": "story",
+      "milestone": "M9 Billing + quota",
+      "labels": [
+        "phase:8-prod",
+        "priority:low",
+        "size:M",
+        "track:billing",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-BILL-001",
+        "TASK-CON-002"
+      ],
+      "problem": "Quota and billing depend on accurate usage records per run.",
+      "solution": "Create usage service to record cost/tokens per run, linked to tenant.",
+      "acceptance_criteria": [
+        "Usage record created when run completes",
+        "Usage aggregates per month",
+        "No duplication on retries"
+      ],
+      "test_plan": [
+        "Integration: run completion creates one usage record"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-BILL-003",
+      "title": "Quota middleware blocks over-limit runs",
+      "type": "story",
+      "milestone": "M9 Billing + quota",
+      "labels": [
+        "phase:8-prod",
+        "priority:low",
+        "size:S",
+        "track:billing",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-BILL-002"
+      ],
+      "problem": "Prevent abuse and enforce plan limits.",
+      "solution": "Middleware checks quota before run creation and returns 429 when exceeded.",
+      "acceptance_criteria": [
+        "Over-quota tenant gets 429 on run start",
+        "Under-quota passes",
+        "Errors are clear to UI"
+      ],
+      "test_plan": [
+        "Integration: quota enforcement"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-BILL-004",
+      "title": "Stripe integration + webhook handler (test mode)",
+      "type": "story",
+      "milestone": "M9 Billing + quota",
+      "labels": [
+        "phase:8-prod",
+        "priority:low",
+        "size:L",
+        "track:billing",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-BILL-001"
+      ],
+      "problem": "If using Stripe, subscription state must sync via webhooks securely.",
+      "solution": "Implement Stripe service and webhook endpoint reading raw body and verifying signature.",
+      "acceptance_criteria": [
+        "Checkout creates customer/subscription (test mode)",
+        "Webhooks update subscription status correctly",
+        "Signature verification uses raw bytes"
+      ],
+      "test_plan": [
+        "Live: manual webhook test",
+        "Integration: webhook handler unit tests with signed fixture"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-PROD-001",
+      "title": "Containerize API + worker (Dockerfiles, entrypoints)",
+      "type": "story",
+      "milestone": "M10 Production hardening",
+      "labels": [
+        "phase:8-prod",
+        "priority:high",
+        "size:M",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PROD"
+      ],
+      "problem": "Production deploy requires consistent runtime; local-first is insufficient.",
+      "solution": "Add Dockerfiles for API and worker, and production compose/k8s manifests as chosen.",
+      "acceptance_criteria": [
+        "docker build for api and worker succeeds",
+        "Containers run against external services",
+        "Health endpoints and readiness checks exist"
+      ],
+      "test_plan": [
+        "CI: docker build job"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-PROD-002",
+      "title": "Observability baseline: structured logs + metrics + traces",
+      "type": "story",
+      "milestone": "M10 Production hardening",
+      "labels": [
+        "phase:8-prod",
+        "priority:high",
+        "size:L",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PROD"
+      ],
+      "problem": "Without observability, debugging pipelines and runs becomes impossible.",
+      "solution": "Add OpenTelemetry (or equivalent), structured logging, correlation IDs, and dashboards for key metrics.",
+      "acceptance_criteria": [
+        "Every request has correlation id",
+        "Runs have trace/span linkage",
+        "Key metrics exported: ingest duration, run duration, SSE latency, error rates"
+      ],
+      "test_plan": [
+        "Integration: metrics endpoint returns data",
+        "Manual: trace appears in collector"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-PROD-003",
+      "title": "Security baseline: rate limits, payload size limits, SSRF protections",
+      "type": "story",
+      "milestone": "M10 Production hardening",
+      "labels": [
+        "phase:8-prod",
+        "priority:high",
+        "size:M",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PROD",
+        "STORY-AGENT-002"
+      ],
+      "problem": "Doc uploads and web tools create high-risk attack surfaces.",
+      "solution": "Implement rate limiting, request size limits, strict URL validation and timeouts for outbound requests.",
+      "acceptance_criteria": [
+        "Upload size limits enforced and configurable",
+        "Rate limiting enabled on expensive endpoints",
+        "Outbound HTTP blocks private IP ranges and disallowed schemes"
+      ],
+      "test_plan": [
+        "Security tests for SSRF and rate limits"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-PROD-004",
+      "title": "Backup/restore + retention policy runbook",
+      "type": "story",
+      "milestone": "M10 Production hardening",
+      "labels": [
+        "phase:8-prod",
+        "priority:medium",
+        "size:M",
+        "track:infra",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-PROD"
+      ],
+      "problem": "Production requires recovery. Without backups, data loss is fatal.",
+      "solution": "Define backup strategy for Postgres and object storage; write runbook; test restore to staging.",
+      "acceptance_criteria": [
+        "Automated backups configured (staging)",
+        "Restore procedure documented and tested",
+        "Retention policy defined for runs/events/artifacts"
+      ],
+      "test_plan": [
+        "Manual: restore drill in staging"
+      ],
+      "notes": []
+    },
+    {
+      "key": "EPIC-ORCH",
+      "title": "Orchestration & planning (PlanSet, LangGraph, subagents)",
+      "type": "epic",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-PLATFORM",
+        "EPIC-CONTRACTS",
+        "EPIC-AGENTS"
+      ],
+      "problem": "The platform needs a production-grade orchestration layer (PlanSet \u2192 tasks \u2192 tool execution) with streaming updates.",
+      "solution": "Implement PlanSet schemas, LangGraph orchestration patterns (fan-out, per-node sessions), and event emission aligning to the production event chain.",
+      "acceptance_criteria": [
+        "PlanSet/Plan/PlanTask schemas exist and are persisted for runs where applicable",
+        "LangGraph orchestration can fan-out tasks and stream task updates",
+        "Run events cover planning/tool/report/clarification categories per spec",
+        "Frontend can render plan viewer from streamed events"
+      ],
+      "test_plan": [
+        "Integration: orchestrator run on fixtures yields deterministic event stream",
+        "Contract: event payloads validate",
+        "E2E: plan viewer updates in real time"
+      ],
+      "notes": [
+        "Map to COMPRESSED-BUILD-SPEC.md Domain A/B; see proposal docs 04_ORCHESTRATION.md"
+      ]
+    },
+    {
+      "key": "EPIC-GENUI",
+      "title": "GenUI renderer (component registry, GML, charts) for dynamic outputs",
+      "type": "epic",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:XL",
+        "track:frontend",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-FE-SHELL",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Deliverables and rich agent outputs require a dynamic UI layer (GenUI) rather than hard-coded components.",
+      "solution": "Implement a component registry, descriptor/renderer engine, GML tag pipeline, and chart rendering so agent outputs can render safely and consistently.",
+      "acceptance_criteria": [
+        "GenUI component registry exists (primitives + composed patterns)",
+        "Renderer supports conditional/repeat/binding patterns",
+        "GML tags render to React components",
+        "Chart rendering supports required types and is themed consistently"
+      ],
+      "test_plan": [
+        "Unit: renderer engine",
+        "Component tests: each primitive renders from descriptor",
+        "E2E: streamed GenUI blocks render in app output panel"
+      ],
+      "notes": [
+        "Map to COMPRESSED-BUILD-SPEC.md sections on GenUI; see proposal docs 06_GENUI.md and 05_GML_AND_REHYPE.md"
+      ]
+    },
+    {
+      "key": "EPIC-DELIVERABLES",
+      "title": "Deliverables pipeline (reports/websites) + co-generation + diff",
+      "type": "epic",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:XL",
+        "track:platform",
+        "type:epic"
+      ],
+      "depends_on": [
+        "EPIC-ORCH",
+        "EPIC-GENUI",
+        "EPIC-APPS"
+      ],
+      "problem": "Production systems need deliverables (reports, websites, dashboards) generated with provenance and versioning.",
+      "solution": "Implement deliverable selection, generation pipelines, artifact storage, preview streaming, co-generation jobs, and diff/revision flows.",
+      "acceptance_criteria": [
+        "User can select deliverable type and trigger generation",
+        "Report preview streams and final artifact stored",
+        "Website co-generation supported with async pending entities flag",
+        "Deliverable versions diffable and pin-able to Studio"
+      ],
+      "test_plan": [
+        "Integration: deliverable generation run emits preview events and stores artifact",
+        "E2E: generate report deliverable and view it",
+        "Regression: co-generation pending entities logic"
+      ],
+      "notes": [
+        "Map to COMPRESSED-BUILD-SPEC.md Deliverables domains; see proposal docs 07_DELIVERABLES.md"
+      ]
+    },
+    {
+      "key": "STORY-STREAM-001",
+      "title": "Streaming protocol alignment (NDJSON/SSE), heartbeat, reconnect",
+      "type": "story",
+      "milestone": "M1 Contracts locked + UI shell",
+      "labels": [
+        "phase:1-contracts",
+        "priority:high",
+        "size:M",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "TASK-CON-002",
+        "EPIC-PLATFORM"
+      ],
+      "problem": "Production streaming needs heartbeat, reconnect/backoff, and consistent framing (NDJSON over fetch or SSE).",
+      "solution": "Implement server heartbeat + client watchdog; choose framing (SSE or NDJSON) and ensure end-to-end fixtures and reconnection behavior.",
+      "acceptance_criteria": [
+        "Server sends heartbeat when idle (configurable interval)",
+        "Client reconnects with exponential backoff up to max attempts",
+        "Done event terminates stream cleanly and includes async-pending flags when relevant",
+        "Fixtures include heartbeat and reconnect scenarios"
+      ],
+      "test_plan": [
+        "Integration: stream emits heartbeat",
+        "Frontend unit: reconnect state machine",
+        "E2E: simulate drop and reconnect without losing ordering"
+      ],
+      "notes": [
+        "See COMPRESSED-BUILD-SPEC.md Domain A streaming behaviors"
+      ]
+    },
+    {
+      "key": "STORY-ORCH-001",
+      "title": "PlanSet schemas + persistence (Plan, PlanTask linked ordering)",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-ORCH",
+        "EPIC-CONTRACTS"
+      ],
+      "problem": "Planning is a first-class object and must be persisted for audit and UI replay.",
+      "solution": "Implement Pydantic schemas and DB persistence for PlanSet/Plan/PlanTask; include ordering strategy (linked list or explicit ordering).",
+      "acceptance_criteria": [
+        "PlanSet stored and linked to run_id",
+        "Tasks have stable IDs and ordering",
+        "Updates can be appended as events and reconciled into latest plan state"
+      ],
+      "test_plan": [
+        "Integration: save and load PlanSet"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-ORCH-002",
+      "title": "LangGraph orchestrator for Research Notebook app (fan-out, structured output)",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:critical",
+        "size:XL",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-ORCH-001",
+        "STORY-AGENT-002",
+        "STORY-APPS-003"
+      ],
+      "problem": "Research Notebook requires robust fan-out and aggregation of sources and structured outputs.",
+      "solution": "Implement LangGraph graph with planning, subagent fan-out, tool calls, aggregation, and structured final outputs; stream intermediate events.",
+      "acceptance_criteria": [
+        "Orchestrator runs end-to-end on fixtures without external calls",
+        "Fan-out tasks run concurrently with per-node sessions",
+        "Structured output validated and stored as artifact",
+        "Emits task_update/pending_sources/references_found events"
+      ],
+      "test_plan": [
+        "Integration: orchestrator fixture run",
+        "Contract: event payloads validate"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-ORCH-003",
+      "title": "Clarification flow (clarification_needed event \u2192 UI prompt \u2192 resume)",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-ORCH-002",
+        "STORY-FE-003"
+      ],
+      "problem": "Some runs require user input mid-run; without this, agent quality degrades or fails.",
+      "solution": "Implement clarification events, UI prompt, user response API, and run resumption.",
+      "acceptance_criteria": [
+        "Run can emit clarification_needed and pause",
+        "UI shows prompt and collects answer",
+        "Run resumes and completes",
+        "Audit logs include clarification message and response"
+      ],
+      "test_plan": [
+        "E2E: clarification round-trip on fixture graph"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-ORCH-004",
+      "title": "Report preview streaming (delta + done semantics)",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-ORCH-002",
+        "TASK-CON-002"
+      ],
+      "problem": "Reports must be visible while generating; delta semantics must avoid duplication bugs.",
+      "solution": "Implement report preview delta buffering on client and done event replace semantics; store final report artifact.",
+      "acceptance_criteria": [
+        "Client accumulates preview deltas and replaces buffer on preview_done",
+        "Final report artifact stored and linked to run",
+        "Report preview can be pinned to Studio"
+      ],
+      "test_plan": [
+        "Frontend unit: delta buffer correctness",
+        "Integration: report artifact stored"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-GENUI-001",
+      "title": "GenUI component registry (primitives + composed patterns)",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:high",
+        "size:L",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-GENUI"
+      ],
+      "problem": "Dynamic outputs need a safe and composable set of primitives.",
+      "solution": "Implement registry of components and strict descriptor schema for allowed props and bindings.",
+      "acceptance_criteria": [
+        "Registry supports at least 20 primitives used in spec",
+        "Descriptors are validated at runtime in dev",
+        "Components render from descriptors consistently"
+      ],
+      "test_plan": [
+        "Vitest: render primitives from descriptors"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-GENUI-002",
+      "title": "GML/rehype pipeline: markdown+tags \u2192 React components",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:medium",
+        "size:L",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-GENUI-001"
+      ],
+      "problem": "Agent outputs often come as markdown with embedded UI tags; must render safely.",
+      "solution": "Implement rehype-to-JSX pipeline mapping GML tags to components; sanitize content.",
+      "acceptance_criteria": [
+        "At least 10 core tags render correctly",
+        "Unsafe HTML is rejected or sanitized",
+        "Rendering errors fail gracefully"
+      ],
+      "test_plan": [
+        "Unit: tag parsing",
+        "Component: sample GML renders"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-GENUI-003",
+      "title": "Chart rendering support (Plotly or chosen lib) + theming",
+      "type": "story",
+      "milestone": "M3 Studio (notebook + canvas)",
+      "labels": [
+        "phase:3-studio",
+        "priority:medium",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "STORY-GENUI-001"
+      ],
+      "problem": "Dashboards and outputs require charts with consistent theme.",
+      "solution": "Implement chart components driven by descriptors; ensure responsive layout and export.",
+      "acceptance_criteria": [
+        "Supports at least 5 chart types used by early dashboards",
+        "Charts render from JSON descriptor",
+        "Theme consistent with app"
+      ],
+      "test_plan": [
+        "Component tests: chart renders from descriptor"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DELIV-001",
+      "title": "Deliverable selection UI + artifact persistence",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:high",
+        "size:M",
+        "track:frontend",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-DELIVERABLES",
+        "EPIC-GENUI",
+        "STORY-APPS-003"
+      ],
+      "problem": "Users need to choose deliverables and see generation status and outputs.",
+      "solution": "Implement deliverable selector UI (report/website/etc), persist deliverable artifacts, and show previews.",
+      "acceptance_criteria": [
+        "User can select a deliverable type and start generation",
+        "Generation emits events visible in UI",
+        "Final deliverable artifact viewable and downloadable"
+      ],
+      "test_plan": [
+        "E2E: generate report deliverable from fixture"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-DELIV-002",
+      "title": "Co-generation jobs (website + report) with pending entities flag",
+      "type": "story",
+      "milestone": "M5 Apps + agents + context packs",
+      "labels": [
+        "phase:5-models",
+        "priority:medium",
+        "size:L",
+        "track:platform",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-DELIVERABLES",
+        "TASK-PLAT-P0-ARQ",
+        "TASK-CON-002"
+      ],
+      "problem": "Some deliverables require async generation; UI must not show complete prematurely.",
+      "solution": "Implement async entity pipeline; done event includes has_async_entities_pending and UI polls until complete.",
+      "acceptance_criteria": [
+        "Co-generation workflow schedules async jobs",
+        "done event includes pending flag when appropriate",
+        "Frontend continues polling and updates UI when pending resolves"
+      ],
+      "test_plan": [
+        "Integration: async job completes and clears pending",
+        "E2E: pending indicator behavior"
+      ],
+      "notes": []
+    },
+    {
+      "key": "STORY-ENTITY-001",
+      "title": "Entity & citation system (entities, citations, buffers, matching)",
+      "type": "story",
+      "milestone": "M4 Evidence + insights + CRM",
+      "labels": [
+        "phase:4-intelligence",
+        "priority:high",
+        "size:L",
+        "track:intelligence",
+        "type:story"
+      ],
+      "depends_on": [
+        "EPIC-INTEL",
+        "EPIC-CONTRACTS",
+        "STORY-DOCS-004"
+      ],
+      "problem": "Agent outputs and extractions must resolve to entities and citations; without this, provenance is fragmented and hard to query.",
+      "solution": "Implement entity objects (canonical), citations with source spans/URLs, a citation buffer pattern for async creation, and entity matching/merge flows.",
+      "acceptance_criteria": [
+        "Entities can be created/updated/merged with audit",
+        "Citations reference bundle version spans or web snapshots and link to entities/evidence",
+        "Citation buffer supports async linking during runs",
+        "UI can show citations for a run or insight and navigate to source"
+      ],
+      "test_plan": [
+        "Integration: create citations during extraction and link to entity",
+        "Unit: entity matching heuristics on fixtures"
+      ],
+      "notes": [
+        "Map to COMPRESSED-BUILD-SPEC.md Domain D and I.1 payload patterns"
+      ]
+    }
+  ]
+}
