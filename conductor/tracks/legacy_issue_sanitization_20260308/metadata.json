@@ -1,0 +1,8 @@
+{
+  "track_id": "legacy_issue_sanitization_20260308",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-03-08T00:00:00Z",
+  "updated_at": "2026-03-08T00:00:00Z",
+  "description": "Legacy Issue Sanitization (Clean Baseline) - Rewrite V1/V2/V2M markdown issues to resolve contradictions using the V4 Decision Register before GitHub import."
+}
