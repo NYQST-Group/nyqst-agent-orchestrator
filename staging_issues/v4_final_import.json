@@ -1718,6 +1718,318 @@
         "epic:epic-studio"
       ],
       "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-001",
+      "title": "[STUDIO-001] Projects: backend model + API + UI list/detail (replace placeholder ProjectsPage)",
+      "body": "## Problem\nUI has a Projects page placeholder but no project data model or CRUD APIs. Project scoping is required for context inheritance, document organisation, and downstream CRM/intelligence workflows.\n\n## Solution\nImplement Projects end-to-end:\n- DB: `projects` table (tenant_id, name, description, status, tags, created_by, timestamps).\n- API: CRUD endpoints under `/api/v1/projects`.\n- UI: ProjectsPage shows list with search/filter; ProjectDetail shows notebooks, runs, deliverables, context packs.\n- Integrate with existing Conversation scopes: allow conversations to be attached to a project_id.\n\n## Acceptance Criteria\n- User can create/edit/archive projects; list view shows projects scoped to tenant.\n- Research conversations can be created within a project and appear in project detail.\n- Project can own notebooks and context packs (even if minimal initially).",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "projects",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-002",
+      "title": "[STUDIO-002] Clients/CRM: backend model + API + UI list/detail (replace placeholder ClientsPage)",
+      "body": "## Problem\nCRM is required for commercial property workflows, but Clients page is placeholder and no client entity model exists.\n\n## Solution\nImplement Clients/CRM MVP:\n- DB: `clients` table (tenant_id, name, type, sector, notes, identifiers), optional `contacts`.\n- API: CRUD endpoints `/api/v1/clients` (+ `/contacts` optional).\n- UI: ClientsPage list; ClientDetail with related projects, documents, decisions.\n\n## Acceptance Criteria\n- User can create clients and attach projects to a client.\n- Client detail shows related projects and recent runs.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "crm",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-004",
+      "title": "[STUDIO-004] Analysis canvas MVP: infinite canvas with persisted nodes and links",
+      "body": "## Problem\nAnalysisPage is currently a placeholder. Product vision requires an unlimited canvas where analysis blocks, documents, outputs, diffs, and workflows can be composed and linked.\n\n## Solution\nImplement canvas MVP:\n- Data model: `canvas_boards` (project_id), `canvas_nodes`, `canvas_edges` with JSON payload.\n- UI: zoom/pan infinite canvas (use a proven lib like React Flow or custom minimal engine).\n- Node types v1: Note, Artifact, ReportSnippet, ChartPlaceholder, Decision.\n- Persistence: autosave to backend; optimistic updates.\n\n## Acceptance Criteria\n- User can create a board within a project and add/move nodes, create links, and persist state.\n- Artifacts and report snippets can be pinned to canvas nodes and opened.\n- Canvas performance remains acceptable for at least 200 nodes.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "frontend",
+        "backend",
+        "canvas",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-006",
+      "title": "[STUDIO-006] Apps surface (Dify-like): save configured agent workflows and run them",
+      "body": "## Problem\nTo scale beyond ad-hoc chat, users need reusable 'apps' that package graphs + context + toolsets into repeatable workflows.\n\n## Solution\nImplement Apps MVP:\n- DB: `apps` table (tenant_id, name, description, graph_template, config JSON, enabled_tools, default_context_packs).\n- UI: Apps list/detail/create. Create wizard: pick template (research, lease CD, debt), select tools, select context packs.\n- Run: allow launching an app run against a project; results stored as runs/deliverables.\n\n## Acceptance Criteria\n- User can create an app configuration and run it against a project.\n- App run uses configured tool set and context packs.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "apps",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-007",
+      "title": "[STUDIO-007] Workflow builder MVP (n8n-like): compose multi-step workflows from skills/tools",
+      "body": "## Problem\nSome tasks are deterministic pipelines rather than chat (ingest \u2192 extract \u2192 validate \u2192 publish). A lightweight workflow builder unlocks repeatable production processes.\n\n## Solution\nImplement workflow builder MVP:\n- Represent workflows as DAGs of nodes (skills/tools/subgraphs).\n- UI: drag/drop workflow canvas with node catalog (inspired by Dify/n8n).\n- Execution: compile DAG to LangGraph and run under the same run ledger.\n- Triggering: manual run now; schedules/webhooks later.\n\n## Acceptance Criteria\n- User can define a workflow with at least 3 nodes and run it end-to-end.\n- Workflow execution emits run events and stores artifacts like any other run.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "workflow",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "ENT-001",
+      "title": "[ENT-001] OIDC SSO login flow + workspace membership mapping",
+      "body": "## Problem\nCurrent auth is local/API-key based. Enterprise users need SSO (OIDC) and mapping to tenant/workspace membership.\n\n## Solution\nImplement OIDC:\n- Add OIDC provider config (issuer, client_id, client_secret, redirect URIs).\n- Implement login redirect + callback to exchange code for tokens.\n- Create/update user records based on OIDC claims; map to tenant/workspace (email domain rules or explicit invites).\n- Store refresh tokens securely if needed.\n\n## Acceptance Criteria\n- User can log in via OIDC provider and receives a session/JWT in NYQST.\n- User is assigned to the correct tenant/workspace on first login (configurable).",
+      "milestone": "M6-ENTERPRISE",
+      "labels": [
+        "backend",
+        "auth",
+        "sso",
+        "epic:epic-enterprise"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "ENT-002",
+      "title": "[ENT-002] RBAC/ABAC policy engine enforced across APIs and UI",
+      "body": "## Problem\nTenant isolation is necessary but not sufficient. Need role-based access at workspace/project/app level (viewer/editor/admin) plus fine-grained permissions for documents and tools.\n\n## Solution\nImplement authorization:\n- Define roles and permissions (RBAC) plus scope checks (ABAC) using tenant_id, project_id, app_id.\n- Add middleware/dependency to enforce policies in each router.\n- Add UI guards: hide/disable actions based on role.\n\n## Acceptance Criteria\n- Core resources (projects, docs, runs, apps, tools) enforce permissions.\n- Audit logs capture permission denials and privileged actions.",
+      "milestone": "M6-ENTERPRISE",
+      "labels": [
+        "backend",
+        "security",
+        "rbac",
+        "epic:epic-enterprise"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "ENT-003",
+      "title": "[ENT-003] Audit log: expand coverage (runs, docs, tool calls) + admin UI viewer",
+      "body": "## Problem\nAudit log model exists but coverage is incomplete; admins need visibility for compliance and debugging.\n\n## Solution\n- Ensure audit events are written for: login/logout, document upload/download, run start/stop, tool calls, deliverable exports, permission changes.\n- Add `/api/v1/audit` endpoints (admin-only) for querying.\n- Add UI page/table for audit log review with filtering.\n\n## Acceptance Criteria\n- Audit records exist for core actions and include actor, target, timestamp, metadata.\n- Admin can query and export audit logs.",
+      "milestone": "M6-ENTERPRISE",
+      "labels": [
+        "backend",
+        "frontend",
+        "audit",
+        "epic:epic-enterprise"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "ENT-004",
+      "title": "[ENT-004] Billing & metering: usage records per tenant (tokens, tools, storage) + Stripe integration",
+      "body": "## Problem\nSpec includes Stripe-backed billing and quotas. Repo has no billing pipeline and run ledger lacks tenant_id (P0-003).\n\n## Solution\nImplement metering:\n- Record usage: tokens in/out, tool calls, search requests, storage bytes.\n- Aggregate per tenant daily/monthly.\n- Integrate Stripe for subscription plans and invoices (minimal).\n- Enforce quotas via middleware (reject when exceeded).\n\n## Acceptance Criteria\n- Usage records can be generated and aggregated per tenant.\n- Stripe customer + subscription can be linked to tenant.\n- Quotas can be configured and enforced.",
+      "milestone": "M6-ENTERPRISE",
+      "labels": [
+        "backend",
+        "billing",
+        "epic:epic-enterprise"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "ENT-005",
+      "title": "[ENT-005] Data retention, deletion, and export (GDPR baseline)",
+      "body": "## Problem\nProduction deployments require retention policies, right-to-delete, and export of tenant data, especially for regulated clients.\n\n## Solution\n- Define retention policy configuration per tenant.\n- Implement deletion workflows for: documents, artifacts, runs, conversations (with tombstones for audit).\n- Implement export endpoints/jobs producing a tenant export bundle.\n\n## Acceptance Criteria\n- Admin can request export; system produces a downloadable bundle.\n- Delete requests remove data or anonymize appropriately while preserving audit logs.",
+      "milestone": "M6-ENTERPRISE",
+      "labels": [
+        "backend",
+        "compliance",
+        "epic:epic-enterprise"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DI-001",
+      "title": "[DI-001] DocuIntelli foundation: document bundles, versions, and corpus metadata model",
+      "body": "## Problem\nDocuIntelli workflows require grouping documents into corpora/bundles with versioning and metadata (source, date, counterparty). Current substrate stores artifacts but lacks higher-level corpus organization.\n\n## Solution\nAdd DocuIntelli corpus primitives:\n- DB: `corpora` (tenant_id, name, description, tags), `corpus_documents` linking to artifacts/manifests with metadata + version fields.\n- Provide APIs to create corpora, add/remove documents, and manage versions.\n- UI: corpus explorer (list/detail) with version timeline and filters.\n\n## Acceptance Criteria\n- A corpus can be created and populated with document versions.\n- Corpus documents carry metadata usable for filtering and analysis (source, date, type).",
+      "milestone": "M7-DOCUINTELLI",
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "frontend",
+        "epic:epic-docuintelli"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DI-002",
+      "title": "[DI-002] DocuIntelli processing pipeline: DocIR extraction and normalized representations",
+      "body": "## Problem\nHigher-order analysis needs consistent text/layout extraction (DocIR) for PDFs and docs; current RAG chunking is insufficient for clause-level analysis and diffing.\n\n## Solution\nImplement DocIR pipeline:\n- Extract: text, headings, tables, page coords, structural blocks.\n- Normalize into a DocIR JSON format stored as artifacts.\n- Index: store embeddings per block and allow clause-level retrieval.\n- Provide UI viewer that can highlight referenced spans by locator.\n\n## Acceptance Criteria\n- Uploading a PDF produces a DocIR artifact and block-level index entries.\n- Citations can reference a DocIR locator and UI can highlight it.",
+      "milestone": "M7-DOCUINTELLI",
+      "labels": [
+        "domain:docuintelli",
+        "backend",
+        "epic:epic-docuintelli"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DEBT-001",
+      "title": "[DEBT-001] Debt instrument data model + CRUD (facilities, tranches, rates, covenants)",
+      "body": "## Problem\nNeed canonical debt model with versioning and citations.\n\n## Solution\n- DB: `debt_instruments`, `tranches`, `rate_terms`, `covenants`, `events`.\n- APIs: CRUD and versioning.\n- Link key fields to citations/locators.\n\n## Acceptance Criteria\n- Debt instruments can be stored/updated with citations.",
+      "milestone": "M9-DEBT",
+      "labels": [
+        "backend",
+        "domain:debt",
+        "epic:epic-debt"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DEBT-002",
+      "title": "[DEBT-002] Debt extraction skill: parse DocIR into structured debt terms with citations",
+      "body": "## Problem\nAutomated extraction required for scale; must be auditable and editable.\n\n## Solution\n- Use DocIR blocks and patterns to locate key clauses.\n- LLM extracts structured fields with locators.\n- Store proposed values and allow user edits.\n\n## Acceptance Criteria\n- On fixtures, extraction yields a populated debt model with citations.",
+      "milestone": "M9-DEBT",
+      "labels": [
+        "backend",
+        "domain:debt",
+        "skills",
+        "epic:epic-debt"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DEBT-003",
+      "title": "[DEBT-003] Deterministic debt calculation engine (amortization, interest, covenant ratios)",
+      "body": "## Problem\nDebt schedules must be deterministic and testable; LLM arithmetic is unacceptable.\n\n## Solution\n- Compute amortization schedules under fixed/floating rates.\n- Compute covenant ratios based on financial inputs.\n- Provide explain() traces per period and ratio.\n\n## Acceptance Criteria\n- Engine passes golden tests; outputs stable.",
+      "milestone": "M9-DEBT",
+      "labels": [
+        "backend",
+        "domain:debt",
+        "calc",
+        "epic:epic-debt"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "DEBT-004",
+      "title": "[DEBT-004] Debt dashboards + alerts (exceptions, covenant breaches) with provenance",
+      "body": "## Problem\nValue comes from monitoring and surfacing exceptions with evidence.\n\n## Solution\n- UI dashboards for schedules and covenant status.\n- Alert rules (thresholds) stored per project.\n- Evidence links to source clauses and calculation assumptions.\n\n## Acceptance Criteria\n- Dashboard shows covenant status and exceptions; alerts can be configured.",
+      "milestone": "M9-DEBT",
+      "labels": [
+        "frontend",
+        "domain:debt",
+        "epic:epic-debt"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "REG-001",
+      "title": "[REG-001] Regulatory source ingestion (web feeds, PDFs) into corpus with provenance",
+      "body": "## Problem\nNeed reliable ingestion of regulatory sources with metadata and update detection.\n\n## Solution\n- Connectors for RSS/web pages/PDFs.\n- Detect changes and version documents.\n- Store as artifacts + DocIR; index for retrieval.\n\n## Acceptance Criteria\n- Reg source documents are ingested, versioned, and searchable with citations.",
+      "milestone": "M10-REGSYGNAL",
+      "labels": [
+        "backend",
+        "domain:regsygnal",
+        "epic:epic-regsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "REG-002",
+      "title": "[REG-002] Obligation extraction + mapping to internal controls framework",
+      "body": "## Problem\nNeed to extract obligations and map them to internal controls/policies for reconciliation.\n\n## Solution\n- Define controls framework model (controls, policies, owners).\n- Extract obligations from DocIR and map to controls via embeddings + LLM.\n- Produce mapping artifacts with evidence.\n\n## Acceptance Criteria\n- Obligations extracted and mapped with citations; gaps identified.",
+      "milestone": "M10-REGSYGNAL",
+      "labels": [
+        "backend",
+        "domain:regsygnal",
+        "epic:epic-regsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "REG-003",
+      "title": "[REG-003] RegSygnal UI: regulatory dashboard, diffs, tasks, and decision linking",
+      "body": "## Problem\nNeed UX to view changes, impacted controls, and create tasks/decisions.\n\n## Solution\n- Dashboard for latest updates and impacted areas.\n- Diff viewer and evidence drilldown.\n- Ability to create decisions and tasks linked to evidence.\n\n## Acceptance Criteria\n- Users can browse updates, see diffs, and create decisions/tasks with citations.",
+      "milestone": "M10-REGSYGNAL",
+      "labels": [
+        "frontend",
+        "domain:regsygnal",
+        "epic:epic-regsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "PROP-001",
+      "title": "[PROP-001] Asset data model + CRUD (properties, portfolios, KPIs)",
+      "body": "## Problem\nNeed canonical property/portfolio models to anchor signals and analysis.\n\n## Solution\n- DB: `assets`, `portfolios`, `asset_kpis`.\n- APIs + UI under Projects or separate PropSygnal section.\n\n## Acceptance Criteria\n- Assets can be created and linked to projects/clients.",
+      "milestone": "M11-PROPSYGNAL",
+      "labels": [
+        "backend",
+        "domain:propsygnal",
+        "epic:epic-propsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "PROP-002",
+      "title": "[PROP-002] Signal ingestion: news/market feeds + web research into asset context packs",
+      "body": "## Problem\nNeed to ingest signals with provenance and attach to assets.\n\n## Solution\n- Connectors for news feeds and market data providers.\n- Store signal items as entities/artifacts.\n- Index into context packs for asset/project.\n\n## Acceptance Criteria\n- Signals ingested and searchable; linked to assets with citations.",
+      "milestone": "M11-PROPSYGNAL",
+      "labels": [
+        "backend",
+        "domain:propsygnal",
+        "epic:epic-propsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "PROP-003",
+      "title": "[PROP-003] PropSygnal dashboards: KPIs, trends, and cited insights",
+      "body": "## Problem\nNeed dashboards to summarize signals and metrics with drilldown to evidence.\n\n## Solution\n- UI dashboards using GenUI charts/tables.\n- Drilldown to underlying signals/doc evidence.\n- Export to deliverables.\n\n## Acceptance Criteria\n- Dashboards render and support drilldown and export.",
+      "milestone": "M11-PROPSYGNAL",
+      "labels": [
+        "frontend",
+        "domain:propsygnal",
+        "epic:epic-propsygnal"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-004a",
+      "title": "[STUDIO-004a] Select canvas implementation (React Flow vs custom) and build base pan/zoom/drag interactions",
+      "body": "## Problem\nCanvas UX is non-trivial; choosing a stable library early avoids rework.\n\n## Solution\nEvaluate React Flow (or similar) for licensing/perf; implement base board with pan/zoom, node drag, edge creation.\n\n## Acceptance Criteria\n- Canvas base interactions work smoothly and meet perf target for 200 nodes.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "frontend",
+        "canvas",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-004b",
+      "title": "[STUDIO-004b] Canvas persistence API + optimistic sync",
+      "body": "## Problem\nCanvas nodes must persist and support multi-session reload; eventual collaboration later.\n\n## Solution\nImplement backend CRUD for boards/nodes/edges; UI uses optimistic updates with debounced autosave.\n\n## Acceptance Criteria\n- Refresh restores state; conflicts resolved by last-write-wins (v1).",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "backend",
+        "frontend",
+        "canvas",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
+    },
+    {
+      "key": "STUDIO-004c",
+      "title": "[STUDIO-004c] Implement v1 node types (Note, Artifact, ReportSnippet, ChartPlaceholder, Decision)",
+      "body": "## Problem\nCanvas needs meaningful node types that connect to existing platform primitives.\n\n## Solution\nImplement node components and serialization for each type; add node creation palette; integrate with artifact and decision APIs.\n\n## Acceptance Criteria\n- All v1 node types can be created and persisted; clicking opens relevant viewer.",
+      "milestone": "M5-STUDIO",
+      "labels": [
+        "frontend",
+        "canvas",
+        "epic:epic-studio"
+      ],
+      "source_pack": "V2"
     }
   ]
 }
