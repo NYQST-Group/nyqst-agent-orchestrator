@@ -91,10 +91,13 @@ All tasks follow a strict lifecycle:
     -   **Step 2.1: Determine Phase Scope:** To identify the files changed in this phase, you must first find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
     -   **Step 2.2: List Changed Files:** Execute `git diff --name-only <previous_checkpoint_sha> HEAD` to get a precise list of all files modified during this phase.
     -   **Step 2.3: Verify and Create Tests:** For each file in the list:
-        -   **CRITICAL Context-Aware Verification:** Categorize the phase based on the files changed:
-            - **Domain Code (`.py`, `.ts`, `.tsx`)**: Verify a corresponding automated test file exists. If missing, you **must** create one.
-            - **Config/Infra (`.yml`, `.json`, `Dockerfile`, `.env`)**: You MUST execute a structural or validation test. For example: run `docker-compose config`, execute JSON schema validation, or run `gh workflow view` to ensure the config is syntactically sound. Do not just write it; test it.
-            - **Meta/Docs (`.md`, `conductor/`)**: You MUST perform an LLM-driven manual review of the generated files to ensure coherence, lack of contradictions, and architectural alignment. Do not blindly assume generated text is correct.
+        -   **CRITICAL (For Code):** First, check its extension. Exclude non-code files (e.g., `.json`, `.md`, `.yaml`).
+        -   For each remaining code file (`.py`, `.ts`, `.tsx`, etc.), verify a corresponding test file exists.
+        -   If a test file is missing, you **must** create one. Before writing the test, **first, analyze other test files in the repository to determine the correct naming convention and testing style.** The new tests **must** validate the functionality described in this phase's tasks (`plan.md`).
+        
+    -   **Step 2.4: Verify Non-Code Artifacts:** For the files excluded in Step 2.3:
+        -   **Config/Infra (`.yml`, `.json`, `Dockerfile`, `.env`)**: You MUST execute a structural or validation test. For example: run `docker-compose config`, execute a Python JSON schema validation script, or run `gh workflow view`. Do not just write it; test it structurally.
+        -   **Meta/Docs (`.md`, `conductor/`)**: You MUST perform an LLM-driven manual review of the generated files to ensure coherence, lack of contradictions, and architectural alignment. Do not blindly assume generated text is correct.
 
 3.  **Execute Automated Tests with Proactive Debugging:**
     -   Before execution, you **must** announce the exact shell command you will use to run the tests.
