@@ -9,6 +9,7 @@
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 7. **Issue Tracking:** Every piece of work must correlate to an issue. Commits and PRs must reference these issues (e.g., `Resolves #123`).
+8. **Intelligent Refactoring:** When updating large documentation or legacy files, use intelligent LLM rewrites to preserve semantic context. Do NOT use blind `sed`/regex replacements or inject generic warning blocks that degrade readability.
 
 ## Task Workflow
 
@@ -291,6 +292,7 @@ A task is complete when:
 9. Implementation notes added to `plan.md`
 10. Changes committed with proper message
 11. Git note with task summary attached to the commit
+12. **Strict Execution Check**: All shell commands, API calls, and scripts associated with the task returned a clean `0` exit code. If an API returns a `4xx` or `5xx` error, the task is **BLOCKED** and MUST NOT be marked `[x]` complete.
 
 ## Emergency Procedures
 
