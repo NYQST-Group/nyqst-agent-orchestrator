@@ -13,6 +13,7 @@
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, React Query
 - **UI Components**: Radix UI
+- **Charting**: Plotly.js (react-plotly.js)
 
 ## Infrastructure & Storage
 - **Storage**: S3-compatible (MinIO/AWS S3) via aioboto3
