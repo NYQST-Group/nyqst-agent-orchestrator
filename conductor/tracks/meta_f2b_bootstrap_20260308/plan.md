@@ -4,11 +4,11 @@
 - [x] Task: Review and lock V4 Epics against current codebase constraints 149a129
   - [x] Sub-task: Identify any discrepancies between V4 specs and existing repo
   - [x] Sub-task: Finalize Epic priorities for M0 and M0.5
-- [ ] Task: Initialize Target GitHub Repository
-  - [ ] Sub-task: Create empty repository on GitHub and configure access
-  - [ ] Sub-task: Push existing local repository to GitHub `main` branch
-  - [ ] Sub-task: Commit and push the initial `conductor/` setup
-- [ ] Task: Issue & Milestone Migration
+- [x] Task: Initialize Target GitHub Repository 5d9682f
+  - [x] Sub-task: Create empty repository on GitHub and configure access
+  - [x] Sub-task: Push existing local repository to GitHub `main` branch
+  - [x] Sub-task: Commit and push the initial `conductor/` setup
+- [~] Task: Issue & Milestone Migration
   - [ ] Sub-task: Create GitHub Milestones based on `EPIC_STRUCTURE.md`
   - [ ] Sub-task: Run issue import scripts using the master manifest `staging_issues/v4_final_import.json`
   - [ ] Sub-task: Import 45 new issues from `V4_NEW_ISSUES.md`
