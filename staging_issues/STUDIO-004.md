@@ -1,5 +1,3 @@
-> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
-
 # STUDIO-004 — Analysis canvas MVP: infinite canvas with persisted nodes and links
 
 - Type: **story**

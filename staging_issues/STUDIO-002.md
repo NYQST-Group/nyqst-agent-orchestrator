@@ -1,5 +1,3 @@
-> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
-
 # STUDIO-002 — Clients/CRM: backend model + API + UI list/detail (replace placeholder ClientsPage)
 
 - Type: **story**

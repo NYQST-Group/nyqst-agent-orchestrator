@@ -10,7 +10,7 @@ Build a recursive React renderer that transforms MarkupDocument JSON into React 
 
 ## Acceptance Criteria
 - [ ] All 18 MarkupNodeType values render without errors
-- [ ] CHART nodes render as Recharts charts (bar, line, pie, etc.)
+- [ ] CHART nodes render as Plotly.js charts (bar, line, pie, etc.)
 - [ ] METRIC_CARD nodes render as styled KPI cards with label, value, delta, trend
 - [ ] TABLE nodes render as structured HTML tables
 - [ ] Citation numbers render as inline superscripts using existing CitationLink.tsx
@@ -20,7 +20,7 @@ Build a recursive React renderer that transforms MarkupDocument JSON into React 
 
 ## Technical Notes
 - Net-new files: `ui/src/components/reports/ReportRenderer.tsx`, `ui/src/types/markup.ts`, `ui/src/components/chat/GmlComponentParser.tsx`
-- Chart rendering: recharts (add to package.json if absent)
+- Chart rendering: react-plotly.js (add to package.json if absent)
 - Code blocks: react-syntax-highlighter (add if absent)
 - Citations: extend existing CitationLink.tsx, do not replace
 - See IMPLEMENTATION-PLAN.md Section 3.6 for TypeScript types

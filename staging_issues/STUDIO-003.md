@@ -1,5 +1,3 @@
-> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
-
 # STUDIO-003 — Decisions register: decisions CRUD + citation binding to evidence
 
 - Type: **story**

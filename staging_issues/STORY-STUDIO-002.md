@@ -1,5 +1,3 @@
-> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
-
 ---
     key: STORY-STUDIO-002
     title: Canvas v1: pan/zoom, blocks, edges, inspector
