@@ -33,7 +33,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Structural Methodology Enhancements' (Protocol in workflow.md) d7c08cf
 
 ## Phase 5: Re-Review and Iterative Catch-up (Week 2)
-- [ ] Task: Apply new Meta-Review standards to prior tracks
-  - [ ] Sub-task: Re-review the Sanitize Track outputs using the new "Meta/Docs LLM-driven coherence" rule.
-  - [ ] Sub-task: Check that all updated workflows don't invalidate any previous assumptions.
+- [x] Task: Apply new Meta-Review standards to prior tracks f0424b2
+  - [x] Sub-task: Re-review the Sanitize Track outputs using the new "Meta/Docs LLM-driven coherence" rule.
+  - [x] Sub-task: Check that all updated workflows don't invalidate any previous assumptions.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Re-Review and Iterative Catch-up' (Protocol in workflow.md)
