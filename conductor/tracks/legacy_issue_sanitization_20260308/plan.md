@@ -1,9 +1,9 @@
 # Implementation Plan: Legacy Issue Sanitization
 
 ## Phase 1: Mapping & Discovery (Week 1)
-- [ ] Task: Map V4 Decisions to Legacy Issues
-  - [ ] Sub-task: Grep all V1/V2/V2M issues for known deprecated tech (e.g., Recharts, Temporal, Ory, PostHog)
-  - [ ] Sub-task: Create a mapping document (`V4_OVERRIDE_TARGETS.md`) listing exactly which markdown files need V4 overrides
+- [x] Task: Map V4 Decisions to Legacy Issues b6fa16a
+  - [x] Sub-task: Grep all V1/V2/V2M issues for known deprecated tech (e.g., Recharts, Temporal, Ory, PostHog)
+  - [x] Sub-task: Create a mapping document (`V4_OVERRIDE_TARGETS.md`) listing exactly which markdown files need V4 overrides
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Mapping & Discovery' (Protocol in workflow.md)
 
 ## Phase 2: Staging & Rewriting (Week 1)
