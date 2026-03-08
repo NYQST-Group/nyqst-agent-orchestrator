@@ -6,13 +6,13 @@
   - [x] Sub-task: Create a mapping document (`V4_OVERRIDE_TARGETS.md`) listing exactly which markdown files need V4 overrides
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Mapping & Discovery' (Protocol in workflow.md) 342cd37
 
-## Phase 2: Staging & Rewriting (Week 1)
+## Phase 2: Staging & Rewriting (Week 1) [checkpoint: ff12ead]
 - [x] Task: Create Clean Staging Directory bb159e1
   - [x] Sub-task: Copy all `packs/*/issues/*.md` and `*.json` into a single, unified `staging_issues/` directory
 - [x] Task: Apply V4 Overrides to Files ca8bb89
   - [x] Sub-task: Write a script to prepend `> V4 OVERRIDE: [DEC-V4-XXX]` blocks to the mapped files in the staging directory
   - [x] Sub-task: Manually review and cleanse files with complex structural changes (e.g., the Migration 0005 splits)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Staging & Rewriting' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Staging & Rewriting' (Protocol in workflow.md) ff12ead
 
 ## Phase 3: Validation & Output (Week 1)
 - [ ] Task: Validate the unified staging set
