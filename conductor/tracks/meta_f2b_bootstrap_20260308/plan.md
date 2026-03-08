@@ -1,9 +1,9 @@
 # Implementation Plan: Meta-Track - F2B Project Lifecycle & Infrastructure
 
 ## Phase 1: V4 Plan Alignment & GitHub Initialization (Week 1)
-- [~] Task: Review and lock V4 Epics against current codebase constraints
-  - [ ] Sub-task: Identify any discrepancies between V4 specs and existing repo
-  - [ ] Sub-task: Finalize Epic priorities for M0 and M0.5
+- [x] Task: Review and lock V4 Epics against current codebase constraints 149a129
+  - [x] Sub-task: Identify any discrepancies between V4 specs and existing repo
+  - [x] Sub-task: Finalize Epic priorities for M0 and M0.5
 - [ ] Task: Initialize Target GitHub Repository
   - [ ] Sub-task: Create empty repository on GitHub and configure access
   - [ ] Sub-task: Push existing local repository to GitHub `main` branch
