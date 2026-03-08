@@ -1,3 +1,5 @@
+> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
+
 ---
     key: TASK-STUDIO-003
     title: Canvas persistence v1: save/load layout per project

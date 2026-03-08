@@ -1,3 +1,5 @@
+> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
+
 # STUDIO-005 — Diff viewer: compare artifacts/versions and render semantic diffs
 
 - Type: **story**

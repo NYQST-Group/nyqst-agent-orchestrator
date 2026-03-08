@@ -1,3 +1,5 @@
+> V4 OVERRIDE (DEC-V4-008): Must use arq + cron, not Temporal.
+
 ---
     key: STORY-PROD-004
     title: Backup/restore + retention policy runbook

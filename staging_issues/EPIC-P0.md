@@ -1,3 +1,5 @@
+> V4 OVERRIDE (DEC-V4-008): Must use arq + cron, not Temporal.
+
 # EPIC-P0 — P0 repo stabilization and CI hardening
 
 - Type: **epic**

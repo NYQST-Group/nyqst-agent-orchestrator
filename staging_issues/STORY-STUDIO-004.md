@@ -1,3 +1,5 @@
+> V4 OVERRIDE (DEC-V4-010): Scope cut (~30%); defer visual workflow editors, Ory Kratos, PostHog, etc.
+
 ---
     key: STORY-STUDIO-004
     title: Pinning: pin app outputs and diffs into canvas + notebook
