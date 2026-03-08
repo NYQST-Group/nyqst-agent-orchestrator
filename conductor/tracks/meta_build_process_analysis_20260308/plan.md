@@ -21,3 +21,11 @@
 - [ ] Task: Resolve the Branch Protection blocker
   - [ ] Sub-task: Update the `meta_f2b_bootstrap` plan to reflect that branch protection is a manual/Pro-tier requirement, converting it to an advisory task rather than an API script.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Unblock Phase 3 CI/CD' (Protocol in workflow.md)
+## Phase 4: Structural Methodology Enhancements (Week 2)
+- [ ] Task: Enhance Conductor Definition of Done & Quality Gates
+  - [ ] Sub-task: Add explicit 'Task Output Validation' to DoD (verifying command exit codes).
+  - [ ] Sub-task: Add 'Non-Regex Intelligent Overrides' as a required pattern for large documentation rewrites.
+- [ ] Task: Second-Order CI/CD and Script Hardening
+  - [ ] Sub-task: Audit all `.sh` scripts (e.g., `sync-conductor.sh`) to mandate `set -eo pipefail` for immediate crash on failure.
+  - [ ] Sub-task: Review GitHub Actions `ci.yml` to ensure all shell steps use fast-fail error handling.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Structural Methodology Enhancements' (Protocol in workflow.md)
