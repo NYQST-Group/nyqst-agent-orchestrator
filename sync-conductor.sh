@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
 # sync-conductor.sh
 # This script parses all Conductor plan.md files, finds tasks marked as complete [x],
 # and uses the GitHub CLI (gh) to close the corresponding issues on GitHub.
