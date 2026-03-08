@@ -1,10 +1,10 @@
 # Implementation Plan: Legacy Issue Sanitization
 
-## Phase 1: Mapping & Discovery (Week 1)
+## Phase 1: Mapping & Discovery (Week 1) [checkpoint: 342cd37]
 - [x] Task: Map V4 Decisions to Legacy Issues b6fa16a
   - [x] Sub-task: Grep all V1/V2/V2M issues for known deprecated tech (e.g., Recharts, Temporal, Ory, PostHog)
   - [x] Sub-task: Create a mapping document (`V4_OVERRIDE_TARGETS.md`) listing exactly which markdown files need V4 overrides
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Mapping & Discovery' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Mapping & Discovery' (Protocol in workflow.md) 342cd37
 
 ## Phase 2: Staging & Rewriting (Week 1)
 - [ ] Task: Create Clean Staging Directory
