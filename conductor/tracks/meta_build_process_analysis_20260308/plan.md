@@ -32,8 +32,14 @@
   - [x] Sub-task: Review GitHub Actions `ci.yml` to ensure all shell steps use fast-fail error handling.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Structural Methodology Enhancements' (Protocol in workflow.md) d7c08cf
 
-## Phase 5: Re-Review and Iterative Catch-up (Week 2)
+## Phase 5: Re-Review and Iterative Catch-up (Week 2) [checkpoint: f0424b2]
 - [x] Task: Apply new Meta-Review standards to prior tracks f0424b2
   - [x] Sub-task: Re-review the Sanitize Track outputs using the new "Meta/Docs LLM-driven coherence" rule.
   - [x] Sub-task: Check that all updated workflows don't invalidate any previous assumptions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Re-Review and Iterative Catch-up' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Re-Review and Iterative Catch-up' (Protocol in workflow.md) f0424b2
+
+## Phase 6: Code Core Protection (Week 2)
+- [x] Task: Restore and Isolate Code TDD Rules 1bfbbbb
+  - [x] Sub-task: Separate code test verification (Step 2.3) entirely from Meta/Config testing (Step 2.4).
+  - [x] Sub-task: Ensure the original strict Test-Driven Development pathway for `.py` and `.ts` files remains completely unadulterated.
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Code Core Protection' (Protocol in workflow.md) 1bfbbbb
