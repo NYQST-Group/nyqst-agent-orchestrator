@@ -1,6 +1,6 @@
 # Implementation Plan: Meta-Track - F2B Project Lifecycle & Infrastructure
 
-## Phase 1: V4 Plan Alignment & GitHub Initialization (Week 1)
+## Phase 1: V4 Plan Alignment & GitHub Initialization (Week 1) [checkpoint: d584c7c]
 - [x] Task: Review and lock V4 Epics against current codebase constraints 149a129
   - [x] Sub-task: Identify any discrepancies between V4 specs and existing repo
   - [x] Sub-task: Finalize Epic priorities for M0 and M0.5
@@ -12,7 +12,7 @@
   - [x] Sub-task: Create GitHub Milestones based on `EPIC_STRUCTURE.md`
   - [x] Sub-task: Run issue import scripts using the master manifest `staging_issues/v4_final_import.json`
   - [x] Sub-task: Import 45 new issues from `V4_NEW_ISSUES.md`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md) d584c7c
 
 ## Phase 2: Conductor & GitHub Synchronization (Week 1)
 - [ ] Task: Build Sync Script (`sync-conductor.sh`)
