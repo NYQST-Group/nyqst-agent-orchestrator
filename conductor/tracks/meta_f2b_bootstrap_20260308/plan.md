@@ -24,7 +24,7 @@
   - [x] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md) 0916ff1
 
-## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2)
+## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2) [checkpoint: ecaacd8]
 - [x] Task: Establish Environments & Configurations e0f1c38
   - [x] Sub-task: Define `.env` templates for Dev, Staging, and Prod
   - [x] Sub-task: Validate Docker Compose for local PostgreSQL+pgvector and Redis
@@ -32,7 +32,7 @@
   - [x] Sub-task: Create GitHub Actions workflow for Python `pytest` and linting
   - [x] Sub-task: Create GitHub Actions workflow for TS `vitest` and type-checking
   - [x] Sub-task: Enforce branch protection rules blocking merges on failing CI
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: F2B Lifecycle & Infrastructure Bootstrap' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: F2B Lifecycle & Infrastructure Bootstrap' (Protocol in workflow.md) ecaacd8
 
 ## Phase 4: Core Contracts & Hygiene Alignment (Week 2)
 - [ ] Task: Audit existing base contracts against V4 specifications (EPIC-CONTRACTS)
