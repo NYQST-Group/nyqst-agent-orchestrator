@@ -14,15 +14,16 @@ fi
 
 REPO="t3rm1nu55/NYQST-DocuIntelli-Build"
 
-# Find all plan.md files
-find conductor/tracks -name "plan.md" | while read -r plan_file; do
+# Find all plan.md files safely
+while IFS= read -r -d '' plan_file; do
     echo "Scanning $plan_file..."
     
     # Grep for completed tasks that reference an issue number (e.g., #123)
     # The format we expect is roughly: - [x] Task: Some description #123
     # Or sub-tasks: - [x] Sub-task: Some description #123
     
-    grep -E "^[[:space:]]*- \[x\].*#[0-9]+" "$plan_file" | while read -r line; do
+    # Use process substitution to avoid subshell variable scoping issues if we need them later
+    while IFS= read -r line; do
         # Extract all issue numbers from the line
         issue_nums=$(echo "$line" | grep -o '#[0-9]\+' | tr -d '#')
         
@@ -39,7 +40,7 @@ find conductor/tracks -name "plan.md" | while read -r plan_file; do
                 echo "  Warning: Issue #$issue_num not found or inaccessible."
             fi
         done
-    done
-done
+    done < <(grep -E "^[[:space:]]*- \[x\].*#[0-9]+" "$plan_file")
+done < <(find conductor/tracks -name "plan.md" -print0)
 
 echo "Sync complete."
