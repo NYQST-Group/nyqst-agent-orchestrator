@@ -9,9 +9,9 @@
 ## Phase 2: Staging & Rewriting (Week 1)
 - [x] Task: Create Clean Staging Directory bb159e1
   - [x] Sub-task: Copy all `packs/*/issues/*.md` and `*.json` into a single, unified `staging_issues/` directory
-- [ ] Task: Apply V4 Overrides to Files
-  - [ ] Sub-task: Write a script to prepend `> V4 OVERRIDE: [DEC-V4-XXX]` blocks to the mapped files in the staging directory
-  - [ ] Sub-task: Manually review and cleanse files with complex structural changes (e.g., the Migration 0005 splits)
+- [x] Task: Apply V4 Overrides to Files 861f761
+  - [x] Sub-task: Write a script to prepend `> V4 OVERRIDE: [DEC-V4-XXX]` blocks to the mapped files in the staging directory
+  - [x] Sub-task: Manually review and cleanse files with complex structural changes (e.g., the Migration 0005 splits)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Staging & Rewriting' (Protocol in workflow.md)
 
 ## Phase 3: Validation & Output (Week 1)
