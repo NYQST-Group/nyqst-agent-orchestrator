@@ -18,6 +18,6 @@
 - [x] Task: Validate the unified staging set 0c0e20e
   - [x] Sub-task: Run JSON schema validation on the resulting issue set to ensure the import scripts won't fail
   - [x] Sub-task: Confirm no `GAP-` tickets are left without their V4 resolution attached
-- [~] Task: Update Bootstrap Track Dependency
-  - [ ] Sub-task: Modify the `meta_f2b_bootstrap` track to pull issues from the new `staging_issues/` directory instead of the old raw pack folders.
+- [x] Task: Update Bootstrap Track Dependency acf591c
+  - [x] Sub-task: Modify the `meta_f2b_bootstrap` track to pull issues from the new `staging_issues/` directory instead of the old raw pack folders.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Validation & Output' (Protocol in workflow.md)
