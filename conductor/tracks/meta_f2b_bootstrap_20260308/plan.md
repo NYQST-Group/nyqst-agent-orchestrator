@@ -28,10 +28,10 @@
 - [x] Task: Establish Environments & Configurations e0f1c38
   - [x] Sub-task: Define `.env` templates for Dev, Staging, and Prod
   - [x] Sub-task: Validate Docker Compose for local PostgreSQL+pgvector and Redis
-- [ ] Task: CI/CD Pipeline Configuration (V4-INFRA-001)
-  - [ ] Sub-task: Create GitHub Actions workflow for Python `pytest` and linting
-  - [ ] Sub-task: Create GitHub Actions workflow for TS `vitest` and type-checking
-  - [ ] Sub-task: Enforce branch protection rules blocking merges on failing CI
+- [x] Task: CI/CD Pipeline Configuration (V4-INFRA-001) e44a38c
+  - [x] Sub-task: Create GitHub Actions workflow for Python `pytest` and linting
+  - [x] Sub-task: Create GitHub Actions workflow for TS `vitest` and type-checking
+  - [x] Sub-task: Enforce branch protection rules blocking merges on failing CI
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: F2B Lifecycle & Infrastructure Bootstrap' (Protocol in workflow.md)
 
 ## Phase 4: Core Contracts & Hygiene Alignment (Week 2)
