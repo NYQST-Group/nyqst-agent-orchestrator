@@ -1,0 +1,8 @@
+# Project Tracks
+
+This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
+
+---
+
+- [ ] **Track: Meta-Track: F2B Project Lifecycle, Alignment & Infrastructure Bootstrap**
+  *Link: [./tracks/meta_f2b_bootstrap_20260308/](./tracks/meta_f2b_bootstrap_20260308/)*

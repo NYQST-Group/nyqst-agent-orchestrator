@@ -1,0 +1,42 @@
+# Implementation Plan: Meta-Track - F2B Project Lifecycle & Infrastructure
+
+## Phase 1: V4 Plan Alignment & GitHub Initialization (Week 1)
+- [ ] Task: Review and lock V4 Epics against current codebase constraints
+  - [ ] Sub-task: Identify any discrepancies between V4 specs and existing repo
+  - [ ] Sub-task: Finalize Epic priorities for M0 and M0.5
+- [ ] Task: Initialize Target GitHub Repository
+  - [ ] Sub-task: Create empty repository on GitHub and configure access
+  - [ ] Sub-task: Push existing local repository to GitHub `main` branch
+  - [ ] Sub-task: Commit and push the initial `conductor/` setup
+- [ ] Task: Issue & Milestone Migration
+  - [ ] Sub-task: Create GitHub Milestones based on `EPIC_STRUCTURE.md`
+  - [ ] Sub-task: Run issue import scripts for V2M mapped issues
+  - [ ] Sub-task: Import 45 new issues from `V4_NEW_ISSUES.md`
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md)
+
+## Phase 2: Conductor & GitHub Synchronization (Week 1)
+- [ ] Task: Build Sync Script (`sync-conductor.sh`)
+  - [ ] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
+  - [ ] Sub-task: Implement `gh issue view` calls to check remote state
+  - [ ] Sub-task: Implement `gh issue close` for locally completed tasks
+- [ ] Task: Automate Sync Execution
+  - [ ] Sub-task: Hook script into Git `pre-commit` or `post-commit`
+  - [ ] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md)
+
+## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2)
+- [ ] Task: Establish Environments & Configurations
+  - [ ] Sub-task: Define `.env` templates for Dev, Staging, and Prod
+  - [ ] Sub-task: Validate Docker Compose for local PostgreSQL+pgvector and Redis
+- [ ] Task: CI/CD Pipeline Configuration (V4-INFRA-001)
+  - [ ] Sub-task: Create GitHub Actions workflow for Python `pytest` and linting
+  - [ ] Sub-task: Create GitHub Actions workflow for TS `vitest` and type-checking
+  - [ ] Sub-task: Enforce branch protection rules blocking merges on failing CI
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: F2B Lifecycle & Infrastructure Bootstrap' (Protocol in workflow.md)
+
+## Phase 4: Core Contracts & Hygiene Alignment (Week 2)
+- [ ] Task: Audit existing base contracts against V4 specifications (EPIC-CONTRACTS)
+  - [ ] Sub-task: Validate existing `RunEvents` schema
+  - [ ] Sub-task: Validate baseline tenant-isolation fields (e.g., `tenant_id`)
+  - [ ] Sub-task: Ensure PR templates require Contract review for schema changes
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Core Contracts & Hygiene Alignment' (Protocol in workflow.md)
