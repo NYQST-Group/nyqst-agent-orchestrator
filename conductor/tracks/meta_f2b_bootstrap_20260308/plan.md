@@ -34,9 +34,9 @@
   - [x] Sub-task: Enforce branch protection rules blocking merges on failing CI
 - [x] Task: Conductor - User Manual Verification 'Phase 3: F2B Lifecycle & Infrastructure Bootstrap' (Protocol in workflow.md) ecaacd8
 
-## Phase 4: Core Contracts & Hygiene Alignment (Week 2)
+## Phase 4: Core Contracts & Hygiene Alignment (Week 2) [checkpoint: 36b2485]
 - [x] Task: Audit existing base contracts against V4 specifications (EPIC-CONTRACTS) ba16606
   - [x] Sub-task: Validate existing `RunEvents` schema
   - [x] Sub-task: Validate baseline tenant-isolation fields (e.g., `tenant_id`)
   - [x] Sub-task: Ensure PR templates require Contract review for schema changes
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Core Contracts & Hygiene Alignment' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Core Contracts & Hygiene Alignment' (Protocol in workflow.md) 36b2485
