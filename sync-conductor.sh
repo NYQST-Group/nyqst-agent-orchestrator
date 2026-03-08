@@ -12,7 +12,7 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
-REPO="t3rm1nu55/NYQST-DocuIntelli-Build"
+REPO="NYQST-Group/NYQST-DocuIntelli-Build"
 
 # Find all plan.md files safely
 while IFS= read -r -d '' plan_file; do
