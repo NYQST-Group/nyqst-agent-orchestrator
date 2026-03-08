@@ -10,7 +10,7 @@
   - [ ] Sub-task: Commit and push the initial `conductor/` setup
 - [ ] Task: Issue & Milestone Migration
   - [ ] Sub-task: Create GitHub Milestones based on `EPIC_STRUCTURE.md`
-  - [ ] Sub-task: Run issue import scripts using the sanitized files in the local `staging_issues/` directory
+  - [ ] Sub-task: Run issue import scripts using the master manifest `staging_issues/v4_final_import.json`
   - [ ] Sub-task: Import 45 new issues from `V4_NEW_ISSUES.md`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: V4 Plan Alignment & GitHub Initialization' (Protocol in workflow.md)
 
