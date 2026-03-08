@@ -19,9 +19,9 @@
   - [x] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
   - [x] Sub-task: Implement `gh issue view` calls to check remote state
   - [x] Sub-task: Implement `gh issue close` for locally completed tasks
-- [~] Task: Automate Sync Execution
-  - [ ] Sub-task: Hook script into Git `pre-commit` or `post-commit`
-  - [ ] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
+- [x] Task: Automate Sync Execution 6513e10
+  - [x] Sub-task: Hook script into Git `pre-commit` or `post-commit`
+  - [x] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md)
 
 ## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2)
