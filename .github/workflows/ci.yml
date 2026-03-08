@@ -16,6 +16,10 @@ env:
   INDEX_BACKEND: "pgvector"
   OPENAI_API_KEY: "sk-proj-1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijk"
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   backend:
     name: Backend Tests
