@@ -11,8 +11,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Workflow Hardening & RCA' (Protocol in workflow.md) 7a704de
 
 ## Phase 2: Historical Audit (Week 1)
-- [ ] Task: Audit `legacy_issue_sanitization_20260308` track
-  - [ ] Sub-task: Verify all file modifications and script executions actually succeeded under the new rules.
+- [x] Task: Audit `legacy_issue_sanitization_20260308` track e03fb01
+  - [x] Sub-task: Verify all file modifications and script executions actually succeeded under the new rules.
 - [ ] Task: Audit `meta_f2b_bootstrap_20260308` track (Phases 1-3)
   - [ ] Sub-task: Verify all 159 issues were actually created without silent drops.
   - [ ] Sub-task: Verify the `sync-conductor.sh` hook is actually firing.
