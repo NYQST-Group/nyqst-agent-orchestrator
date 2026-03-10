@@ -167,6 +167,11 @@ All tasks follow a strict lifecycle:
 5. **CI/CD Enforcement:** A branch must pass all automated CI actions (Linting, Tests, Typechecks) before it is allowed to merge. No exceptions.
 6. **Shift-Left Validation (Anti-CI-Spam):** NEVER use the remote CI/CD pipeline as a compiler. Before pushing any commit to a PR branch, you MUST run the corresponding local validation tools (e.g., `npx tsc --noEmit` for TypeScript, `pytest` for Python, `shellcheck` for bash). 
 7. **Batched Review Resolution:** When responding to automated (Codex/Copilot) or human PR reviews, batch all fixes into a single local commit, validate them locally (Rule 6), and perform a single push. Do not push line-by-line fixes.
+8. **Anti-Hacking & Privilege Restrictions:** The AI Agent is strictly prohibited from bypassing branch protection rules.
+    - NEVER use `gh api .../enforce_admins -X DELETE` to temporarily lift protections.
+    - NEVER use `gh pr merge --admin` to bypass failing or pending CI checks.
+    - NEVER use GraphQL API mutations (e.g., `resolveReviewThread`) to forcefully resolve automated bot reviews without human or bot consent. You must ping the bot (e.g., `@codex review`) and wait for an organic re-review.
+    - NEVER merge code locally to `main` and attempt to `git push origin main`. All code must flow through the PR review lifecycle.
 
 ### Quality Gates
 
