@@ -165,6 +165,8 @@ All tasks follow a strict lifecycle:
 3. **Squashing:** Squash minor "wip" or "fix typo" commits into logical atomic units before requesting review.
 4. **Issue Linking:** Use GitHub keywords (`Closes #12`, `Resolves #15`) in the PR body to automatically manage issue state.
 5. **CI/CD Enforcement:** A branch must pass all automated CI actions (Linting, Tests, Typechecks) before it is allowed to merge. No exceptions.
+6. **Shift-Left Validation (Anti-CI-Spam):** NEVER use the remote CI/CD pipeline as a compiler. Before pushing any commit to a PR branch, you MUST run the corresponding local validation tools (e.g., `npx tsc --noEmit` for TypeScript, `pytest` for Python, `shellcheck` for bash). 
+7. **Batched Review Resolution:** When responding to automated (Codex/Copilot) or human PR reviews, batch all fixes into a single local commit, validate them locally (Rule 6), and perform a single push. Do not push line-by-line fixes.
 
 ### Quality Gates
 
