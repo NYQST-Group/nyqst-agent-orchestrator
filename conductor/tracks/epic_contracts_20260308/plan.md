@@ -12,3 +12,8 @@
   - [ ] Sub-task: Build the corresponding `.ts` interfaces for the React frontend in `packages/ui-library/types/` or `ui/src/types/`.
   - [ ] Sub-task: Setup an automated CI check (or pre-commit script) to ensure TS/Python schemas remain backward compatible.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Sync & CI/CD Checks' (Protocol in workflow.md)
+## Phase 3: Security & Testing Standards (Week 2)
+- [ ] Task: Formalize V4 Testing & Security Baseline
+  - [ ] Sub-task: Draft `docs/SECURITY_BASELINE.md` outlining secrets handling, prompt-injection, and tenant isolation rules.
+  - [ ] Sub-task: Audit existing test suites to formally map the testing pyramid (Unit, Contract, Integration, E2E).
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Security & Testing Standards' (Protocol in workflow.md)
