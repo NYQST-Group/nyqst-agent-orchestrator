@@ -1,0 +1,28 @@
+name: Backstage Schema Publisher
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/intelli/schemas/**'
+      - 'ui/src/types/**'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish-catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Contract Drift
+        run: |
+          echo "Validating Pydantic to TypeScript coherence..."
+          # Mock step for M0: In the future, run datamodel-codegen checks here
+          
+      - name: Publish to Backstage Catalog
+        run: |
+          echo "Triggering Backstage catalog refresh..."
+          # Mock step for M0: Call Backstage API to ingest the latest catalog-info.yaml
