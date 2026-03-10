@@ -30,11 +30,11 @@ backend:
 
 auth:
   providers:
+    guest: null
     github:
       production:
         clientId: ${AUTH_GITHUB_CLIENT_ID}
         clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
-
 
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.

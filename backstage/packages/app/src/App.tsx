@@ -60,17 +60,23 @@ const app = createApp({
   },
   components: {
     SignInPage: props => (
-    <SignInPage
-      {...props}
-      auto
-      provider={{
-        id: 'github-auth-provider',
-        title: 'GitHub',
-        message: 'Sign in using GitHub',
-        apiRef: githubAuthApiRef,
-      }}
-    />
-  ),
+      <SignInPage
+        {...props}
+        auto
+        providers={
+          process.env.NODE_ENV === 'production'
+            ? [
+                {
+                  id: 'github-auth-provider',
+                  title: 'GitHub',
+                  message: 'Sign in using GitHub',
+                  apiRef: githubAuthApiRef,
+                },
+              ]
+            : ['guest']
+        }
+      />
+    ),
   },
 });
 
