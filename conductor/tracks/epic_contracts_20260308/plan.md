@@ -1,5 +1,14 @@
 # Implementation Plan: M0 Foundation: Contracts
 
+
+## Phase 0: Schema Registry & Backstage Deployment (Week 1)
+- [ ] Task: Evaluate and Deploy Backstage
+  - [ ] Sub-task: Evaluate Backstage vs alternative schema registries for immediate M0 deployment.
+  - [ ] Sub-task: Scaffold the Backstage instance (or equivalent) to act as the centralized catalog for all system contracts, APIs, and components.
+- [ ] Task: Integrate Schema Pipelines
+  - [ ] Sub-task: Build CI/CD pipelines to publish Pydantic schemas and TypeScript definitions directly into the registry catalog.
+- [ ] Task: Conductor - User Manual Verification 'Phase 0: Schema Registry & Backstage Deployment' (Protocol in workflow.md)
+
 ## Phase 1: Contract Discovery & Model Generation (Week 1)
 - [ ] Task: Generate Backend Pydantic Models
   - [ ] Sub-task: Query GitHub for `epic:epic-contracts` issues to gather requirements.
