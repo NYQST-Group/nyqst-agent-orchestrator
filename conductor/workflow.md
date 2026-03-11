@@ -165,6 +165,13 @@ All tasks follow a strict lifecycle:
 3. **Squashing:** Squash minor "wip" or "fix typo" commits into logical atomic units before requesting review.
 4. **Issue Linking:** Use GitHub keywords (`Closes #12`, `Resolves #15`) in the PR body to automatically manage issue state.
 5. **CI/CD Enforcement:** A branch must pass all automated CI actions (Linting, Tests, Typechecks) before it is allowed to merge. No exceptions.
+6. **Multi-Agent Handoff Protocol:** 
+    - **Step 1 (Conductor/Gemini):** Develop code locally, write unit tests, and perform local validation (`pytest`, `tsc`).
+    - **Step 2 (Draft PR):** Conductor MUST open the Pull Request as a **Draft** (`gh pr create --draft`).
+    - **Step 3 (Codex Handover):** Once the Draft PR is open, Conductor explicitly tags the Codex bot (`gh pr comment <number> --body "@codex review"`) and yields.
+    - **Step 4 (Codex Review & Patching):** The Codex agent runs asynchronously, reviews the code, flags bugs, and generates fix commits directly onto the branch.
+    - **Step 5 (Ready for Review):** Once Codex is satisfied and CI is green, the PR is marked "Ready for Review" (`gh pr ready <number>`). Conductor then resumes to merge it and update `plan.md`.
+7. **Anti-Hacking Restrictions:** The AI Agent is strictly prohibited from bypassing branch protection rules (`enforce_admins -X DELETE`, `gh pr merge --admin`, or forceful GraphQL thread resolutions).
 
 ### Quality Gates
 
