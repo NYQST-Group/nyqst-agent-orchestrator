@@ -25,5 +25,5 @@ jobs:
           
       - name: Publish to External Catalog
         run: |
-          echo "Triggering Backstage catalog refresh in NYQST-Internal-Tools repository..."
+          echo "Triggering external catalog publish via repository dispatch..."
           echo "::warning::Catalog refresh step is currently a mock. Needs implementation via repository dispatch."
