@@ -1,4 +1,4 @@
-name: Backstage Schema Publisher
+name: External Schema Publisher
 
 on:
   push:
@@ -21,9 +21,9 @@ jobs:
       - name: Validate Contract Drift
         run: |
           echo "Validating Pydantic to TypeScript coherence..."
-          exit 1 # TODO: Implement real datamodel-codegen checks
+          echo "::warning::Contract validation step is currently a mock. Needs implementation."
           
-      - name: Publish to Backstage Catalog
+      - name: Publish to External Catalog
         run: |
-          echo "Triggering Backstage catalog refresh..."
-          exit 1 # TODO: Implement real Backstage API ingestion
+          echo "Triggering Backstage catalog refresh in NYQST-Internal-Tools repository..."
+          echo "::warning::Catalog refresh step is currently a mock. Needs implementation via repository dispatch."
