@@ -21,7 +21,8 @@ jobs:
       - name: Validate Contract Drift
         run: |
           echo "Validating Pydantic to TypeScript coherence..."
-          echo "::warning::Contract validation step is currently a mock. Needs implementation."
+          echo "::error::Contract validation step is currently a mock and must be implemented before enabling this workflow."
+          exit 1
           
       - name: Publish to External Catalog
         run: |
