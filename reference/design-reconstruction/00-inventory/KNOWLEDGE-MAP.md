@@ -361,15 +361,35 @@ Langfuse (self-hosted)  (trace storage, cost tracking)
 - [ ] MCP tool discovery filtering (context-scoped, needs algorithm for "is tool X relevant to session Y?")
 - [ ] Policy evaluation order (ADR-009 lists 4 templates, needs conflict resolution)
 
+### Locked Specifications (resolved during GAP analysis — 2026-03-14)
+
+**Multi-Tenant Data Isolation (GAP-043) — required before BL-001 implementation:**
+- All DB queries include `WHERE tenant_id = $current_tenant` (application-level isolation for v1; PostgreSQL RLS is a Layer 3 enhancement)
+- LangGraph `thread_id` format: `{tenant_id}:{run_id}` — prevents checkpoint namespace collisions between tenants
+- SSE NOTIFY channel format: `run_stream_{tenant_id}_{run_id}` — prevents cross-tenant event leakage
+- PostgreSQL RLS deferred to Layer 3 Enterprise Shell (stronger isolation with row-level policies, not needed for v1 single-tenant deployments)
+- These constraints apply to BL-001 (orchestrator) and all data models
+
+**Clarification Resume Endpoint (GAP-032) — required before BL-021 implementation:**
+- `POST /api/v1/runs/{run_id}/resume` with body `{"user_input": str, "interrupt_id": str}`
+- Implementation: `graph.ainvoke(Command(resume=user_input), config={"configurable": {"thread_id": run_id}})` using LangGraph's interrupt/resume pattern
+- Response: SSE stream resumes from the checkpoint (same run_id, new events after clarification)
+
+**Slides Pipeline Specification (GAP-031) — required before BL-018 implementation:**
+- Input: DataBrief (same as report pipeline)
+- Output: series of `<gml-viewpresentation>` sections with slide content (title, bullets, optional chart)
+- Viewer: link card with download option for v1 (embedded reveal.js deferred to Phase 3 per DEC-031)
+- Streaming: reuse `node_report_preview_start/delta/done` events with `deliverable_type: slides`
+
 ### Deferred to v1.5+
-- [ ] LiteLLM hot-swap implementation (DEC-042, designed but not coded)
+- [ ] LiteLLM hot-swap multi-provider implementation (DEC-042 decision: stay OpenAI-only for v1; LiteLLM proxy layer for cost tracking via Langfuse callbacks is in-scope for v1, but multi-provider hot-swap deferred)
 - [ ] Feature flag system UI (DEC-047, backend only in v1)
 - [ ] Clarification UI for agent reasoning (DEC-047, deferred)
 
 ### External Dependencies (TBD)
-- [ ] Search provider selection (Brave API vs Tavily, cost comparison needed)
-- [ ] Langfuse self-hosted deployment (sizing, backup strategy)
-- [ ] Neo4j Aura free tier limits → upgrade/fallback plan
+- [ ] Search provider selection (Brave API vs Tavily, cost comparison needed — see GAP-026; decision required before BL-003 implementation)
+- [ ] Langfuse self-hosted deployment (sizing, backup strategy — see GAP-025; see docs/plans/OPERATIONS.md when created)
+- [ ] Neo4j Aura free tier limits → upgrade/fallback plan (see GAP-027; v1 domain ontology volume expected to be within free tier limits; fallback: AuraDB Professional or self-hosted Docker)
 
 ---
 

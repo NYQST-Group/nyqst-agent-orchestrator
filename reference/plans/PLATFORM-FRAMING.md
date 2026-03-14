@@ -83,7 +83,7 @@ These are vertical products that run ON Layer 1 primitives. Each module combines
 
 Cross-cutting concerns required for enterprise deployment. These wrap the platform for production use by regulated organisations.
 
-- **SSO/OIDC/SAML** -- enterprise identity provider integration, replacing JWT + API key for enterprise customers
+- **SSO/OIDC/SAML** -- enterprise identity provider integration, replacing JWT + API key for enterprise customers. **Design note (GAP-034, GAP-035):** The v1 JWT auth system (DEC-038) must be designed to accommodate SSO as an additive layer rather than a replacement. OIDC-compatibility is a non-functional requirement for v1 auth: user identity model must include `external_id` and `idp_provider` fields even if unpopulated in v1. Superagent's `/api/session/redeem-token` (session-cookie) pattern has no v1 analog in NYQST; this is confirmed as a post-v1 Layer 3 concern. Enterprise SSO (SAML/OIDC) will extend the existing JWT system, not replace it.
 - **RBAC/ABAC** -- role-based and attribute-based access control beyond current scope model
 - **Multi-tenant isolation** -- data partitioning, tenant-scoped queries, cross-tenant protection
 - **Data residency / GDPR** -- configurable data location, retention policies, right-to-deletion
