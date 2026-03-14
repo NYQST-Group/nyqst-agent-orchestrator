@@ -73,17 +73,26 @@ python -m intelli.mcp.server                       # MCP server (stdio)
 alembic upgrade head                               # Apply migrations
 alembic revision --autogenerate -m "description"   # New migration
 
-# Quality
-ruff check src/ tests/                             # Lint
-ruff format src/ tests/                            # Format
-mypy src/                                          # Type check (strict)
-pytest                                             # Tests
-pytest --cov=src/intelli                           # Coverage
+# Quality — IMPORTANT: use .venv/bin/python, NOT system python
+.venv/bin/python -m pytest tests/unit/ -q          # Python unit tests (506+)
+cd ui && npm run test                              # UI vitest (274+ tests)
+cd ui && npx tsc --noEmit                          # TypeScript type check
+.venv/bin/python -m ruff check src/ tests/         # Lint
+.venv/bin/python -m ruff format src/ tests/        # Format
+.venv/bin/python -m mypy src/                      # Type check (strict)
+.venv/bin/python -m pytest --cov=src/intelli       # Coverage
 
 # Validation
 bash scripts/dev/validate.sh                       # Full validation
 python scripts/dev/smoke_api.py                    # API smoke test
 ```
+
+## Test Patterns
+
+- **Auth in API tests:** Override `authenticate` dependency with mock `RequestContext(tenant_id=..., user_id=..., role="admin", scopes=["read","write"])`
+- **DB in API tests:** Override `get_session` dependency with `AsyncMock`
+- **Session close tests:** `aggregate_cost` mock must return all 4 keys: `total_cost_micros`, `conversation_count`, `total_input_tokens`, `total_output_tokens` — plus mock `list_runs` and `session.execute` for conversation query
+- **Pricing:** `PRICE_TABLE_VERSION = "openai-2026-03-14"` in `src/intelli/services/usage/pricing.py`
 
 ## Code Style
 
