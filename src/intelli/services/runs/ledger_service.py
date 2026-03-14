@@ -249,6 +249,7 @@ class LedgerService:
         model: str,
         response: dict,
         output_tokens: int | None = None,
+        cost_micros: int | None = None,
         duration_ms: int | None = None,
     ) -> RunEvent:
         """Log LLM response.
@@ -270,6 +271,7 @@ class LedgerService:
                 "model": model,
                 "response": response,
                 "output_tokens": output_tokens,
+                "cost_micros": cost_micros,
             },
             duration_ms=duration_ms,
         )

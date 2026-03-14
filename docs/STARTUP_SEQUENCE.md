@@ -58,7 +58,7 @@ cp .env.example .env
 Minimum recommended edits in `.env`:
 - `DEBUG=true` (enables docs + demo bootstrap login)
 - `OPENAI_API_KEY=...` (required for RAG indexing/asking)
-- Optional: `CHAT_MODEL=...` (defaults to `gpt-4o-mini`)
+- Optional: `CHAT_MODEL=...` (defaults to `gpt-5-nano`)
 
 ### 3) Start infrastructure (Postgres + MinIO + OpenSearch)
 

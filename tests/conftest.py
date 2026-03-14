@@ -1,16 +1,28 @@
 """Pytest fixtures for Intelli platform tests."""
 
+# ruff: noqa: E402
+
+import os
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from intelli.api.dependencies import get_session
-from intelli.db.base import Base
-from intelli.main import create_app
-
 # Test database URL - use a separate test database
 TEST_DATABASE_URL = "postgresql+asyncpg://intelli:intelli@localhost:5433/intelli_test"
+
+# Set test-safe defaults before importing application modules that cache settings.
+os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
+os.environ.setdefault("DEBUG", "true")
+os.environ.setdefault("STORAGE_BACKEND", "local")
+os.environ.setdefault("LOCAL_STORAGE_PATH", "/tmp/intelli-test-storage")
+
+from intelli.api.dependencies import get_session
+from intelli.core.security import create_access_token, hash_password
+from intelli.db.base import Base
+from intelli.db.models.auth import Tenant, TenantStatus, User, UserRole
+from intelli.main import create_app
 
 
 @pytest_asyncio.fixture
@@ -74,6 +86,27 @@ async def test_client(test_session):
         yield client
 
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def auth_headers(test_session):
+    """Create a tenant+user and return auth headers."""
+    tenant = Tenant(name="Test Tenant", slug="test-tenant", status=TenantStatus.active)
+    test_session.add(tenant)
+    await test_session.flush()
+    user = User(
+        tenant_id=tenant.id,
+        email="test@example.com",
+        name="Test User",
+        role=UserRole.owner,
+        password_hash=hash_password("pw"),
+        is_active=True,
+    )
+    test_session.add(user)
+    await test_session.flush()
+    await test_session.commit()
+    token = create_access_token(str(user.id), str(tenant.id), "owner")
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture

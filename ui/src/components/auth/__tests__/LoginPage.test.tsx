@@ -81,10 +81,10 @@ describe('LoginPage', () => {
   it('test_renders_login_form', () => {
     renderLoginPage()
 
-    expect(screen.getByPlaceholderText('your-organization')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('your-organisation')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /demo login/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /open demo workspace/i })).toBeInTheDocument()
   })
 
   it('test_email_login_submits_and_navigates', async () => {
@@ -99,7 +99,7 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    const tenantInput = screen.getByPlaceholderText('your-organization')
+    const tenantInput = screen.getByPlaceholderText('your-organisation')
     const emailInput = screen.getByPlaceholderText('you@example.com')
     const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement
     const submitButton = screen.getByRole('button', { name: /sign in/i })
@@ -129,7 +129,7 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    const tenantInput = screen.getByPlaceholderText('your-organization')
+    const tenantInput = screen.getByPlaceholderText('your-organisation')
     const emailInput = screen.getByPlaceholderText('you@example.com')
     const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement
     const submitButton = screen.getByRole('button', { name: /sign in/i })
@@ -162,7 +162,7 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    const demoButton = screen.getByRole('button', { name: /demo login/i })
+    const demoButton = screen.getByRole('button', { name: /open demo workspace/i })
     fireEvent.click(demoButton)
 
     await waitFor(() => {
@@ -181,7 +181,7 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
-    const demoButton = screen.getByRole('button', { name: /demo login/i })
+    const demoButton = screen.getByRole('button', { name: /open demo workspace/i })
     fireEvent.click(demoButton)
 
     await waitFor(() => {
@@ -199,7 +199,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     // Initially in email mode
-    expect(screen.getByPlaceholderText('your-organization')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('your-organisation')).toBeInTheDocument()
 
     // Click toggle to API key mode
     const toggleButton = screen.getByText('Use API key instead')
@@ -207,14 +207,14 @@ describe('LoginPage', () => {
 
     // Should now show API key form
     expect(screen.getByPlaceholderText('int_xxxxxxxxxxxxxxxx')).toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('your-organization')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('your-organisation')).not.toBeInTheDocument()
 
     // Toggle back
-    const backButton = screen.getByText('Use email login instead')
+    const backButton = screen.getByText('Use workspace credentials instead')
     fireEvent.click(backButton)
 
     // Should be back to email form
-    expect(screen.getByPlaceholderText('your-organization')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('your-organisation')).toBeInTheDocument()
   })
 
   it('test_api_key_login_validates_and_navigates', async () => {

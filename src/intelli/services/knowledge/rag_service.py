@@ -27,8 +27,10 @@ from intelli.db.models.substrate import Artifact
 from intelli.services.indexing.opensearch_chunks import OpenSearchChunkIndex
 from intelli.services.indexing.opensearch_client import OpenSearchClient, OpenSearchConfig
 from intelli.services.runs.ledger_service import LedgerService
+from intelli.services.runs.run_service import RunService
 from intelli.services.substrate.artifact_service import ArtifactService
 from intelli.services.substrate.manifest_service import ManifestService
+from intelli.services.usage.pricing import PRICE_TABLE_VERSION, estimate_cost_micros
 
 
 @dataclass(frozen=True)
@@ -113,6 +115,31 @@ class RagService:
             verify_certs=settings.opensearch_verify_certs,
         )
         return OpenSearchClient(cfg)
+
+    async def _record_model_usage(
+        self,
+        run_id: UUID | None,
+        *,
+        model: str,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+    ) -> int:
+        """Persist usage for a run and return estimated cost."""
+        cost_micros = estimate_cost_micros(
+            model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+        if run_id:
+            runs = RunService(self.session)
+            await runs.record_token_usage(
+                run_id,
+                model=model,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cost_micros=cost_micros,
+            )
+        return cost_micros
 
     async def _extract_text(
         self,
@@ -206,11 +233,24 @@ class RagService:
             input=texts,
         )
 
+        usage = getattr(resp, "usage", None)
+        input_tokens = int(getattr(usage, "prompt_tokens", 0) or getattr(usage, "total_tokens", 0) or 0)
+        cost_micros = await self._record_model_usage(
+            run_id,
+            model=settings.embedding_model,
+            input_tokens=input_tokens,
+        )
+
         if ledger and run_id:
             await ledger.log_tool_call_complete(
                 run_id=run_id,
                 tool_name=tool_name,
-                result={"items": len(resp.data)},
+                result={
+                    "items": len(resp.data),
+                    "input_tokens": input_tokens,
+                    "cost_micros": cost_micros,
+                    "price_table_version": PRICE_TABLE_VERSION,
+                },
                 duration_ms=int((perf_counter() - start) * 1000),
             )
 
@@ -522,16 +562,6 @@ class RagService:
         model = settings.chat_model
 
         start = perf_counter()
-        if ledger and run_id:
-            await ledger.log_llm_request(
-                run_id=run_id,
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-            )
-
         resp = await client.chat.completions.create(
             model=model,
             messages=[
@@ -541,12 +571,37 @@ class RagService:
         )
 
         answer = resp.choices[0].message.content or ""
+        usage = getattr(resp, "usage", None)
+        input_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+        output_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+        cost_micros = await self._record_model_usage(
+            run_id,
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+        if ledger and run_id:
+            await ledger.log_llm_request(
+                run_id=run_id,
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                input_tokens=input_tokens,
+            )
 
         if ledger and run_id:
             await ledger.log_llm_response(
                 run_id=run_id,
                 model=model,
-                response={"answer": answer},
+                response={
+                    "answer": answer,
+                    "price_table_version": PRICE_TABLE_VERSION,
+                },
+                output_tokens=output_tokens,
+                cost_micros=cost_micros,
                 duration_ms=int((perf_counter() - start) * 1000),
             )
 

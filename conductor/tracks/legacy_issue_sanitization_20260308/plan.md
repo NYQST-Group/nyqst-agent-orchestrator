@@ -1,5 +1,8 @@
 # Implementation Plan: Legacy Issue Sanitization
 
+## Rectification Note
+Validated on March 11, 2026 and partially superseded by `meta_tracks_rectification_20260311`. The staging work and import readiness checks landed, but provenance was weaker than planned because the authoritative staged issues do not retain inline `V4 OVERRIDE` headers. That gap is closed via `staging_issues/SANITIZATION_MANIFEST.md` and `staging_issues/SANITIZATION_MANIFEST.json`.
+
 ## Phase 1: Mapping & Discovery (Week 1) [checkpoint: 342cd37]
 - [x] Task: Map V4 Decisions to Legacy Issues b6fa16a
   - [x] Sub-task: Grep all V1/V2/V2M issues for known deprecated tech (e.g., Recharts, Temporal, Ory, PostHog)
@@ -10,7 +13,7 @@
 - [x] Task: Create Clean Staging Directory bb159e1
   - [x] Sub-task: Copy all `packs/*/issues/*.md` and `*.json` into a single, unified `staging_issues/` directory
 - [x] Task: Apply V4 Overrides to Files ca8bb89
-  - [x] Sub-task: Write a script to prepend `> V4 OVERRIDE: [DEC-V4-XXX]` blocks to the mapped files in the staging directory
+  - [~] Sub-task: Record V4 override provenance for the mapped files in the staging audit manifest
   - [x] Sub-task: Manually review and cleanse files with complex structural changes (e.g., the Migration 0005 splits)
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Staging & Rewriting' (Protocol in workflow.md) ff12ead
 

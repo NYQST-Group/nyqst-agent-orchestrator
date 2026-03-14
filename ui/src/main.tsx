@@ -16,6 +16,8 @@ const queryClient = new QueryClient({
   },
 })
 
+const SHOW_QUERY_DEVTOOLS = import.meta.env.VITE_SHOW_QUERY_DEVTOOLS === 'true'
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="system">
@@ -23,7 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <App />
         </BrowserRouter>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {SHOW_QUERY_DEVTOOLS ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       </QueryClientProvider>
     </ThemeProvider>
   </React.StrictMode>,

@@ -53,11 +53,11 @@ describe('MessageMetadataFooter', () => {
   it('renders token count when available', () => {
     mockUseMessage.mockReturnValue({
       role: 'assistant',
-      metadata: { outputTokens: 324 },
+      metadata: { inputTokens: 120, outputTokens: 324 },
     })
 
     render(<MessageMetadataFooter />)
-    expect(screen.getByText('324 tokens')).toBeInTheDocument()
+    expect(screen.getByText(/120 in.*324 out/)).toBeInTheDocument()
   })
 
   it('renders latency in milliseconds for short durations', () => {
@@ -83,12 +83,12 @@ describe('MessageMetadataFooter', () => {
   it('renders both token count and latency separated by bullet', () => {
     mockUseMessage.mockReturnValue({
       role: 'assistant',
-      metadata: { outputTokens: 324, latencyMs: 1200 },
+      metadata: { inputTokens: 120, outputTokens: 324, costMicros: 456, latencyMs: 1200 },
     })
 
     render(<MessageMetadataFooter />)
     // The bullet character is \u2022
-    expect(screen.getByText(/324 tokens.*1\.2s/)).toBeInTheDocument()
+    expect(screen.getByText(/120 in.*324 out.*\$0\.000456.*1\.2s/)).toBeInTheDocument()
   })
 
   it('does not render zero token counts', () => {
@@ -104,12 +104,11 @@ describe('MessageMetadataFooter', () => {
 
   it('does not render zero latency', () => {
     mockUseMessage.mockReturnValue({
-      role: 'assistant',
-      metadata: { outputTokens: 100, latencyMs: 0 },
+      role: 'assistant', metadata: { outputTokens: 100, latencyMs: 0 },
     })
 
     render(<MessageMetadataFooter />)
-    expect(screen.getByText('100 tokens')).toBeInTheDocument()
+    expect(screen.getByText('100 out')).toBeInTheDocument()
     expect(screen.queryByText('0ms')).not.toBeInTheDocument()
   })
 })

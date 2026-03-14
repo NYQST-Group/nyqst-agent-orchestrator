@@ -135,6 +135,29 @@ describe('RunTimeline', () => {
     expect(await screen.findByText('Completed')).toBeInTheDocument()
   })
 
+  it('shows token and cost summary when run usage is present', async () => {
+    mockRunsApi.get.mockResolvedValue(
+      makeRun({
+        token_usage: {
+          'gpt-5-nano': {
+            input_tokens: 120,
+            output_tokens: 324,
+            cost_micros: 456,
+          },
+        },
+      })
+    )
+    mockRunsApi.getEvents.mockResolvedValue([
+      makeRunEvent({ id: 1, event_type: 'llm_request', sequence_num: 1 }),
+      makeRunEvent({ id: 2, event_type: 'llm_response', sequence_num: 2 }),
+    ])
+
+    renderWithQuery(<RunTimeline runId="run-123" />)
+
+    expect(await screen.findByText('120 in · 324 out')).toBeInTheDocument()
+    expect(screen.getByText('$0.000456')).toBeInTheDocument()
+  })
+
   it('shows live indicator when run is active', async () => {
     const activeRun = makeRun({ status: 'running' })
     mockRunsApi.get.mockResolvedValue(activeRun)

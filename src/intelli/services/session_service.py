@@ -8,6 +8,7 @@ from intelli.core.clock import utc_now
 from intelli.core.exceptions import NotFoundError, ValidationError
 from intelli.db.models.conversations import Session, SessionStatus
 from intelli.repositories.sessions import SessionRepository
+from intelli.services.usage.pricing import PRICE_TABLE_VERSION
 
 # Valid state transitions (self-transitions are no-ops)
 _TRANSITIONS: dict[str, set[str]] = {
@@ -37,6 +38,21 @@ class SessionService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.repo = SessionRepository(session)
+
+    @staticmethod
+    def _merge_model_totals(model_totals: dict[str, dict[str, int]], token_usage: dict | None) -> None:
+        if not isinstance(token_usage, dict):
+            return
+        for model, usage in token_usage.items():
+            if not isinstance(usage, dict):
+                continue
+            bucket = model_totals.setdefault(
+                model,
+                {"input_tokens": 0, "output_tokens": 0, "cost_micros": 0},
+            )
+            bucket["input_tokens"] += int(usage.get("input_tokens", usage.get("input", 0)) or 0)
+            bucket["output_tokens"] += int(usage.get("output_tokens", usage.get("output", 0)) or 0)
+            bucket["cost_micros"] += int(usage.get("cost_micros", 0) or 0)
 
     async def start(
         self,
@@ -111,7 +127,7 @@ class SessionService:
             sess.closed_at = now
             sess.close_reason = close_reason or "user_ended"
             # Aggregate cost from conversations
-            cost = await self.repo.aggregate_cost(session_id)
+            cost = await self.get_cost_breakdown(session_id, tenant_id)
             sess.total_cost_micros = cost["total_cost_micros"]
 
         await self.session.flush()
@@ -128,6 +144,7 @@ class SessionService:
         """Get cost breakdown for a session."""
         await self.get(session_id, tenant_id)
         agg = await self.repo.aggregate_cost(session_id)
+        runs = await self.repo.list_runs(session_id)
 
         # Get per-conversation breakdown
         from sqlalchemy import select
@@ -138,12 +155,50 @@ class SessionService:
         result = await self.session.execute(stmt)
         convs = result.scalars().all()
 
+        non_chat_run_cost = 0
+        non_chat_input_tokens = 0
+        non_chat_output_tokens = 0
+        model_totals: dict[str, dict[str, int]] = {}
+        for run in runs:
+            self._merge_model_totals(model_totals, run.token_usage)
+            if run.run_type != "agent_chat":
+                non_chat_input_tokens += sum(
+                    int(usage.get("input_tokens", usage.get("input", 0)) or 0)
+                    for usage in (run.token_usage or {}).values()
+                    if isinstance(usage, dict)
+                )
+                non_chat_output_tokens += sum(
+                    int(usage.get("output_tokens", usage.get("output", 0)) or 0)
+                    for usage in (run.token_usage or {}).values()
+                    if isinstance(usage, dict)
+                )
+                non_chat_run_cost += sum(
+                    int(usage.get("cost_micros", 0) or 0)
+                    for usage in (run.token_usage or {}).values()
+                    if isinstance(usage, dict)
+                )
+
+        per_model = [
+            {
+                "model": model,
+                "input_tokens": totals["input_tokens"],
+                "output_tokens": totals["output_tokens"],
+                "cost_micros": totals["cost_micros"],
+            }
+            for model, totals in sorted(
+                model_totals.items(),
+                key=lambda item: (-item[1]["cost_micros"], item[0]),
+            )
+        ]
+
         return {
             "session_id": session_id,
-            "total_cost_micros": agg["total_cost_micros"],
+            "price_table_version": PRICE_TABLE_VERSION,
+            "total_cost_micros": agg["total_cost_micros"] + non_chat_run_cost,
             "conversation_count": agg["conversation_count"],
-            "total_input_tokens": agg["total_input_tokens"],
-            "total_output_tokens": agg["total_output_tokens"],
+            "total_input_tokens": agg["total_input_tokens"] + non_chat_input_tokens,
+            "total_output_tokens": agg["total_output_tokens"] + non_chat_output_tokens,
+            "models": per_model,
             "conversations": [
                 {
                     "id": str(c.id),

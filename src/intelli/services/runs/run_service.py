@@ -260,6 +260,25 @@ class RunService:
 
         return run
 
+    async def record_token_usage(
+        self,
+        run_id: UUID,
+        *,
+        model: str,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cost_micros: int = 0,
+    ) -> Run:
+        """Persist token and estimated cost usage for a run."""
+        run = await self.get_run(run_id)
+        return await self.repo.update_token_usage(
+            run,
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_micros=cost_micros,
+        )
+
     async def cancel_run(self, run_id: UUID) -> Run:
         """Cancel a run.
 

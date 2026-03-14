@@ -59,8 +59,6 @@ function ChatPanelInner({
   } = useConversationStore()
   const { activeRunId } = useRunStore()
 
-  console.log('[ChatPanel] Current activeRunId:', activeRunId)
-
   // Fetch conversations - filtered by scope_id (pointer) if provided
   const conversationsQuery = useQuery({
     queryKey: ['conversations', scopeId],

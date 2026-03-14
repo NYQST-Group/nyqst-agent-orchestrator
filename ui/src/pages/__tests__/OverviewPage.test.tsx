@@ -25,19 +25,20 @@ describe('OverviewPage', () => {
 
   it('renders module cards', () => {
     renderPage()
-    expect(screen.getByText('Doc Intelligence')).toBeInTheDocument()
-    expect(screen.getByText('Research Intelligence')).toBeInTheDocument()
-    expect(screen.getByText('Decision Intelligence')).toBeInTheDocument()
+    expect(screen.getByText('Source Library')).toBeInTheDocument()
+    expect(screen.getByText('Research')).toBeInTheDocument()
+    expect(screen.getByText('Decisions')).toBeInTheDocument()
   })
 
   it('shows guided tour button', () => {
     renderPage()
-    expect(screen.getByText('Take a Guided Tour')).toBeInTheDocument()
+    expect(screen.getByText('Take the guided tour')).toBeInTheDocument()
   })
 
   it('renders stat cards section', () => {
     renderPage()
-    expect(screen.getByText('Notebooks')).toBeInTheDocument()
-    expect(screen.getByText('Trust surface')).toBeInTheDocument()
+    expect(screen.getByText('Source libraries')).toBeInTheDocument()
+    expect(screen.getByText('Live runs')).toBeInTheDocument()
+    expect(screen.getByText('Testing cost')).toBeInTheDocument()
   })
 })

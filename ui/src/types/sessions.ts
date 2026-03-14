@@ -28,10 +28,17 @@ export interface SessionListResponse {
 
 export interface SessionCostBreakdown {
   session_id: string
+  price_table_version: string
   total_cost_micros: number
   conversation_count: number
   total_input_tokens: number
   total_output_tokens: number
+  models: Array<{
+    model: string
+    input_tokens: number
+    output_tokens: number
+    cost_micros: number
+  }>
   conversations: Array<{
     id: string
     title: string | null

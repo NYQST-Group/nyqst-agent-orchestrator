@@ -31,7 +31,7 @@ describe('NotebooksPage', () => {
       http.get('/api/v1/pointers', () => HttpResponse.json([]))
     )
     renderPage()
-    expect(screen.getByText('Doc Intelligence')).toBeInTheDocument()
+    expect(screen.getByText('Source Library')).toBeInTheDocument()
   })
 
   it('shows empty state when no notebooks', async () => {
@@ -40,7 +40,7 @@ describe('NotebooksPage', () => {
     )
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText(/No notebooks yet/)).toBeInTheDocument()
+      expect(screen.getByText(/No source libraries yet/)).toBeInTheDocument()
     })
   })
 
@@ -49,7 +49,7 @@ describe('NotebooksPage', () => {
       http.get('/api/v1/pointers', () => HttpResponse.json([]))
     )
     renderPage()
-    expect(screen.getByText('New notebook')).toBeInTheDocument()
+    expect(screen.getByText('New source library')).toBeInTheDocument()
   })
 
   it('shows loading state', () => {

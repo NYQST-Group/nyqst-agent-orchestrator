@@ -7,9 +7,13 @@ and logic that don't require a database connection.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
+
 import pytest
 
-from intelli.services.knowledge.rag_service import RetrievedChunk, _chunk_text
+from intelli.services.knowledge.rag_service import RagService, RetrievedChunk, _chunk_text
 
 pytestmark = pytest.mark.unit
 
@@ -98,3 +102,54 @@ class TestRetrievedChunk:
             score=0.5,
         )
         assert chunk.path_hint is None
+
+
+@pytest.mark.asyncio
+async def test_answer_records_usage_from_openai_response():
+    service = RagService(AsyncMock())
+    service.manifests.get_entries = AsyncMock(
+        return_value=[SimpleNamespace(artifact_sha256="abc123", path="hello.txt")]
+    )
+    service.retrieve = AsyncMock(
+        return_value=[
+            RetrievedChunk(
+                chunk_id=uuid4(),
+                artifact_sha256="abc123",
+                chunk_index=0,
+                content="Hello world",
+                score=0.9,
+                path_hint="hello.txt",
+            )
+        ]
+    )
+
+    response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="Answer"))],
+        usage=SimpleNamespace(prompt_tokens=11, completion_tokens=7),
+    )
+    client = MagicMock()
+    client.chat.completions.create = AsyncMock(return_value=response)
+    service._get_openai = MagicMock(return_value=client)
+    service._record_model_usage = AsyncMock(return_value=123)
+
+    ledger = AsyncMock()
+    run_id = uuid4()
+
+    with patch("intelli.services.knowledge.rag_service.settings.chat_model", "gpt-5-nano"):
+        answer, retrieved = await service.answer(
+            "manifest-sha",
+            "What is this document?",
+            run_id=run_id,
+            ledger=ledger,
+        )
+
+    assert answer == "Answer"
+    assert len(retrieved) == 1
+    service._record_model_usage.assert_awaited_once_with(
+        run_id,
+        model="gpt-5-nano",
+        input_tokens=11,
+        output_tokens=7,
+    )
+    ledger.log_llm_request.assert_awaited_once()
+    ledger.log_llm_response.assert_awaited_once()

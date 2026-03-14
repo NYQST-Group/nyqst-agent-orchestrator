@@ -155,6 +155,7 @@ class RunRepository(BaseRepository[Run]):
         model: str,
         input_tokens: int,
         output_tokens: int,
+        cost_micros: int = 0,
     ) -> Run:
         """Update token usage for a run.
 
@@ -167,10 +168,19 @@ class RunRepository(BaseRepository[Run]):
         Returns:
             Updated run
         """
-        if model not in run.token_usage:
-            run.token_usage[model] = {"input": 0, "output": 0}
-        run.token_usage[model]["input"] += input_tokens
-        run.token_usage[model]["output"] += output_tokens
+        existing = run.token_usage.get(model, {})
+        run.token_usage[model] = {
+            "input_tokens": int(existing.get("input_tokens", existing.get("input", 0))) + input_tokens,
+            "output_tokens": int(existing.get("output_tokens", existing.get("output", 0))) + output_tokens,
+            "cost_micros": int(existing.get("cost_micros", 0)) + cost_micros,
+        }
+
+        total_cost_micros = sum(
+            int(model_usage.get("cost_micros", 0))
+            for model_usage in run.token_usage.values()
+            if isinstance(model_usage, dict)
+        )
+        run.cost_cents = int(round(total_cost_micros / 10_000))
         await self.session.flush()
         return run
 

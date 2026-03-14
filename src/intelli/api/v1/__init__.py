@@ -12,6 +12,7 @@ from intelli.api.v1.pointers import router as pointers_router
 from intelli.api.v1.rag import router as rag_router
 from intelli.api.v1.runs import router as runs_router
 from intelli.api.v1.sessions import router as sessions_router
+from intelli.api.v1.shell import router as shell_router
 from intelli.api.v1.streams import router as streams_router
 from intelli.api.v1.tags import router as tags_router
 
@@ -27,5 +28,6 @@ router.include_router(pointers_router)
 router.include_router(rag_router)
 router.include_router(runs_router)
 router.include_router(sessions_router)
+router.include_router(shell_router)
 router.include_router(streams_router)
 router.include_router(tags_router)

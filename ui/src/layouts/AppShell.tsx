@@ -1,224 +1,225 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import {
-  BarChart3,
-  BookOpen,
-  Brain,
-  BriefcaseBusiness,
-  ClipboardCheck,
-  FileSearch,
-  LayoutGrid,
-  LogOut,
-  Settings,
-  Users,
-} from 'lucide-react'
+import { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { shellApi } from '@/api/shell'
+import { CenterViewport } from '@/layouts/shell/CenterViewport'
+import { CommandPalette } from '@/layouts/shell/CommandPalette'
+import { LeftRail } from '@/layouts/shell/LeftRail'
+import { OpsOverlay } from '@/layouts/shell/OpsOverlay'
+import { RightRail } from '@/layouts/shell/RightRail'
+import { SettingsDialog } from '@/layouts/shell/SettingsDialog'
+import { TopBar } from '@/layouts/shell/TopBar'
+import { getShellModuleFromPath, getShellModuleLabel } from '@/layouts/shell/shell-config'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/auth-store'
+import { useShellLayoutStore } from '@/stores/shell-layout-store'
 import { TourPanel } from '@/tour/TourPanel'
 
-type NavItem = {
-  to: string
-  label: string
-  description: string
-  icon: React.ReactNode
-}
-
-const NAV: NavItem[] = [
-  {
-    to: '/overview',
-    label: 'Overview',
-    description: 'What’s happening',
-    icon: <LayoutGrid className="h-4 w-4" />,
-  },
-  {
-    to: '/research',
-    label: 'Research Intelligence',
-    description: 'Gather + synthesize',
-    icon: <FileSearch className="h-4 w-4" />,
-  },
-  {
-    to: '/docs',
-    label: 'Doc Intelligence',
-    description: 'Notebooks + sources',
-    icon: <BookOpen className="h-4 w-4" />,
-  },
-  {
-    to: '/analysis',
-    label: 'Analysis Intelligence',
-    description: 'Workflows + outputs',
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-  {
-    to: '/decisions',
-    label: 'Decision Intelligence',
-    description: 'Claims + confidence',
-    icon: <ClipboardCheck className="h-4 w-4" />,
-  },
-  {
-    to: '/clients',
-    label: 'Client Intelligence',
-    description: 'CRM + context',
-    icon: <Users className="h-4 w-4" />,
-  },
-  {
-    to: '/projects',
-    label: 'Project Intelligence',
-    description: 'Workstreams + trace',
-    icon: <BriefcaseBusiness className="h-4 w-4" />,
-  },
-]
-
-function NavRow({ item }: { item: NavItem }) {
+function MobileOverlay({
+  open,
+  side,
+  onClose,
+  children,
+}: {
+  open: boolean
+  side: 'left' | 'right'
+  onClose: () => void
+  children: React.ReactNode
+}) {
   return (
-    <NavLink
-      to={item.to}
-      className={({ isActive }) =>
-        cn(
-          'group flex items-start gap-3 rounded-xl px-3 py-2 transition-colors',
-          isActive
-            ? 'bg-accent text-foreground'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-        )
-      }
+    <div
+      className={cn(
+        'fixed inset-0 z-40 bg-black/40 transition-opacity xl:hidden',
+        open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+      )}
+      onClick={onClose}
     >
-      <div className="mt-0.5 text-muted-foreground group-hover:text-foreground">
-        {item.icon}
+      <div
+        className={cn(
+          'absolute top-0 h-full w-[86vw] max-w-[360px] bg-background shadow-2xl transition-transform',
+          side === 'left' ? 'left-0' : 'right-0',
+          open
+            ? 'translate-x-0'
+            : side === 'left'
+              ? '-translate-x-full'
+              : 'translate-x-full'
+        )}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
       </div>
-      <div className="min-w-0">
-        <div className="truncate text-sm font-medium">{item.label}</div>
-        <div className="truncate text-xs opacity-80">{item.description}</div>
-      </div>
-    </NavLink>
+    </div>
   )
 }
 
 export function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { tenantName, role, logout } = useAuthStore()
+  const module = getShellModuleFromPath(location.pathname)
+  const moduleLabel = getShellModuleLabel(module)
+  const {
+    commandPaletteOpen,
+    opsOverlayOpen,
+    settingsOpen,
+    leftRailMobileOpen,
+    rightRailMobileOpen,
+    setCommandPaletteOpen,
+    setOpsOverlayOpen,
+    setSettingsOpen,
+    setLeftRailMobileOpen,
+    setRightRailMobileOpen,
+  } = useShellLayoutStore()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
+  const contextQuery = useQuery({
+    queryKey: ['shell-context'],
+    queryFn: () => shellApi.getContext(),
+  })
+
+  const opsSummaryQuery = useQuery({
+    queryKey: ['ops-summary'],
+    queryFn: () => shellApi.getOpsSummary(),
+  })
+
+  const rightRailQuery = useQuery({
+    queryKey: ['shell-right-rail', module],
+    queryFn: () => shellApi.getRightRail(module),
+  })
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setCommandPaletteOpen(true)
+        return
+      }
+
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'o') {
+        event.preventDefault()
+        setOpsOverlayOpen(true)
+        return
+      }
+
+      if (event.key === 'Escape') {
+        setLeftRailMobileOpen(false)
+        setRightRailMobileOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [setCommandPaletteOpen, setLeftRailMobileOpen, setOpsOverlayOpen, setRightRailMobileOpen])
+
+  useEffect(() => {
+    setLeftRailMobileOpen(false)
+    setRightRailMobileOpen(false)
+  }, [location.pathname, setLeftRailMobileOpen, setRightRailMobileOpen])
+
+  const openAgent = () => {
+    navigate('/research')
+    setLeftRailMobileOpen(false)
+    setRightRailMobileOpen(false)
   }
 
-  const showAdvanced = !location.pathname.startsWith('/workbench')
-  const isDemo = import.meta.env.VITE_DEMO_MODE === 'true'
-
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background">
-      {isDemo && (
-        <div className="flex items-center justify-center bg-amber-500/10 px-3 py-1 text-xs text-amber-700 border-b border-amber-500/20">
-          Demo Mode — using mock data
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_40%),linear-gradient(to_bottom,_hsl(var(--background)),_hsl(var(--muted)/0.6))]">
+      <TopBar
+        context={contextQuery.data}
+        module={module}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        onOpenOps={() => setOpsOverlayOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenAgent={openAgent}
+        onToggleLeftRailMobile={() => setLeftRailMobileOpen(true)}
+        onToggleRightRailMobile={() => setRightRailMobileOpen(true)}
+      />
+
+      <div className="min-h-0 flex-1">
+        <div className="hidden h-full xl:block">
+          <PanelGroup direction="horizontal" autoSaveId="app-shell-layout">
+            <Panel defaultSize={19} minSize={14} maxSize={24} className="min-w-[240px]">
+              <LeftRail
+                onOpenSettings={() => setSettingsOpen(true)}
+                workspaceName={contextQuery.data?.workspace_name}
+                role={contextQuery.data?.current_user_role}
+              />
+            </Panel>
+            <PanelResizeHandle className="shell-resize-handle" />
+            <Panel defaultSize={56} minSize={38}>
+              <CenterViewport />
+            </Panel>
+            <PanelResizeHandle className="shell-resize-handle" />
+            <Panel defaultSize={25} minSize={18} maxSize={32} className="min-w-[300px]">
+              <RightRail
+                data={rightRailQuery.data}
+                isLoading={rightRailQuery.isLoading}
+                moduleLabel={moduleLabel}
+                onOpenAgent={openAgent}
+              />
+            </Panel>
+          </PanelGroup>
         </div>
-      )}
-      <div className="flex h-full flex-1 min-h-0">
-        {/* Sidebar */}
-        <aside className="hidden h-full w-[300px] shrink-0 border-r bg-gradient-to-b from-background to-muted/30 md:flex">
-          <div className="flex h-full w-full flex-col p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                  <Brain className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold leading-tight">
-                    Intelli
-                  </div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    Trusted analysis workspace
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <ThemeToggle />
-                <Button variant="ghost" size="icon" aria-label="Settings (coming soon)">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
 
-            <div className="mt-4 rounded-xl border bg-card px-3 py-2">
-              <div className="text-xs text-muted-foreground">Tenant</div>
-              <div className="truncate text-sm font-medium">{tenantName || 'Demo'}</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Role: {role ? role : '—'}
-              </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            <nav className="space-y-1">
-              {NAV.map((item) => (
-                <NavRow key={item.to} item={item} />
-              ))}
-            </nav>
-
-            <div className="mt-auto pt-4">
-              <Separator className="mb-3" />
-              <div className="flex items-center justify-between">
-                {showAdvanced ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('/workbench', '_blank', 'noopener,noreferrer')}
-                  >
-                    Open Dev Workbench
-                  </Button>
-                ) : (
-                  <div />
-                )}
-                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sign out">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="mt-2 text-[11px] text-muted-foreground">
-                Keep the backbone. Iterate the product.
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <main className="flex h-full min-w-0 flex-1 flex-col">
-          {/* Mobile top bar */}
-          <div className="flex items-center justify-between border-b bg-background px-4 py-3 md:hidden">
-            <div className="flex items-center gap-2">
-              <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                <Brain className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold leading-tight">Intelli</div>
-                <div className="text-xs text-muted-foreground truncate max-w-[220px]">
-                  {tenantName || 'Demo'}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <ThemeToggle />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('/workbench', '_blank', 'noopener,noreferrer')}
-              >
-                Dev
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sign out">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="min-w-0 flex-1 overflow-auto">
-            <Outlet />
-          </div>
-        </main>
+        <div className="h-full xl:hidden">
+          <CenterViewport />
+        </div>
       </div>
+
+      <MobileOverlay
+        open={leftRailMobileOpen}
+        side="left"
+        onClose={() => setLeftRailMobileOpen(false)}
+      >
+        <LeftRail
+          onNavigate={() => setLeftRailMobileOpen(false)}
+          onOpenSettings={() => {
+            setLeftRailMobileOpen(false)
+            setSettingsOpen(true)
+          }}
+          workspaceName={contextQuery.data?.workspace_name}
+          role={contextQuery.data?.current_user_role}
+        />
+      </MobileOverlay>
+
+      <MobileOverlay
+        open={rightRailMobileOpen}
+        side="right"
+        onClose={() => setRightRailMobileOpen(false)}
+      >
+        <RightRail
+          data={rightRailQuery.data}
+          isLoading={rightRailQuery.isLoading}
+          moduleLabel={moduleLabel}
+          onOpenAgent={() => {
+            setRightRailMobileOpen(false)
+            openAgent()
+          }}
+        />
+      </MobileOverlay>
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        context={contextQuery.data}
+        onOpenOps={() => setOpsOverlayOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenAgent={openAgent}
+      />
+
+      <OpsOverlay
+        open={opsOverlayOpen}
+        onOpenChange={setOpsOverlayOpen}
+        summary={opsSummaryQuery.data}
+        isLoading={opsSummaryQuery.isLoading}
+      />
+
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        models={contextQuery.data?.available_models ?? []}
+      />
+
       <TourPanel />
     </div>
   )
 }
-

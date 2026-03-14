@@ -1,5 +1,8 @@
 # Implementation Plan: Meta-Track - F2B Project Lifecycle & Infrastructure
 
+## Rectification Note
+Validated on March 11, 2026 and partially superseded by `meta_tracks_rectification_20260311`. Phase 1 and Phase 3 outcomes are materially landed. Phase 2 is reinterpreted as read-only validation rather than issue-closing automation, and Phase 4 remains partial because tenant-isolation fields are not yet present on the core run/substrate tables and the corresponding P0 work remains open.
+
 ## Phase 1: V4 Plan Alignment & GitHub Initialization (Week 1) [checkpoint: d584c7c]
 - [x] Task: Review and lock V4 Epics against current codebase constraints 149a129
   - [x] Sub-task: Identify any discrepancies between V4 specs and existing repo
@@ -18,10 +21,10 @@
 - [x] Task: Build Sync Script (`sync-conductor.sh`) ed574f3
   - [x] Sub-task: Write parser for `conductor/tracks/*/plan.md` tasks
   - [x] Sub-task: Implement `gh issue view` calls to check remote state
-  - [x] Sub-task: Implement `gh issue close` for locally completed tasks
+  - [~] Sub-task: Implement read-only drift detection in place of local issue-closing side effects
 - [x] Task: Automate Sync Execution 6513e10
   - [x] Sub-task: Hook script into Git `pre-commit` or `post-commit`
-  - [x] Sub-task: Ensure the workflow strictly requires issue IDs on tasks
+  - [~] Sub-task: Ensure the workflow strictly requires issue IDs or sidecar mappings on future tasks
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Conductor & GitHub Synchronization' (Protocol in workflow.md) 0916ff1
 
 ## Phase 3: F2B Lifecycle & Infrastructure Bootstrap (Week 2) [checkpoint: ecaacd8]
@@ -37,6 +40,6 @@
 ## Phase 4: Core Contracts & Hygiene Alignment (Week 2) [checkpoint: 36b2485]
 - [x] Task: Audit existing base contracts against V4 specifications (EPIC-CONTRACTS) ba16606
   - [x] Sub-task: Validate existing `RunEvents` schema
-  - [x] Sub-task: Validate baseline tenant-isolation fields (e.g., `tenant_id`)
+  - [~] Sub-task: Validate baseline tenant-isolation fields (e.g., `tenant_id`)
   - [x] Sub-task: Ensure PR templates require Contract review for schema changes
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Core Contracts & Hygiene Alignment' (Protocol in workflow.md) 36b2485

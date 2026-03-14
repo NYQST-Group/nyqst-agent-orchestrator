@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "defaults": {
+    "enforce_mapping": false
+  },
+  "tracks": {
+    "meta_f2b_bootstrap_20260308": {
+      "enforce_mapping": false,
+      "reason": "Historical meta track; no one-to-one GitHub issue mapping exists for its tasks."
+    },
+    "project_reporting_20260308": {
+      "enforce_mapping": false,
+      "reason": "Superseded by repo-first reporting; future reporting tracks should opt into explicit mappings."
+    },
+    "legacy_issue_sanitization_20260308": {
+      "enforce_mapping": false,
+      "reason": "Historical sanitization track without task-level issue references."
+    },
+    "meta_build_process_analysis_20260308": {
+      "enforce_mapping": false,
+      "reason": "Historical RCA track without task-level issue references."
+    },
+    "meta_tracks_rectification_20260311": {
+      "enforce_mapping": false,
+      "reason": "Corrective documentation track; follow-on implementation tracks should opt into explicit mappings."
+    }
+  }
+}

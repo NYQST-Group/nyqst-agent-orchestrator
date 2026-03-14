@@ -179,7 +179,7 @@ export function NotebookPage() {
           <div className="flex min-w-0 items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/docs')}>
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Notebooks
+              Source Library
             </Button>
             <Separator orientation="vertical" className="h-6" />
             <div className="min-w-0">
@@ -188,7 +188,7 @@ export function NotebookPage() {
                 <h1 className="truncate text-base font-semibold">{pointer.name}</h1>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {pointer.manifest_sha256 ? 'Sources loaded' : 'No sources yet'} · {entries.length} file
+                {pointer.manifest_sha256 ? 'Sources ready' : 'No sources yet'} · {entries.length} file
                 {entries.length === 1 ? '' : 's'}
               </p>
             </div>
@@ -233,7 +233,7 @@ export function NotebookPage() {
               <div className="px-4 py-6 text-sm text-muted-foreground">Loading…</div>
             ) : entries.length === 0 ? (
               <div className="px-4 py-6 text-sm text-muted-foreground">
-                Upload PDFs/DOCX/HTML/text to start.
+                Upload PDFs, DOCX, HTML, or text files to start building this source library.
               </div>
             ) : (
               <div className="divide-y">

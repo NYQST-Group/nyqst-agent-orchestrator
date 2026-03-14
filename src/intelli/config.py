@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     openai_base_url: str | None = Field(default=None)
 
     # LLM (for answer generation)
-    chat_model: str = Field(default="gpt-4o-mini")
+    chat_model: str = Field(default="gpt-5-nano")
     chat_model_temperature: float = Field(default=0.2, description="LLM temperature for chat/agent")
     chat_model_max_tokens: int = Field(
         default=4096, description="Max completion tokens (includes reasoning)"

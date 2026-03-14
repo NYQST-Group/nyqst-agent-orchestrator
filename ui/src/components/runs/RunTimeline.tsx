@@ -137,14 +137,47 @@ function TimelineEvent({ event, isLast }: { event: RunEvent; isLast: boolean }) 
   )
 }
 
+function summarizeTokenUsage(tokenUsage: Record<string, unknown> | undefined) {
+  const totals = { inputTokens: 0, outputTokens: 0, costMicros: 0 }
+  if (!tokenUsage) {
+    return totals
+  }
+
+  for (const usage of Object.values(tokenUsage)) {
+    if (!usage || typeof usage !== 'object') continue
+    const record = usage as Record<string, unknown>
+    totals.inputTokens += Number(record.input_tokens ?? record.input ?? 0)
+    totals.outputTokens += Number(record.output_tokens ?? record.output ?? 0)
+    totals.costMicros += Number(record.cost_micros ?? 0)
+  }
+
+  return totals
+}
+
+function formatCost(costMicros: number): string {
+  const usd = costMicros / 1_000_000
+  if (usd === 0) return '$0.00'
+  if (usd >= 0.01) return `$${usd.toFixed(4)}`
+  return `$${usd.toFixed(6)}`.replace(/0+$/, '').replace(/\.$/, '')
+}
+
 /**
  * Summary stats displayed at the top of the timeline.
  */
-function TimelineSummary({ events, isLive }: { events: RunEvent[]; isLive: boolean }) {
+function TimelineSummary({
+  events,
+  isLive,
+  tokenUsage,
+}: {
+  events: RunEvent[]
+  isLive: boolean
+  tokenUsage?: Record<string, unknown>
+}) {
   const toolCalls = events.filter((e) => e.event_type === 'tool_call_started').length
   const llmCalls = events.filter((e) => e.event_type === 'llm_request').length
   const totalDuration = events.reduce((acc, e) => acc + (e.duration_ms ?? 0), 0)
   const hasError = events.some((e) => e.event_type === 'error' || e.event_type === 'run_failed')
+  const usage = summarizeTokenUsage(tokenUsage)
 
   return (
     <div className="flex items-center gap-4 text-xs text-muted-foreground pb-3 border-b mb-3">
@@ -164,6 +197,18 @@ function TimelineSummary({ events, isLive }: { events: RunEvent[]; isLive: boole
         <span className="flex items-center gap-1">
           <MessageSquare className="h-3 w-3" />
           {llmCalls} LLM call{llmCalls !== 1 ? 's' : ''}
+        </span>
+      )}
+      {(usage.inputTokens > 0 || usage.outputTokens > 0) && (
+        <span className="flex items-center gap-1">
+          <MessageSquare className="h-3 w-3" />
+          {usage.inputTokens.toLocaleString()} in · {usage.outputTokens.toLocaleString()} out
+        </span>
+      )}
+      {usage.costMicros > 0 && (
+        <span className="flex items-center gap-1">
+          <Zap className="h-3 w-3" />
+          {formatCost(usage.costMicros)}
         </span>
       )}
       {totalDuration > 0 && (
@@ -257,7 +302,7 @@ export function RunTimeline({ runId, className }: RunTimelineProps) {
 
   return (
     <div className={cn('p-4', className)}>
-      <TimelineSummary events={allEvents} isLive={isLive} />
+      <TimelineSummary events={allEvents} isLive={isLive} tokenUsage={run?.token_usage} />
       <ScrollArea className="max-h-[400px]">
         <div className="pr-4">
           {visibleEvents.map((event, index) => (

@@ -93,6 +93,7 @@ class TestSessionCostBreakdown:
                 "conversation_count": 2,
                 "total_input_tokens": 100,
                 "total_output_tokens": 150,
+                "price_table_version": "openai-2026-03-14",
             }
         )
         assert data.session_id == session_id
@@ -113,6 +114,7 @@ class TestSessionCostBreakdown:
                 "conversation_count": 1,
                 "total_input_tokens": 200,
                 "total_output_tokens": 300,
+                "price_table_version": "openai-2026-03-14",
                 "conversations": [
                     {
                         "id": str(conv_id),

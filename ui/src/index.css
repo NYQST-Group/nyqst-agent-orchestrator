@@ -58,7 +58,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
@@ -89,4 +89,18 @@
 .resize-handle[data-resize-handle-state="hover"],
 .resize-handle[data-resize-handle-state="drag"] {
   @apply bg-primary/30;
+}
+
+.shell-resize-handle {
+  @apply relative w-2 bg-transparent transition-colors;
+}
+
+.shell-resize-handle::before {
+  content: '';
+  @apply absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border/70;
+}
+
+.shell-resize-handle[data-resize-handle-state="hover"]::before,
+.shell-resize-handle[data-resize-handle-state="drag"]::before {
+  @apply bg-primary/40;
 }

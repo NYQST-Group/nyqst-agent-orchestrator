@@ -37,6 +37,8 @@ interface AssistantMessageMetadata {
   assistantMessageId?: string
   outputTokens?: number
   inputTokens?: number
+  costMicros?: number
+  priceTableVersion?: string
   latencyMs?: number
 }
 
@@ -124,25 +126,17 @@ export function NyqstAssistantProvider({
 
   const handleFinish = useCallback(
     ({ message }: { message: unknown }) => {
-      console.log('[AssistantRuntime] handleFinish called with message:', message)
-
       // Capture conversation_id and run_id from message metadata (emitted by backend)
       if (!hasMetadata(message)) {
-        console.log('[AssistantRuntime] No metadata found on message')
         return
       }
-
-      console.log('[AssistantRuntime] Message metadata:', message.metadata)
 
       const respConvId = message.metadata.conversationId
       const respRunId = message.metadata.runId
       const respAssistantMsgId = message.metadata.assistantMessageId
 
-      console.log('[AssistantRuntime] Extracted - convId:', respConvId, 'runId:', respRunId, 'msgId:', respAssistantMsgId)
-
       // Update run ID for timeline display
       if (respRunId) {
-        console.log('[AssistantRuntime] Setting activeRunId:', respRunId)
         setActiveRunId(respRunId)
       }
 

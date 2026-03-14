@@ -6,6 +6,7 @@ from sqlalchemy import and_, func, select
 
 from intelli.core.clock import utc_now
 from intelli.db.models.conversations import Conversation, Session
+from intelli.db.models.runs import Run
 from intelli.repositories.base import BaseRepository
 
 
@@ -126,3 +127,13 @@ class SessionRepository(BaseRepository[Session]):
             "total_output_tokens": row.output_tokens,
             "total_cost_micros": row.cost_micros,
         }
+
+    async def list_runs(self, session_id: UUID) -> list[Run]:
+        """List runs linked to a session."""
+        stmt = (
+            select(Run)
+            .where(Run.session_id == session_id)
+            .order_by(Run.created_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

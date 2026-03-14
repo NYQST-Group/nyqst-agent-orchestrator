@@ -101,17 +101,17 @@ describe('ResearchPage', () => {
   describe('Initial State', () => {
     it('renders the page title', () => {
       renderPage()
-      expect(screen.getByText('Research Assistant')).toBeInTheDocument()
+      expect(screen.getByText('Research Workspace')).toBeInTheDocument()
     })
 
     it('shows notebook selector button', () => {
       renderPage()
-      expect(screen.getByText('Select notebook')).toBeInTheDocument()
+      expect(screen.getByText('Select source library')).toBeInTheDocument()
     })
 
     it('shows prompt to select a notebook', () => {
       renderPage()
-      expect(screen.getByText('Select a notebook to start')).toBeInTheDocument()
+      expect(screen.getByText('Select a source library to start')).toBeInTheDocument()
     })
 
     it('does not show chat interface before notebook selection', () => {
@@ -124,11 +124,11 @@ describe('ResearchPage', () => {
   describe('Notebook Selector', () => {
     it('opens dropdown on click', async () => {
       renderPage()
-      const button = screen.getByText('Select notebook')
+      const button = screen.getByText('Select source library')
       await userEvent.click(button)
       // Dropdown should now be visible (even if empty)
       await waitFor(() => {
-        expect(screen.getByText(/No notebooks with documents/)).toBeInTheDocument()
+        expect(screen.getByText(/No source libraries with documents/)).toBeInTheDocument()
       })
     })
 
@@ -145,7 +145,7 @@ describe('ResearchPage', () => {
       )
 
       renderPage()
-      const button = screen.getByText('Select notebook')
+      const button = screen.getByText('Select source library')
       await userEvent.click(button)
 
       await waitFor(() => {
@@ -166,7 +166,7 @@ describe('ResearchPage', () => {
       renderPage()
 
       // Open selector and pick notebook
-      await userEvent.click(screen.getByText('Select notebook'))
+      await userEvent.click(screen.getByText('Select source library'))
       await waitFor(() => {
         expect(screen.getByText('Test Notebook')).toBeInTheDocument()
       })
@@ -229,7 +229,7 @@ describe('ResearchPage', () => {
 
       // Wait for component to mount fully
       await waitFor(() => {
-        expect(screen.getByText('Research Assistant')).toBeInTheDocument()
+        expect(screen.getByText('Research Workspace')).toBeInTheDocument()
       })
 
       unmount()
@@ -254,7 +254,7 @@ describe('ResearchPage', () => {
       renderPage()
 
       await waitFor(() => {
-        expect(screen.getByText('Research Assistant')).toBeInTheDocument()
+        expect(screen.getByText('Research Workspace')).toBeInTheDocument()
       })
     })
   })
@@ -270,7 +270,7 @@ describe('ResearchPage', () => {
       )
 
       renderPage()
-      await userEvent.click(screen.getByText('Select notebook'))
+      await userEvent.click(screen.getByText('Select source library'))
       await waitFor(() => screen.getByText('Test Notebook'))
       await userEvent.click(screen.getByText('Test Notebook'))
 

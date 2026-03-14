@@ -1,0 +1,51 @@
+{
+  "branch_protection_contexts": [
+    "Backend Tests",
+    "Lint"
+  ],
+  "branch_protection_enabled": true,
+  "conductor_validation_errors": [
+    "/tmp/repo/conductor/tracks/example_track/plan.md:3: task is complete but mapped issue #12 is OPEN"
+  ],
+  "generated_on": "2026-03-11",
+  "latest_workflows": {
+    "Backend Tests": "success",
+    "External Schema Publisher": "failure",
+    "Lint": "success"
+  },
+  "milestone_count": 2,
+  "mock_contract_publisher": true,
+  "open_issue_count": 3,
+  "open_p0_titles": [
+    "[P0-004] Add tenant_id to core run tables"
+  ],
+  "project_board_present": false,
+  "repository": "NYQST-Group/NYQST-DocuIntelli-Build",
+  "risks": [
+    {
+      "detail": "1 validation issue(s) need correction.",
+      "severity": "high",
+      "source": "sync-conductor validation",
+      "title": "Conductor plan / issue drift detected"
+    },
+    {
+      "detail": "The latest recorded conclusion is 'failure'.",
+      "severity": "high",
+      "source": "GitHub Actions",
+      "title": "Workflow not green: External Schema Publisher"
+    },
+    {
+      "detail": "Open P0 items: [P0-004] Add tenant_id to core run tables",
+      "severity": "high",
+      "source": "GitHub issues",
+      "title": "P0 stabilization work remains open"
+    },
+    {
+      "detail": "The backstage schema publishing workflow still exits with a mock/incomplete implementation.",
+      "severity": "medium",
+      "source": "Workflow file",
+      "title": "Contract publisher is still mocked"
+    }
+  ],
+  "total_issues": 4
+}

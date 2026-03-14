@@ -215,6 +215,33 @@ class TestCancelRun:
             await service.cancel_run(run.id)
 
 
+class TestRecordTokenUsage:
+    @pytest.mark.asyncio
+    async def test_records_usage_via_repo(self):
+        session = AsyncMock()
+        service = RunService(session)
+        run = _make_run(RunStatus.RUNNING.value)
+        service.repo.get_by_id = AsyncMock(return_value=run)
+        service.repo.update_token_usage = AsyncMock(return_value=run)
+
+        result = await service.record_token_usage(
+            run.id,
+            model="gpt-5-nano",
+            input_tokens=120,
+            output_tokens=324,
+            cost_micros=456,
+        )
+
+        assert result is run
+        service.repo.update_token_usage.assert_awaited_once_with(
+            run,
+            model="gpt-5-nano",
+            input_tokens=120,
+            output_tokens=324,
+            cost_micros=456,
+        )
+
+
 class TestListRuns:
     @pytest.mark.asyncio
     async def test_list_by_project(self):

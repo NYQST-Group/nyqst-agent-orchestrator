@@ -7,9 +7,14 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from intelli.api.dependencies import get_session
+from intelli.api.middleware.auth import authenticate
+from intelli.core.context import RequestContext
 from intelli.main import create_app
 
 pytestmark = [pytest.mark.unit, pytest.mark.asyncio]
+
+_TEST_TENANT_ID = uuid4()
+_TEST_USER_ID = uuid4()
 
 
 @pytest.fixture
@@ -22,7 +27,17 @@ async def mock_client():
         mock_session = AsyncMock()
         yield mock_session
 
+    # Mock authentication to bypass auth middleware
+    async def mock_authenticate():
+        return RequestContext(
+            tenant_id=_TEST_TENANT_ID,
+            user_id=_TEST_USER_ID,
+            role="admin",
+            scopes=["read", "write"],
+        )
+
     app.dependency_overrides[get_session] = mock_get_session
+    app.dependency_overrides[authenticate] = mock_authenticate
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

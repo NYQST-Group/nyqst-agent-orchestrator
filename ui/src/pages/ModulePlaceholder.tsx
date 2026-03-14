@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, ExternalLink } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -39,16 +39,9 @@ export function ModulePlaceholder({ title, tagline, bullets, status = 'next' }: 
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{tagline}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate('/docs')}>
-            Open Doc Intelligence
+          <Button variant="outline" onClick={() => navigate('/overview')}>
+            Return to overview
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => window.open('/workbench', '_blank', 'noopener,noreferrer')}
-          >
-            Dev Workbench
-            <ExternalLink className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -57,7 +50,7 @@ export function ModulePlaceholder({ title, tagline, bullets, status = 'next' }: 
         <div className="px-5 py-4">
           <div className="text-sm font-semibold">What this module becomes</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            Built on the same backbone: artifacts, manifests, pointers, runs, and policy.
+            This route stays visible so the studio feels coherent even while deeper capability is still being assembled.
           </div>
         </div>
         <Separator />
@@ -74,4 +67,3 @@ export function ModulePlaceholder({ title, tagline, bullets, status = 'next' }: 
     </div>
   )
 }
-

@@ -1,0 +1,38 @@
+[
+  {
+    "labels": [],
+    "milestone": {
+      "title": "M0: Foundation"
+    },
+    "number": 4,
+    "state": "OPEN",
+    "title": "[P0-004] Add tenant_id to core run tables"
+  },
+  {
+    "labels": [],
+    "milestone": {
+      "title": "M0: Foundation"
+    },
+    "number": 11,
+    "state": "OPEN",
+    "title": "[P1-001] Bootstrap repo"
+  },
+  {
+    "labels": [],
+    "milestone": {
+      "title": "M1: Reporting"
+    },
+    "number": 12,
+    "state": "OPEN",
+    "title": "[P2-002] Reporting MVP"
+  },
+  {
+    "labels": [],
+    "milestone": {
+      "title": "M1: Reporting"
+    },
+    "number": 13,
+    "state": "CLOSED",
+    "title": "[P2-003] Legacy staging corpus"
+  }
+]

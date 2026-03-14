@@ -409,7 +409,7 @@ class TestLLMConfig:
             patch("intelli.agents.graphs.research_assistant.ChatOpenAI") as mock_chat,
             patch("intelli.agents.graphs.research_assistant.settings") as mock_settings,
         ):
-            mock_settings.chat_model = "gpt-4o-mini"
+            mock_settings.chat_model = "gpt-5-nano"
             mock_settings.openai_api_key = "test"
             mock_settings.openai_base_url = None
             mock_settings.chat_model_temperature = 0.2

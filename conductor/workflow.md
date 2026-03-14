@@ -15,7 +15,7 @@ Before beginning any Track, you must implicitly categorize it to apply the corre
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
-7. **Issue Tracking:** Every piece of work must correlate to an issue. Commits and PRs must reference these issues (e.g., `Resolves #123`).
+7. **Issue Tracking:** Every piece of work must correlate to an issue. Use either an inline issue reference in `plan.md` (for example, `#123`) or a sidecar entry in `conductor/task_issue_map.json`. Validation is read-only and detects drift; GitHub issue closure must come from PR merge keywords (for example, `Resolves #123`), not local checkbox mutation.
 8. **Intelligent Refactoring:** When updating large documentation or legacy files, use intelligent LLM rewrites to preserve semantic context. Do NOT use blind `sed`/regex replacements or inject generic warning blocks that degrade readability.
 
 ## Task Workflow
@@ -24,7 +24,7 @@ All tasks follow a strict lifecycle:
 
 ### Standard Task Workflow
 
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order. Identify the corresponding issue ticket number if applicable.
+1. **Select Task:** Choose the next available task from `plan.md` in sequential order. Identify the corresponding issue ticket number before starting and record it either inline in `plan.md` or in `conductor/task_issue_map.json`. Do not begin implementation without that mapping.
 
 2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
 
@@ -147,7 +147,12 @@ All tasks follow a strict lifecycle:
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
-10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+10. **Generate Repo-First Health Report:**
+    - Run `python scripts/reporting/generate_report.py` (or the project-equivalent entrypoint) after the phase validation succeeds.
+    - Confirm that it updates `reports/project_health/<date>.md`, `reports/project_health/<date>.json`, and `RISK_REGISTER.md`.
+    - If report generation fails, the phase is not complete.
+
+11.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
 
 

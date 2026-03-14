@@ -1,0 +1,196 @@
+{
+  "authoritative_dir": "staging_issues",
+  "generated_on": "2026-03-11",
+  "legacy_pack_tree_available": false,
+  "provenance_model": "manifest_addendum",
+  "entries": [
+    {
+      "id": "BL-004",
+      "staging_files": [
+        "BL-004.md",
+        "BL-004a.md",
+        "BL-004b.md",
+        "BL-004__bl-004-nyqst-markup-ast-schema.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/BL-004.md",
+        "packs/V2/issues/BL-004a.md",
+        "packs/V2/issues/BL-004b.md"
+      ],
+      "decisions": ["DEC-V4-048", "GAP-001"],
+      "change_summary": "Aligned charting and rendering assumptions to the V4 stack while preserving the split staged output."
+    },
+    {
+      "id": "BL-005",
+      "staging_files": [
+        "BL-005.md",
+        "BL-005a.md",
+        "BL-005b.md",
+        "BL-005c.md",
+        "BL-005__bl-005-report-generation-node.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/BL-005.md",
+        "packs/V2/issues/BL-005a.md",
+        "packs/V2/issues/BL-005b.md",
+        "packs/V2/issues/BL-005c.md"
+      ],
+      "decisions": ["DEC-V4-048", "GAP-001"],
+      "change_summary": "Normalized reporting-node assumptions around the current rendering and charting direction."
+    },
+    {
+      "id": "BL-009",
+      "staging_files": [
+        "BL-009.md",
+        "BL-009__bl-009-reportrenderer-component.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/BL-009.md"
+      ],
+      "decisions": ["DEC-V4-048", "GAP-001"],
+      "change_summary": "Preserved renderer intent while aligning visualization references to the V4 charting choice."
+    },
+    {
+      "id": "BL-019",
+      "staging_files": [
+        "BL-019.md",
+        "BL-019a.md",
+        "BL-019b.md",
+        "BL-019c.md",
+        "BL-019__bl-019-document-deliverable-pdf-docx-export.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/BL-019.md",
+        "packs/V2/issues/BL-019a.md",
+        "packs/V2/issues/BL-019b.md",
+        "packs/V2/issues/BL-019c.md"
+      ],
+      "decisions": ["DEC-V4-048", "GAP-001"],
+      "change_summary": "Kept export requirements while removing conflicting legacy charting assumptions from the staged corpus."
+    },
+    {
+      "id": "EPIC-P0",
+      "staging_files": [
+        "EPIC-P0.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/EPIC-P0.md"
+      ],
+      "decisions": ["DEC-V4-008"],
+      "change_summary": "Aligned orchestration and scheduling language to arq plus cron-based execution."
+    },
+    {
+      "id": "STORY-PROD-004",
+      "staging_files": [
+        "STORY-PROD-004.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2M/issues/STORY-PROD-004.md"
+      ],
+      "decisions": ["DEC-V4-008"],
+      "change_summary": "Trimmed production scheduling expectations to the supported worker model in V4."
+    },
+    {
+      "id": "BL-007",
+      "staging_files": [
+        "BL-007.md",
+        "BL-007a.md",
+        "BL-007__bl-007-planviewer-component.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/BL-007.md",
+        "packs/V2/issues/BL-007a.md"
+      ],
+      "decisions": ["DEC-V4-001", "DEC-V4-003"],
+      "change_summary": "Updated plan-viewer issues to reflect event-sourced plan state and tenant-aware streaming."
+    },
+    {
+      "id": "P0-002",
+      "staging_files": [
+        "P0-002.md",
+        "P0-002__p0-002-fix-runevent-sequence-num-race-unique-constraint-violations-under-concurr.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/P0-002.md"
+      ],
+      "decisions": ["DEC-V4-001", "DEC-V4-003"],
+      "change_summary": "Aligned concurrency and event-ordering work to RunEvents and tenant-aware streaming semantics."
+    },
+    {
+      "id": "OBS-002",
+      "staging_files": [
+        "OBS-002.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/OBS-002.md"
+      ],
+      "decisions": ["DEC-V4-001", "DEC-V4-003"],
+      "change_summary": "Adjusted observability expectations to match the event-sourced run model."
+    },
+    {
+      "id": "STUDIO-001",
+      "staging_files": [
+        "STUDIO-001.md",
+        "STORY-STUDIO-001.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/STUDIO-001.md"
+      ],
+      "decisions": ["DEC-V4-010"],
+      "change_summary": "Reduced studio scope to the supported V4 surface and deferred non-essential integrations."
+    },
+    {
+      "id": "STUDIO-002",
+      "staging_files": [
+        "STUDIO-002.md",
+        "STORY-STUDIO-002.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/STUDIO-002.md"
+      ],
+      "decisions": ["DEC-V4-010"],
+      "change_summary": "Preserved the narrowed studio scope rather than the broader legacy integration model."
+    },
+    {
+      "id": "STUDIO-003",
+      "staging_files": [
+        "STUDIO-003.md",
+        "TASK-STUDIO-003.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/STUDIO-003.md"
+      ],
+      "decisions": ["DEC-V4-010"],
+      "change_summary": "Kept the studio work actionable while reflecting the scope cuts recorded in V4."
+    },
+    {
+      "id": "STUDIO-004",
+      "staging_files": [
+        "STUDIO-004.md",
+        "STUDIO-004a.md",
+        "STUDIO-004b.md",
+        "STUDIO-004c.md",
+        "STORY-STUDIO-004.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/STUDIO-004.md",
+        "packs/V2/issues/STUDIO-004a.md",
+        "packs/V2/issues/STUDIO-004b.md",
+        "packs/V2/issues/STUDIO-004c.md"
+      ],
+      "decisions": ["DEC-V4-010"],
+      "change_summary": "Preserved the decomposed scope but excluded the cut integrations and workflow-editor assumptions."
+    },
+    {
+      "id": "STUDIO-005",
+      "staging_files": [
+        "STUDIO-005.md"
+      ],
+      "legacy_source_lineage": [
+        "packs/V2/issues/STUDIO-005.md"
+      ],
+      "decisions": ["DEC-V4-010"],
+      "change_summary": "Retained the remaining studio scope without the removed integrations and visual-editor expectations."
+    }
+  ]
+}

@@ -19,6 +19,37 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
 }
 
+postgres_ready() {
+  local db_url="${DATABASE_URL:-postgresql+asyncpg://intelli:intelli@localhost:${INTELLI_POSTGRES_PORT:-5433}/intelli}"
+  "$PY" - "$db_url" <<'PY'
+import asyncio
+import sys
+
+import asyncpg
+
+dsn = sys.argv[1].replace("postgresql+asyncpg://", "postgresql://", 1)
+
+async def main() -> None:
+    conn = await asyncpg.connect(dsn, timeout=1)
+    await conn.close()
+
+asyncio.run(main())
+PY
+}
+
+ensure_service() {
+  local label="$1"
+  local check_cmd="$2"
+  shift 2
+
+  if eval "$check_cmd" >/dev/null 2>&1; then
+    echo "Using existing ${label}"
+    return 0
+  fi
+
+  docker compose up -d "$@"
+}
+
 is_port_free() {
   local port="$1"
   python3 - "$port" <<'PY'
@@ -63,9 +94,6 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example"
 fi
 
-step "Start infrastructure (postgres + minio + opensearch)"
-docker compose up -d postgres minio minio-init opensearch
-
 step "Python venv + deps"
 if [[ ! -d .venv ]]; then
   python3 -m venv .venv
@@ -74,12 +102,22 @@ fi
 PY="$ROOT_DIR/.venv/bin/python"
 PIP="$ROOT_DIR/.venv/bin/pip"
 
-"$PY" -m pip --version >/dev/null
+if ! "$PY" -m pip --version >/dev/null 2>&1; then
+  "$PY" -m ensurepip --upgrade
+fi
 
 if ! "$PY" -c "import intelli" >/dev/null 2>&1; then
   "$PIP" install -e ".[dev]"
 fi
 "$PY" -c "import email_validator" >/dev/null 2>&1 || "$PIP" install "email-validator>=2.0.0"
+
+MINIO_HEALTH_URL="${S3_ENDPOINT_URL:-http://localhost:9000}/minio/health/live"
+OPENSEARCH_BASE_URL="${OPENSEARCH_URL:-http://localhost:9200}"
+
+step "Start infrastructure (postgres + minio + opensearch)"
+ensure_service "Postgres" "postgres_ready" postgres
+ensure_service "MinIO" "curl -fsS '${MINIO_HEALTH_URL}'" minio minio-init
+ensure_service "OpenSearch" "curl -fsS '${OPENSEARCH_BASE_URL}' >/dev/null" opensearch
 
 step "Migrations"
 "$PY" -m alembic upgrade head

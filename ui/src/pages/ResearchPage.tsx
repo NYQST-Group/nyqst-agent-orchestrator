@@ -48,9 +48,9 @@ export function ResearchPage() {
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold">Research Assistant</h1>
+            <h1 className="text-lg font-semibold">Research Workspace</h1>
             <p className="text-sm text-muted-foreground">
-              Ask questions about your documents
+              Ask across your uploaded source libraries and keep cited answers in view.
             </p>
           </div>
         </div>
@@ -63,7 +63,7 @@ export function ResearchPage() {
           >
             <span className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              {selectedNotebook ? selectedNotebook.name : 'Select notebook'}
+              {selectedNotebook ? selectedNotebook.name : 'Select source library'}
             </span>
             <ChevronDown className="h-4 w-4" />
           </Button>
@@ -76,9 +76,9 @@ export function ResearchPage() {
                 </div>
               ) : notebooks.length === 0 ? (
                 <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  No notebooks with documents.
+                  No source libraries with documents.
                   <br />
-                  Upload files to a notebook first.
+                  Upload files to a source library first.
                 </div>
               ) : (
                 notebooks.map((notebook) => (
@@ -111,6 +111,7 @@ export function ResearchPage() {
             pointerId: selectedPointerId,
             manifestSha256: selectedNotebook.manifest_sha256,
           }}
+          showSidebar={false}
           welcomeTitle="Research Assistant"
           welcomeMessage="Ask questions about your documents and get answers with citations."
           suggestions={[
@@ -126,10 +127,10 @@ export function ResearchPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
             <MessageSquare className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h2 className="mt-4 text-lg font-medium">Select a notebook to start</h2>
+          <h2 className="mt-4 text-lg font-medium">Select a source library to start</h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Choose a notebook with uploaded documents to begin asking questions.
-            The research assistant will search through your documents to find answers.
+            Choose a source library with uploaded documents to begin asking questions.
+            The assistant will search through those documents and return cited answers.
           </p>
         </div>
       )}

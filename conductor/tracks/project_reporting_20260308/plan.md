@@ -1,5 +1,8 @@
 # Implementation Plan: Project Meta-Reporting & Health Tracking
 
+## Rectification Note
+Superseded on March 11, 2026 by `meta_tracks_rectification_20260311`. The GitHub Project provisioning and mutation work below was not completed. The implemented corrective scope is a repo-first reporting MVP that emits `reports/project_health/<date>.md`, `reports/project_health/<date>.json`, and `RISK_REGISTER.md`.
+
 ## Phase 1: GitHub Project View Design & Provisioning (Week 1)
 - [ ] Task: Design the Meta-Reporting Dashboard schema
   - [ ] Sub-task: Define custom fields required for the GitHub Project (e.g., Phase Status, Coverage, Blocked Boolean, Process Health)

@@ -56,7 +56,14 @@ class TestValidTransitions:
         """Paused to closed transition should be allowed."""
         sess = MagicMock(status="paused")
         service.repo.get_by_tenant = AsyncMock(return_value=sess)
-        service.repo.aggregate_cost = AsyncMock(return_value={"total_cost_micros": 0})
+        service.repo.aggregate_cost = AsyncMock(return_value={
+            "total_cost_micros": 0, "conversation_count": 0,
+            "total_input_tokens": 0, "total_output_tokens": 0,
+        })
+        service.repo.list_runs = AsyncMock(return_value=[])
+        execute_result = MagicMock()
+        execute_result.scalars.return_value.all.return_value = []
+        service.session.execute = AsyncMock(return_value=execute_result)
         service.session.flush = AsyncMock()
 
         result = await service.transition(uuid4(), uuid4(), "closed")
@@ -78,7 +85,14 @@ class TestCloseDefensive:
         """Closing a session with no conversations should have zero cost."""
         sess = MagicMock(status="active")
         service.repo.get_by_tenant = AsyncMock(return_value=sess)
-        service.repo.aggregate_cost = AsyncMock(return_value={"total_cost_micros": 0})
+        service.repo.aggregate_cost = AsyncMock(return_value={
+            "total_cost_micros": 0, "conversation_count": 0,
+            "total_input_tokens": 0, "total_output_tokens": 0,
+        })
+        service.repo.list_runs = AsyncMock(return_value=[])
+        execute_result = MagicMock()
+        execute_result.scalars.return_value.all.return_value = []
+        service.session.execute = AsyncMock(return_value=execute_result)
         service.session.flush = AsyncMock()
 
         result = await service.transition(uuid4(), uuid4(), "closed")
@@ -88,7 +102,14 @@ class TestCloseDefensive:
         """Closing a session should set closed_at timestamp."""
         sess = MagicMock(status="active")
         service.repo.get_by_tenant = AsyncMock(return_value=sess)
-        service.repo.aggregate_cost = AsyncMock(return_value={"total_cost_micros": 1000})
+        service.repo.aggregate_cost = AsyncMock(return_value={
+            "total_cost_micros": 1000, "conversation_count": 0,
+            "total_input_tokens": 0, "total_output_tokens": 0,
+        })
+        service.repo.list_runs = AsyncMock(return_value=[])
+        execute_result = MagicMock()
+        execute_result.scalars.return_value.all.return_value = []
+        service.session.execute = AsyncMock(return_value=execute_result)
         service.session.flush = AsyncMock()
 
         result = await service.transition(uuid4(), uuid4(), "closed")

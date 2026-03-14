@@ -1,5 +1,8 @@
 # Implementation Plan: Build Methodology Failure Analysis
 
+## Rectification Note
+Validated on March 11, 2026 and partially superseded by `meta_tracks_rectification_20260311`. The workflow hardening and audit work remains useful, but the Phase 3 branch-protection task is reinterpreted as partially resolved historically: branch protection is confirmed enabled now, yet the recovery path and earlier failure mode required explicit corrective documentation and shell-wrapper hardening.
+
 ## Phase 1: Workflow Hardening & RCA (Week 1) [checkpoint: 7a704de]
 - [x] Task: Document the incident and root cause 7a704de
   - [x] Sub-task: Analyze the AI's decision to mark the branch protection task complete despite the HTTP 403 error.
@@ -20,7 +23,7 @@
 
 ## Phase 3: Unblock Phase 3 CI/CD (Week 1) [checkpoint: e44a38c]
 - [x] Task: Resolve the Branch Protection blocker e44a38c
-  - [x] Sub-task: Upgrade to Organization repo and successfully apply GitHub API branch protection rules.
+  - [~] Sub-task: Document the migration/recovery path and confirm branch protection is enabled on the organization repository.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Unblock Phase 3 CI/CD' (Protocol in workflow.md) e44a38c
 
 ## Phase 4: Structural Methodology Enhancements (Week 2) [checkpoint: d7c08cf]
@@ -28,7 +31,7 @@
   - [x] Sub-task: Add explicit 'Task Output Validation' to DoD (verifying command exit codes).
   - [x] Sub-task: Add 'Non-Regex Intelligent Overrides' as a required pattern for large documentation rewrites.
 - [x] Task: Second-Order CI/CD and Script Hardening d7c08cf
-  - [x] Sub-task: Audit all `.sh` scripts (e.g., `sync-conductor.sh`) to mandate `set -eo pipefail` for immediate crash on failure.
+  - [~] Sub-task: Audit all `.sh` scripts (e.g., `sync-conductor.sh`) to mandate `set -eo pipefail` for immediate crash on failure.
   - [x] Sub-task: Review GitHub Actions `ci.yml` to ensure all shell steps use fast-fail error handling.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Structural Methodology Enhancements' (Protocol in workflow.md) d7c08cf
 

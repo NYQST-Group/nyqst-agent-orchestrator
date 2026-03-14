@@ -24,6 +24,7 @@ from intelli.services.conversation_service import ConversationService
 from intelli.services.runs.ledger_service import LedgerService
 from intelli.services.runs.run_service import RunService
 from intelli.services.substrate.pointer_service import PointerService
+from intelli.services.usage.pricing import PRICE_TABLE_VERSION, estimate_cost_micros
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -133,6 +134,8 @@ async def agent_chat(
             "conversation_id": str(conversation_id),
         },
         input_manifest_sha256=manifest_sha256,
+        session_id=data.session_id,
+        created_by=user_id,
     )
     await runs.start_run(run.id)
 
@@ -198,6 +201,21 @@ async def agent_chat(
             # Get token usage and latency from adapter
             token_usage = adapter.get_token_usage()
             latency_ms = adapter.get_latency_ms()
+            input_tokens = int(token_usage.get("input_tokens", 0) or 0)
+            output_tokens = int(token_usage.get("output_tokens", 0) or 0)
+            cost_micros = estimate_cost_micros(
+                settings.chat_model,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+            )
+            if input_tokens or output_tokens or cost_micros:
+                await runs.record_token_usage(
+                    run.id,
+                    model=settings.chat_model,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost_micros=cost_micros,
+                )
 
             # Save assistant message from accumulated adapter text
             assistant_content = adapter._accumulated_text
@@ -208,8 +226,9 @@ async def agent_chat(
                     role="assistant",
                     content=assistant_content,
                     model_id=settings.chat_model,
-                    input_tokens=token_usage.get("input_tokens"),
-                    output_tokens=token_usage.get("output_tokens"),
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost_micros=cost_micros,
                     latency_ms=latency_ms,
                 )
 
@@ -221,9 +240,11 @@ async def agent_chat(
                     "runId": str(run.id),
                     "userMessageId": str(user_msg.id),
                     "assistantMessageId": str(assistant_msg.id),
-                    "outputTokens": token_usage.get("output_tokens", 0),
-                    "inputTokens": token_usage.get("input_tokens", 0),
+                    "outputTokens": output_tokens,
+                    "inputTokens": input_tokens,
+                    "costMicros": cost_micros,
                     "latencyMs": latency_ms,
+                    "priceTableVersion": PRICE_TABLE_VERSION,
                 }
 
             # Emit finish event with metadata attached

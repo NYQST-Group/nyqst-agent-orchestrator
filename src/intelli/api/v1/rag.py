@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from intelli.api.dependencies import get_session
+from intelli.api.middleware.auth import AuthContext
 from intelli.config import settings
 from intelli.schemas.rag import (
     RagAskRequest,
@@ -23,12 +24,14 @@ from intelli.services.knowledge.rag_service import RagService
 from intelli.services.runs.ledger_service import LedgerService
 from intelli.services.runs.run_service import RunService
 from intelli.services.substrate.pointer_service import PointerService
+from intelli.services.usage.pricing import PRICE_TABLE_VERSION
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
 
 @router.post("/index", response_model=RagIndexResponse)
 async def index_rag(
+    ctx: AuthContext,
     data: RagIndexRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
@@ -54,6 +57,7 @@ async def index_rag(
         name="RAG Index",
         config={"force": data.force, "embedding_model": settings.embedding_model},
         input_manifest_sha256=manifest_sha256,
+        created_by=ctx.user_id,
     )
     await runs.start_run(run.id)
 
@@ -73,6 +77,7 @@ async def index_rag(
                 "artifacts_skipped": stats.artifacts_skipped,
                 "chunks_created": stats.chunks_created,
                 "embedding_model": settings.embedding_model,
+                "price_table_version": PRICE_TABLE_VERSION,
             },
         )
     except ValueError as exc:
@@ -95,6 +100,7 @@ async def index_rag(
 
 @router.post("/ask", response_model=RagAskResponse)
 async def ask_rag(
+    ctx: AuthContext,
     data: RagAskRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
@@ -120,6 +126,7 @@ async def ask_rag(
         name="RAG Ask",
         config={"top_k": data.top_k, "model": settings.chat_model},
         input_manifest_sha256=manifest_sha256,
+        created_by=ctx.user_id,
     )
     await runs.start_run(run.id)
 
@@ -138,6 +145,7 @@ async def ask_rag(
                 "top_k": data.top_k,
                 "sources": len(retrieved),
                 "model": settings.chat_model,
+                "price_table_version": PRICE_TABLE_VERSION,
             },
         )
     except ValueError as exc:

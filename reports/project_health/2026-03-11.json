@@ -1,0 +1,42 @@
+{
+  "branch_protection_contexts": [
+    "Backend Tests",
+    "Frontend Tests",
+    "Lint"
+  ],
+  "branch_protection_enabled": true,
+  "conductor_validation_errors": [],
+  "generated_on": "2026-03-11",
+  "latest_workflows": {
+    "CI": "success",
+    "Copilot code review": "success",
+    "Copilot coding agent": "success"
+  },
+  "milestone_count": 23,
+  "mock_contract_publisher": true,
+  "open_issue_count": 159,
+  "open_p0_titles": [
+    "[P0-001] Fix arq worker job registration (WorkerSettings.functions empty)",
+    "[P0-002] Fix RunEvent sequence_num race (unique constraint violations under concurrency)",
+    "[P0-003] Make local stack boot reliably (redis profile / env defaults / docs)",
+    "[P0-004] Add tenant_id to core tables (runs, artifacts, manifests, pointers) and enforce isolation",
+    "[P0-005] Add production Dockerfiles (api + ui) and minimal CI build step"
+  ],
+  "project_board_present": false,
+  "repository": "NYQST-Group/NYQST-DocuIntelli-Build",
+  "risks": [
+    {
+      "detail": "Open P0 items: [P0-001] Fix arq worker job registration (WorkerSettings.functions empty); [P0-002] Fix RunEvent sequence_num race (unique constraint violations under concurrency); [P0-003] Make local stack boot reliably (redis profile / env defaults / docs); [P0-004] Add tenant_id to core tables (runs, artifacts, manifests, pointers) and enforce isolation; [P0-005] Add production Dockerfiles (api + ui) and minimal CI build step",
+      "severity": "high",
+      "source": "GitHub issues",
+      "title": "P0 stabilization work remains open"
+    },
+    {
+      "detail": "The backstage schema publishing workflow still exits with a mock/incomplete implementation.",
+      "severity": "medium",
+      "source": "Workflow file",
+      "title": "Contract publisher is still mocked"
+    }
+  ],
+  "total_issues": 159
+}

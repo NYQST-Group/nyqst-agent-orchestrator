@@ -72,12 +72,23 @@ class ConversationCostItem(BaseModel):
     output_tokens: int
 
 
+class SessionModelCostItem(BaseModel):
+    """Cost breakdown for a model within a session."""
+
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cost_micros: int
+
+
 class SessionCostBreakdown(BaseModel):
     """Cost breakdown for a session."""
 
     session_id: UUID
+    price_table_version: str
     total_cost_micros: int
     conversation_count: int
     total_input_tokens: int
     total_output_tokens: int
+    models: list[SessionModelCostItem] = Field(default_factory=list)
     conversations: list[ConversationCostItem] = Field(default_factory=list)

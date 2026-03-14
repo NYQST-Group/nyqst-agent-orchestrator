@@ -30,7 +30,7 @@ export function NotebooksPage() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const name = window.prompt('Notebook name:', `notebook-${new Date().toISOString().slice(0, 10)}`)
+      const name = window.prompt('Source library name:', `source-library-${new Date().toISOString().slice(0, 10)}`)
       if (!name) return null
       const trimmed = name.trim()
       if (!trimmed) return null
@@ -38,7 +38,7 @@ export function NotebooksPage() {
         namespace: 'notebooks',
         name: trimmed,
         pointer_type: 'bundle',
-        description: 'Notebook',
+        description: 'Source library',
         metadata: {
           source: 'ui',
           module: 'docs',
@@ -54,7 +54,7 @@ export function NotebooksPage() {
     onError: (error) => {
       toast({
         variant: 'destructive',
-        title: 'Failed to create notebook',
+        title: 'Failed to create source library',
         description: error instanceof Error ? error.message : 'Unknown error',
       })
     },
@@ -66,10 +66,10 @@ export function NotebooksPage() {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
-            <h1 className="text-2xl font-semibold tracking-tight">Doc Intelligence</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Source Library</h1>
           </div>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Notebooks are versioned source bundles (pointer → manifest → artifacts). Upload files, index, and ask questions with citations.
+            Build versioned source libraries for the current workspace. Upload files, keep a clean history, and send them into research with traceable answers.
           </p>
         </div>
 
@@ -84,14 +84,14 @@ export function NotebooksPage() {
           </Button>
           <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
             <Plus className="mr-2 h-4 w-4" />
-            New notebook
+            New source library
           </Button>
         </div>
       </div>
 
       <div className="mt-6 rounded-xl border bg-card">
         <div className="flex items-center justify-between px-5 py-4">
-          <h2 className="text-sm font-semibold">Your notebooks</h2>
+          <h2 className="text-sm font-semibold">Your source libraries</h2>
           <span className="text-xs text-muted-foreground">{notebooks.length} total</span>
         </div>
         <Separator />
@@ -101,12 +101,12 @@ export function NotebooksPage() {
         ) : notebooks.length === 0 ? (
           <div className="px-5 py-10">
             <p className="text-sm text-muted-foreground">
-              No notebooks yet. Create one to start uploading sources.
+              No source libraries yet. Create one to start uploading evidence.
             </p>
             <div className="mt-4">
               <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create your first notebook
+                Create your first source library
               </Button>
             </div>
           </div>
