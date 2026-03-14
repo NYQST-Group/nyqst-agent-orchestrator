@@ -53,7 +53,7 @@ nyqst-intelli-230126/
 │   │   │   ├── correlation.py
 │   │   │   └── error_handler.py
 │   │   └── v1/
-│   │       ├── __init__.py             ← registers all 11 routers
+│   │       ├── __init__.py             ← registers all 12 routers (tags router added in migration 0004)
 │   │       ├── agent.py
 │   │       ├── artifacts.py
 │   │       ├── auth.py
@@ -316,6 +316,8 @@ class Run(Base, TimestampMixin):
 ---
 
 ## 5. API Routes
+
+**Router count**: 12 routers (health, auth, agent, artifacts, manifests, pointers, runs, streams, conversations, sessions, rag, tags). The tags router was added in migration 0004. Earlier references to "11 routers" were stale.
 
 All routes are registered under `/api/v1` prefix.
 

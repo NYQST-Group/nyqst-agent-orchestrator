@@ -797,6 +797,8 @@ Embedded presentation viewer (reveal.js or iframe), inline PDF viewer (`react-pd
 
 ## Section 4: JSON Render Approach (AST Strategy)
 
+> **Status Update (GAP-067)**: The DEC-015 split has resolved the conflict that previously existed between the backend JSON AST approach and the frontend rehype-to-JSX recommendation. DEC-015a locks the backend MarkupDocument JSON AST (Pydantic models for BL-004/BL-005 report generation). DEC-015b locks the frontend GML rendering pipeline as rehype-to-JSX, which is what this section recommends. The "JSON Render Approach" described below is **not adopted for the frontend** — it is documented here for completeness. DEC-015b confirms that the recommendation in this section (rehype-to-JSX, skip JSON AST intermediate layer) is the locked decision. Documents that cross-reference DEC-015 should distinguish DEC-015a (backend report generation AST) from DEC-015b (frontend GML rendering pipeline).
+
 ### Concept
 
 Instead of rendering GML strings directly via rehype, the GML string is first parsed to a typed JSON AST, and React components consume the AST.
@@ -1012,6 +1014,19 @@ Yes. A partial renderer (8/18 tags) with stub `null` renders for unimplemented t
 ---
 
 ## Section 7: Implementation Checklist
+
+### Pre-processing Step (build before GmlRenderer)
+
+Before passing GML content to `GmlRenderer`, extract the GML content from the `<answer>...</answer>` wrapper emitted by the LLM. This pre-processing step is mandatory:
+
+1. **Extract GML content** from the `<answer>...</answer>` wrapper: strip the outer XML tags before passing the inner content to the rehype parser.
+2. **Handle partial `<answer>` during streaming**: buffer the stream until the closing `</answer>` tag is received before triggering rendering. Do not attempt to render partial GML content.
+3. **Handle malformed wrapper**: if the closing `</answer>` tag is missing or the wrapper is structurally invalid, fall back to plain markdown rendering rather than attempting GML parse.
+4. **Handle nested tags inside the answer body**: GML tags (`<gml-row>`, etc.) and standard HTML tags inside the `<answer>` wrapper are valid content and must not be stripped.
+
+- [ ] `extractAnswerContent(raw: string): { content: string; isGml: boolean }` — strips `<answer>` wrapper, detects GML presence
+- [ ] `AnswerStreamBuffer` — accumulates streamed tokens until `</answer>` is complete before triggering `GmlRenderer`
+- [ ] Fallback: if no `<answer>` wrapper detected, pass raw content to `ReactMarkdown` renderer
 
 ### Shared Utilities (build first)
 

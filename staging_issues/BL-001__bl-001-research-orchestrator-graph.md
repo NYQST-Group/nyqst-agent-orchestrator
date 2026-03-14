@@ -62,8 +62,57 @@ Extend the existing ResearchAssistantGraph (not replace it) with a planner node,
 - Verify child Run records have correct parent_run_id
 - Contract test: ResearchState backward-compat with existing tests
 
+## Fallback Chain Algorithm (GAP-080)
+
+When a worker node tool fails, the following fallback chain must execute:
+
+1. **Attempt primary provider**: dispatch tool call to primary provider (e.g., Brave for web search); emit `node_tool_event(event="tool_called")`
+2. **On primary failure**: emit `node_tool_event(event="fallback_used", metadata={"failed_provider": "<name>", "trying": "<secondary>"})` and try secondary provider
+3. **Try secondary provider**: if secondary also fails, continue to next fallback in the chain
+4. **All fallbacks exhausted**: emit `node_tool_event(event="all_tools_failed", metadata={"task_id": "<id>", "tools_tried": [...]})` and mark task as partial (not failed)
+5. **Fan-in handles partial tasks**: fan-in_node detects `has_partial_results: true` in TaskResult and routes to meta-reasoning if ≥50% of other tasks succeeded; otherwise emits plan error
+
+Fallback chains by tool category:
+- Web search: Brave → Tavily → skip (return empty results)
+- Document retrieval: Jina Reader → direct fetch → skip
+- Financial data: configured connector → skip
+
+## Tool Discovery Algorithm (GAP-083)
+
+Tool discovery runs at session creation and again at task dispatch:
+
+1. **Session-level registration** (on session creation): register available MCP tools based on tenant tier
+   - Sandbox tier: web search, document tools, basic data tools
+   - Professional tier: full tool set including financial data connectors
+   - Read from `tenant.features` JSONB (DEC-056)
+2. **Task-level filtering** (on PlanTask creation): filter the registered tool list by task category:
+   - `financial_data` tasks → financial data connector chain (FactSet-compatible API → fallback)
+   - `web_search` tasks → Brave/Tavily MCP tools
+   - `document` tasks → DocIR tools (file parsing, RAG query)
+   - `synthesis` tasks → no external tools (LLM-only node)
+3. **Pass filtered tool list** to `research_worker_node` via Send() state payload as `available_tools: list[str]`
+
+Tool registry lives in `src/intelli/mcp/tools/` — each tool registered as MCP resource per ADR-008.
+
+## Failure Mode Table (GAP-086)
+
+| Failure Level | DB State Written | SSE Events Emitted | User-Visible Message | Run Ledger Status |
+|---|---|---|---|---|
+| **Tool failure** | `RunEvent(type=TOOL_FAILED, payload={tool_id, error, task_id})` | `node_tool_event(event="tool_called")` + `node_tool_event(event="fallback_used")` | None (silent; fallback proceeds) | Run continues |
+| **Task failure** (all tools exhausted) | `RunEvent(type=TASK_FAILED, payload={task_id, tools_tried, partial_result})` | `node_tool_event(event="all_tools_failed")` + `task_update(status="error", key=task_id)` | None during streaming; shown in timeline | Task marked FAILED in PlanSet |
+| **Plan failure** (<50% tasks succeeded) | `RunEvent(type=RUN_FAILED, payload={reason="insufficient_task_results", partial_tasks: N, total_tasks: M})` | `ERROR(error_type="plan_degraded")` + `done` | "Research partially failed — fewer sources than expected." | `RunStatus.FAILED` |
+| **Run failure** (graph exception) | `RunEvent(type=RUN_FAILED, payload={exception_type, traceback_hash})` | `ERROR(error_type="system_error")` + `done` | "Research failed due to a system error. Please retry." | `RunStatus.FAILED` |
+
+**"All fallbacks exhausted" behaviour**:
+- Emit `node_tool_event(event="all_tools_failed")` for the affected task
+- Mark task as partial in TaskResult (`partial: true, reason: "all_tools_failed"`)
+- Fan-in proceeds: if ≥50% of tasks have non-partial results, trigger meta-reasoning node (BL-017) to compensate for missing data
+- If <50% tasks succeeded: skip meta-reasoning, emit plan error, set `RunStatus.FAILED`
+
 ## References
 - BACKLOG.md: BL-001
 - IMPLEMENTATION-PLAN.md: Sections 1.1, 1.2
+- docs/EVENT-CONTRACT-V1.md (SSE event types)
+- GAP-080 (fallback chain), GAP-083 (tool discovery), GAP-086 (failure modes)
 
 ---

@@ -24,8 +24,57 @@ Implement mid-run pause/resume via CLARIFICATION_NEEDED events. When the planner
 - Note: full UI may slip to v1.5 per BACKLOG.md tradeoff log, but schema is ready
 - See IMPLEMENTATION-PLAN.md Section 3.9
 
+## Policy Evaluation Algorithm (GAP-084)
+
+BL-021 implements graph interrupts, but the trigger policy determines **when** to interrupt. Four interrupt policy templates govern this:
+
+| Policy Template | Interrupt Behaviour | Use Case |
+|---|---|---|
+| **Exploratory** | No interrupts at all. Run proceeds without any pause/resume | Open-ended research where user wants minimal friction |
+| **Standard** | Interrupt only for `approval_required` tool categories (e.g., tools that make external API calls costing money or that write data) | Default policy for most research runs |
+| **Regulated** | Interrupt before any external data access (before any tool that reaches outside the platform — web, API, document retrieval) | Compliance-sensitive workflows |
+| **Audit-Critical** | Interrupt at every plan step (before each PlanTask is dispatched via Send()) | Full human oversight mode |
+
+**Policy evaluation algorithm** (in `planner_node` or a policy guard before `fan_out`):
+
+```python
+def should_interrupt(policy: str, context: dict) -> bool:
+    """
+    Called before each tool dispatch or plan step.
+    Returns True if execution should pause for human approval.
+    """
+    if policy == "exploratory":
+        return False
+
+    if policy == "standard":
+        # Interrupt only if the tool category is in the approval_required set
+        return context.get("tool_category") in APPROVAL_REQUIRED_CATEGORIES
+
+    if policy == "regulated":
+        # Interrupt before any external data access
+        return context.get("accesses_external_data", False)
+
+    if policy == "audit_critical":
+        # Interrupt at every plan step
+        return context.get("is_plan_step", False)
+
+    return False  # Default: no interrupt
+
+APPROVAL_REQUIRED_CATEGORIES = {
+    "financial_data_purchase",   # Paid API data (FactSet, Bloomberg)
+    "external_write",            # Any write operation to external system
+    "web_scrape_volume",         # High-volume scraping (>10 URLs per task)
+}
+```
+
+**Storage**: Policy template stored on the `Run` record as `interrupt_policy: str` (default: "standard"). Set at run creation time from the `deliverable_type` or explicit user selection.
+
+**LangGraph implementation**: Use `interrupt_before=["research_worker_node"]` (audit_critical) or custom interrupt edges with `should_interrupt()` checks embedded in the conditional routing logic.
+
 ## References
 - BACKLOG.md: BL-021
 - IMPLEMENTATION-PLAN.md: Section 3.9
+- docs/adr/009-human-in-the-loop-governance.md (ADR-009)
+- GAP-084 (policy evaluation specification)
 
 ---
