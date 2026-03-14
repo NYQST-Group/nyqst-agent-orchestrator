@@ -13,7 +13,7 @@
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, React Query
 - **UI Components**: Radix UI
-- **Charting**: Plotly.js (react-plotly.js)
+- **Charting**: Not yet installed (DEC-V4-048 specifies Plotly.js when needed)
 
 ## Infrastructure & Storage
 - **Storage**: S3-compatible (MinIO/AWS S3) via aioboto3
