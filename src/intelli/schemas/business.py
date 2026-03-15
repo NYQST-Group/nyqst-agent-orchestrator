@@ -4,7 +4,20 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _validate_sha256(value: str | None, field_name: str) -> str | None:
+    """Validate and normalize SHA-256 identifiers."""
+    if value is None:
+        return value
+    if len(value) != 64:
+        raise ValueError(f"{field_name} must be a 64-character hex string")
+    try:
+        int(value, 16)
+    except ValueError:
+        raise ValueError(f"{field_name} must be a valid hex string")
+    return value.lower()
 
 
 class ProjectStatus(StrEnum):
@@ -82,6 +95,12 @@ class BundleRef(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    @field_validator("manifest_sha256")
+    @classmethod
+    def validate_manifest_sha256(cls, value: str | None) -> str | None:
+        """Validate manifest SHA-256 format if provided."""
+        return _validate_sha256(value, "manifest_sha256")
+
 
 class DecisionCitationRef(BaseModel):
     """Thin citation reference for D2 decisions."""
@@ -107,6 +126,14 @@ class DecisionArtifactRef(BaseModel):
     href: str | None = Field(None, description="Optional URL or app route for opening the artifact")
 
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("artifact_sha256")
+    @classmethod
+    def validate_artifact_sha256(cls, value: str) -> str:
+        """Validate artifact SHA-256 format."""
+        normalized = _validate_sha256(value, "artifact_sha256")
+        assert normalized is not None
+        return normalized
 
 
 class ProjectCreate(BaseModel):

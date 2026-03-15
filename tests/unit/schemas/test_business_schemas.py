@@ -9,9 +9,11 @@ import pytest
 from pydantic import ValidationError
 
 from intelli.schemas.business import (
+    BundleRef,
     ClientCreate,
     ClientListResponse,
     DashboardSummaryResponse,
+    DecisionArtifactRef,
     DecisionCreate,
     DecisionListResponse,
     DecisionResponse,
@@ -77,6 +79,48 @@ class TestDecisionCreate:
         assert "Extra inputs are not permitted" in str(exc_info.value)
 
 
+class TestShaValidation:
+    def test_bundle_ref_normalizes_manifest_sha256(self):
+        bundle = BundleRef.model_validate(
+            {
+                "pointer_id": uuid4(),
+                "name": "Lease Review Bundle",
+                "manifest_sha256": "A" * 64,
+            }
+        )
+        assert bundle.manifest_sha256 == "a" * 64
+
+    def test_bundle_ref_rejects_invalid_manifest_sha256(self):
+        with pytest.raises(ValidationError) as exc_info:
+            BundleRef.model_validate(
+                {
+                    "pointer_id": uuid4(),
+                    "name": "Lease Review Bundle",
+                    "manifest_sha256": "not-a-sha",
+                }
+            )
+        assert "manifest_sha256 must be a 64-character hex string" in str(exc_info.value)
+
+    def test_decision_artifact_ref_normalizes_artifact_sha256(self):
+        artifact = DecisionArtifactRef.model_validate(
+            {
+                "artifact_sha256": "B" * 64,
+                "label": "Lease diff",
+            }
+        )
+        assert artifact.artifact_sha256 == "b" * 64
+
+    def test_decision_artifact_ref_rejects_invalid_sha256(self):
+        with pytest.raises(ValidationError) as exc_info:
+            DecisionArtifactRef.model_validate(
+                {
+                    "artifact_sha256": "xyz",
+                    "label": "Lease diff",
+                }
+            )
+        assert "artifact_sha256 must be a 64-character hex string" in str(exc_info.value)
+
+
 class TestBusinessResponses:
     def test_project_response_supports_nested_refs(self):
         now = datetime.now(UTC)
@@ -95,7 +139,7 @@ class TestBusinessResponses:
                 "primary_bundle": {
                     "pointer_id": pointer_id,
                     "name": "Lease Review Bundle",
-                    "manifest_sha256": "abc123",
+                    "manifest_sha256": "a" * 64,
                     "updated_at": now,
                 },
                 "last_activity_at": now,
@@ -285,7 +329,7 @@ class TestBusinessResponses:
                 ],
                 "linked_artifacts": [
                     {
-                        "artifact_sha256": "abc123",
+                        "artifact_sha256": "b" * 64,
                         "label": "Lease diff",
                         "media_type": "application/pdf",
                         "href": "/artifacts/abc123",
@@ -302,7 +346,7 @@ class TestBusinessResponses:
 
         assert decision.project.id == project_id
         assert decision.citations[0].source_type == "bundle"
-        assert decision.linked_artifacts[0].artifact_sha256 == "abc123"
+        assert decision.linked_artifacts[0].artifact_sha256 == "b" * 64
 
     def test_list_responses_lock_pagination_shape(self):
         project_list = ProjectListResponse.model_validate(
