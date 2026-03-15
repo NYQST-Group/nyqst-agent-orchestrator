@@ -36,7 +36,6 @@ export function CitationAwareText() {
   let match: RegExpExecArray | null
 
   // Parse the text and replace citation patterns with CitationLink components
-  // eslint-disable-next-line no-cond-assign
   while ((match = citationRegex.exec(content)) !== null) {
     const matchIndex = match.index
     const citationNumber = parseInt(match[1], 10)

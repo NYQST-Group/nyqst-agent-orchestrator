@@ -1,9 +1,6 @@
-version: "3.9"
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: intelli-postgres
     environment:
       POSTGRES_USER: intelli
       POSTGRES_PASSWORD: intelli
@@ -21,14 +18,13 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: intelli-minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${INTELLI_MINIO_API_PORT:-9000}:9000"
+      - "${INTELLI_MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -40,7 +36,6 @@ services:
   # MinIO bucket initialization
   minio-init:
     image: minio/mc:latest
-    container_name: intelli-minio-init
     depends_on:
       minio:
         condition: service_healthy
@@ -55,9 +50,8 @@ services:
   # Optional: Redis for caching/queues
   redis:
     image: redis:7-alpine
-    container_name: intelli-redis
     ports:
-      - "6379:6379"
+      - "${INTELLI_REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     profiles:
@@ -66,7 +60,6 @@ services:
   # Optional: Langfuse for observability
   langfuse:
     image: langfuse/langfuse:latest
-    container_name: intelli-langfuse
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,14 +70,13 @@ services:
       NEXTAUTH_URL: http://localhost:3000
       TELEMETRY_ENABLED: "false"
     ports:
-      - "3000:3000"
+      - "${INTELLI_LANGFUSE_PORT:-3000}:3000"
     profiles:
       - observability
 
   # OpenSearch for hybrid search (BM25 + vector) and scalable indexing.
   opensearch:
     image: opensearchproject/opensearch:2.18.0
-    container_name: intelli-opensearch
     environment:
       discovery.type: single-node
       bootstrap.memory_lock: "true"
@@ -99,7 +91,7 @@ services:
         soft: 65536
         hard: 65536
     ports:
-      - "9200:9200"
+      - "${INTELLI_OPENSEARCH_PORT:-9200}:9200"
     volumes:
       - opensearch_data:/usr/share/opensearch/data
     healthcheck:

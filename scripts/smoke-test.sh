@@ -34,15 +34,15 @@ check() {
 
 # 1. Backend health check
 echo "--- Backend Services ---"
-HEALTH=$(curl -s "$BACKEND_URL/api/v1/health" 2>/dev/null || echo "FAILED")
+HEALTH=$(curl -s "$BACKEND_URL/health/ready" 2>/dev/null || echo "FAILED")
 if echo "$HEALTH" | grep -q '"status":"healthy"'; then
-  check "Backend health endpoint" 0
+  check "Backend readiness endpoint" 0
 else
-  check "Backend health endpoint" 1
+  check "Backend readiness endpoint" 1
   echo "  Response: $HEALTH"
 fi
 
-# 2. Database connectivity (from health check)
+# 2. Database connectivity (from readiness check)
 if echo "$HEALTH" | grep -q '"database":{"status":"healthy"'; then
   check "Database connection" 0
 else
@@ -56,8 +56,8 @@ else
   check "Storage (MinIO) connection" 1
 fi
 
-# 4. Index service (OpenSearch)
-if echo "$HEALTH" | grep -q '"index":{"status":"healthy"'; then
+# 4. Index service (OpenSearch / backend dependency)
+if echo "$HEALTH" | grep -q '"index_backend":{"status":"healthy"'; then
   check "Index (OpenSearch) connection" 0
 else
   check "Index (OpenSearch) connection" 1
@@ -156,7 +156,7 @@ echo "========================================"
 if [ "$FAIL" -gt 0 ]; then
   echo ""
   echo -e "${YELLOW}Some checks failed. Common fixes:${NC}"
-  echo "  - Backend not running? cd to project root and run: make dev"
+  echo "  - Backend not running? Use: bash scripts/dev/run.sh"
   echo "  - Docker services down? Run: docker compose up -d"
   echo "  - Frontend not running? cd ui && npm run dev"
   echo ""

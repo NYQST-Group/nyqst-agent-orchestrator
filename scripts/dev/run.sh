@@ -49,6 +49,22 @@ pick_port() {
   die "No free port found for ${label} (tried: $*)"
 }
 
+pick_env_port() {
+  local var_name="$1"
+  local label="$2"
+  shift 2
+  local current="${!var_name:-}"
+  if [[ -n "$current" ]]; then
+    is_port_free "$current" || die "${label} port ${current} is already in use (set ${var_name})"
+    export "$var_name=$current"
+    return 0
+  fi
+
+  local chosen
+  chosen="$(pick_port "$label" "$@")"
+  export "$var_name=$chosen"
+}
+
 step "Prereqs"
 require_cmd docker
 require_cmd python3
@@ -62,6 +78,18 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
   echo "Created .env from .env.example"
 fi
+
+step "Pick infrastructure ports"
+pick_env_port INTELLI_POSTGRES_PORT postgres 5433 15433 15434 15435
+pick_env_port INTELLI_MINIO_API_PORT minio-api 9000 19000 19010 19020
+pick_env_port INTELLI_MINIO_CONSOLE_PORT minio-console 9001 19001 19011 19021
+pick_env_port INTELLI_OPENSEARCH_PORT opensearch 9200 19200 19210 19220
+
+export DATABASE_URL="postgresql+asyncpg://intelli:intelli@localhost:${INTELLI_POSTGRES_PORT}/intelli"
+export S3_ENDPOINT_URL="http://localhost:${INTELLI_MINIO_API_PORT}"
+export OPENSEARCH_URL="http://localhost:${INTELLI_OPENSEARCH_PORT}"
+
+echo "Using ports: postgres=${INTELLI_POSTGRES_PORT} minio=${INTELLI_MINIO_API_PORT}/${INTELLI_MINIO_CONSOLE_PORT} opensearch=${INTELLI_OPENSEARCH_PORT}"
 
 step "Start infrastructure (postgres + minio + opensearch)"
 docker compose up -d postgres minio minio-init opensearch

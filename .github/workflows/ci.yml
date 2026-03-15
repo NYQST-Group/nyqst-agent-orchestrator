@@ -21,6 +21,16 @@ defaults:
     shell: bash
 
 jobs:
+  ao-bootstrap:
+    name: AO Bootstrap Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate AO / Codex repo setup
+        run: bash tools/check_pipeline_config.sh
+
   backend:
     name: Backend Tests
     runs-on: ubuntu-latest
@@ -92,6 +102,10 @@ jobs:
       - name: Run tests
         working-directory: ui
         run: npm test
+
+      - name: Lint
+        working-directory: ui
+        run: npm run lint
 
   lint:
     name: Lint

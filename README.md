@@ -4,6 +4,8 @@ An agent-first platform for document intelligence, research workflows, and knowl
 
 Start here: `docs/START_HERE.md`
 
+AO + Codex runbook: `docs/runbooks/ao-codex-pipeline.md`
+
 ## Core Principles
 
 1. **Single source of truth**: Immutable artifacts + manifests + run ledger
@@ -50,6 +52,27 @@ bash scripts/dev/validate.sh
 ```
 
 Manual version and troubleshooting: `docs/STARTUP_SEQUENCE.md`
+
+### AO + Codex Bootstrap
+
+For AO-managed issue execution with Codex on ChatGPT OAuth:
+
+```bash
+./tools/bootstrap_ao_codex.sh
+```
+
+Then use:
+
+```bash
+AO_CONFIG_PATH=$PWD/agent-orchestrator.yaml ao spawn nyqst <issue-number>
+```
+
+Inside a fresh AO worktree, bootstrap dependencies with:
+
+```bash
+./tools/bootstrap_worktree.sh
+./tools/run_repo_checks.sh
+```
 
 ### Development Setup
 

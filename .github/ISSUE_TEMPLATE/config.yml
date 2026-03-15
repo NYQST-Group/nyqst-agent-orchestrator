@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AO + Codex pipeline runbook
+    url: https://github.com/NYQST-Group/nyqst-agent-orchestrator/blob/main/docs/runbooks/ao-codex-pipeline.md
+    about: Use this before opening or spawning AO-managed work.
+  - name: Start here
+    url: https://github.com/NYQST-Group/nyqst-agent-orchestrator/blob/main/docs/START_HERE.md
+    about: Canonical repo orientation and source-of-truth docs.
