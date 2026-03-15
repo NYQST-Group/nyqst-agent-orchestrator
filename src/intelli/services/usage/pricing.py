@@ -56,6 +56,7 @@ def format_cost_usd(cost_micros: int) -> str:
     """Format micros of USD into a compact dollar string.
 
     Always returns a well-formed dollar string with at least two decimal places.
+    Handles rounding boundaries so that e.g. $0.999999 is not displayed as $1.0000.
     """
     usd = max(cost_micros, 0) / 1_000_000
     if usd == 0:
@@ -63,7 +64,11 @@ def format_cost_usd(cost_micros: int) -> str:
     if usd >= 1:
         return f"${usd:.2f}"
     if usd >= 0.01:
-        return f"${usd:.4f}"
+        # Guard against :.4f rounding sub-dollar values up to $1.0000
+        formatted = f"${usd:.4f}"
+        if formatted == "$1.0000":
+            return "$1.00"
+        return formatted
     formatted = f"${usd:.6f}".rstrip("0").rstrip(".")
     # Guard: if rstrip collapsed all decimals (e.g. sub-micro values that
     # round to $0.000000), fall back to $0.00 instead of bare "$0".

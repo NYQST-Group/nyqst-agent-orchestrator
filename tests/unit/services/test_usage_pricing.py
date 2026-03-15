@@ -42,6 +42,17 @@ class TestFormatCostUsd:
     def test_one_micro(self):
         assert format_cost_usd(1) == "$0.000001"
 
+    def test_near_dollar_boundary_no_overshoot(self):
+        """Regression: sub-dollar values must not round up to $1.0000."""
+        # 999_999 micros = $0.999999 — must not display as "$1.0000"
+        result = format_cost_usd(999_999)
+        assert result == "$1.00", f"Expected '$1.00', got {result!r}"
+        # 999_950 micros = $0.999950 — :.4f rounds to $1.0000
+        result = format_cost_usd(999_950)
+        assert result == "$1.00", f"Expected '$1.00', got {result!r}"
+        # 999_900 micros = $0.999900 — :.4f = $0.9999
+        assert format_cost_usd(999_900) == "$0.9999"
+
     def test_sub_cent_no_bare_dollar(self):
         """Regression: rstrip must not collapse to bare '$0'."""
         # Any non-zero input must produce a string with a decimal point
