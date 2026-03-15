@@ -1,4 +1,4 @@
-name: Backstage Schema Publisher
+name: Backstage Contract Checks
 
 on:
   push:
@@ -13,17 +13,27 @@ defaults:
     shell: bash
 
 jobs:
-  publish-catalog:
+  validate-contracts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate Contract Drift
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Validate schema modules import cleanly
         run: |
-          echo "Validating Pydantic to TypeScript coherence..."
-          exit 1 # TODO: Implement real datamodel-codegen checks
-          
-      - name: Publish to Backstage Catalog
+          python -m compileall -q src/intelli/schemas
+
+      - name: Validate UI contract types
+        working-directory: ui
         run: |
-          echo "Triggering Backstage catalog refresh..."
-          exit 1 # TODO: Implement real Backstage API ingestion
+          npm ci
+          npm run typecheck

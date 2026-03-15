@@ -1,0 +1,5 @@
+personality = "pragmatic"
+web_search = "disabled"
+
+[features]
+shell_snapshot = true

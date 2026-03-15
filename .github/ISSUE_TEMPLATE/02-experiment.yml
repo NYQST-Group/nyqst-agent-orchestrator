@@ -1,0 +1,58 @@
+name: Experiment
+description: Hypothesis-driven AO experiment with explicit learning capture
+title: "[EXP] "
+labels:
+  - type:gap
+  - research
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What uncertainty are you trying to resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: State the proposition being tested.
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Variant or approach
+      description: Describe the implementation or experiment path.
+    validations:
+      required: true
+  - type: textarea
+    id: metric
+    attributes:
+      label: Success metric
+      description: What observable outcome would count as success?
+    validations:
+      required: true
+  - type: textarea
+    id: abandon
+    attributes:
+      label: Abandon rule
+      description: When should the experiment be stopped or declared not worth continuing?
+    validations:
+      required: true
+  - type: textarea
+    id: learning
+    attributes:
+      label: Expected learning
+      description: What should be captured even if the result is negative?
+    validations:
+      required: true
+  - type: textarea
+    id: grounding
+    attributes:
+      label: Spec or repo grounding
+      description: Link the canonical docs, issues, or code paths that frame the experiment.
+  - type: markdown
+    attributes:
+      value: |
+        Before closing this issue, record what was learned in the issue, PR, or linked docs.

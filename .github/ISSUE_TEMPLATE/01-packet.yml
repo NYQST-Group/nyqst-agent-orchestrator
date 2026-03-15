@@ -1,0 +1,67 @@
+name: Packet
+description: AO-ready bounded implementation packet
+title: "[PKT][AREA-XX] "
+labels:
+  - type:feature
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Exact outcome
+      description: State the precise result this packet should achieve.
+      placeholder: Define the thin object model and API surface needed to replace placeholders with real product surfaces.
+    validations:
+      required: true
+  - type: input
+    id: surface
+    attributes:
+      label: Main surface area
+      placeholder: area:frontend, area:backend, area:docs, area:db
+    validations:
+      required: true
+  - type: textarea
+    id: grounding
+    attributes:
+      label: Spec grounding
+      description: Link the canonical specs or docs this packet depends on.
+      placeholder: |
+        - docs/START_HERE.md
+        - YOLO1/docs/execution/...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance check
+      description: What must be true for this packet to count as done?
+    validations:
+      required: true
+  - type: input
+    id: parent
+    attributes:
+      label: Linked parent issue
+      placeholder: "#123"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Implementation notes
+      description: Constraints, acceleration notes, or repo-local patterns to follow.
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: Explicit non-goals keep AO work bounded.
+    validations:
+      required: true
+  - type: textarea
+    id: successors
+    attributes:
+      label: Next successor packets
+      description: Optional. Add the next one or two follow-on packets.
+      placeholder: |
+        1. [PKT][...]
+        2. [PKT][...]
+  - type: markdown
+    attributes:
+      value: |
+        Add the right lane / packet / area labels after creation if the default labels are not sufficient.

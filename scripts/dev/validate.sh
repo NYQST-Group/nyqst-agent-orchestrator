@@ -19,6 +19,52 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
 }
 
+is_port_free() {
+  local port="$1"
+  python - "$port" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    s.bind(("127.0.0.1", port))
+except OSError:
+    sys.exit(1)
+finally:
+    s.close()
+sys.exit(0)
+PY
+}
+
+pick_port() {
+  local label="$1"
+  shift
+  for port in "$@"; do
+    if is_port_free "$port"; then
+      echo "$port"
+      return 0
+    fi
+  done
+  die "No free port found for ${label} (tried: $*)"
+}
+
+pick_env_port() {
+  local var_name="$1"
+  local label="$2"
+  shift 2
+  local current="${!var_name:-}"
+  if [[ -n "$current" ]]; then
+    is_port_free "$current" || die "${label} port ${current} is already in use (set ${var_name})"
+    export "$var_name=$current"
+    return 0
+  fi
+
+  local chosen
+  chosen="$(pick_port "$label" "$@")"
+  export "$var_name=$chosen"
+}
+
 wait_for() {
   local desc="$1"
   local cmd="$2"
@@ -59,6 +105,18 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example (edit OPENAI_API_KEY for full RAG smoke test)"
 fi
 
+step "Pick infrastructure ports"
+pick_env_port INTELLI_POSTGRES_PORT postgres 5433 15433 15434 15435
+pick_env_port INTELLI_MINIO_API_PORT minio-api 9000 19000 19010 19020
+pick_env_port INTELLI_MINIO_CONSOLE_PORT minio-console 9001 19001 19011 19021
+pick_env_port INTELLI_OPENSEARCH_PORT opensearch 9200 19200 19210 19220
+
+export DATABASE_URL="postgresql+asyncpg://intelli:intelli@localhost:${INTELLI_POSTGRES_PORT}/intelli"
+export S3_ENDPOINT_URL="http://localhost:${INTELLI_MINIO_API_PORT}"
+export OPENSEARCH_URL="http://localhost:${INTELLI_OPENSEARCH_PORT}"
+
+echo "Using ports: postgres=${INTELLI_POSTGRES_PORT} minio=${INTELLI_MINIO_API_PORT}/${INTELLI_MINIO_CONSOLE_PORT} opensearch=${INTELLI_OPENSEARCH_PORT}"
+
 step "Start infrastructure (postgres + minio + opensearch)"
 docker compose up -d postgres minio minio-init opensearch
 
@@ -66,13 +124,13 @@ step "Wait for Postgres"
 wait_for "postgres ready" "docker compose exec -T postgres pg_isready -U intelli" 60 1 \
   || die "Postgres did not become ready"
 
-step "Wait for MinIO"
-wait_for "minio health" "curl -fsS http://localhost:9000/minio/health/live" 60 1 \
-  || die "MinIO did not become healthy"
-
 step "Wait for OpenSearch"
-wait_for "opensearch health" "curl -fsS http://localhost:9200 >/dev/null" 120 1 \
+wait_for "opensearch health" "curl -fsS http://localhost:${INTELLI_OPENSEARCH_PORT} >/dev/null" 120 1 \
   || die "OpenSearch did not become healthy"
+
+step "Wait for MinIO"
+wait_for "minio health" "curl -fsS http://localhost:${INTELLI_MINIO_API_PORT}/minio/health/live" 60 1 \
+  || die "MinIO did not become healthy"
 
 step "Python venv + deps"
 if [[ ! -d .venv ]]; then
@@ -127,7 +185,11 @@ RAG_FLAG=()
 if [[ "${INTELLI_REQUIRE_RAG:-0}" != "0" ]]; then
   RAG_FLAG+=(--require-rag)
 fi
-"$PY" scripts/dev/smoke_api.py "${RAG_FLAG[@]}" --base-url "http://localhost:${BACKEND_PORT}"
+if (( ${#RAG_FLAG[@]} > 0 )); then
+  "$PY" scripts/dev/smoke_api.py "${RAG_FLAG[@]}" --base-url "http://localhost:${BACKEND_PORT}"
+else
+  "$PY" scripts/dev/smoke_api.py --base-url "http://localhost:${BACKEND_PORT}"
+fi
 
 step "UI sanity (typecheck + build)"
 npm -C ui install

@@ -1,0 +1,65 @@
+# NYQST Agent Orchestrator — test repo config
+# Target: NYQST-Group/nyqst-agent-orchestrator (mirror of DocuIntelli-Build)
+
+defaults:
+  runtime: tmux
+  agent: codex
+  orchestrator:
+    agent: codex
+  worker:
+    agent: codex
+  workspace: worktree
+  notifiers: [desktop]
+
+projects:
+  nyqst:
+    name: NYQST Intelli
+    repo: NYQST-Group/nyqst-agent-orchestrator
+    path: /Users/markforster/nyqst-agent-orchestrator
+    defaultBranch: main
+    sessionPrefix: nqa
+
+    tracker:
+      plugin: github
+
+    scm:
+      plugin: github
+
+    orchestrator:
+      agent: codex
+      agentConfig:
+        profile: nyqst_ao_orchestrator
+        permissions: permissionless
+        codexHome: /Users/markforster/.codex
+        model: gpt-5.4
+        reasoningEffort: medium
+        fastMode: false
+
+    worker:
+      agent: codex
+      agentConfig:
+        profile: nyqst_ao_worker
+        permissions: permissionless
+        codexHome: /Users/markforster/.codex
+        model: gpt-5.4
+        reasoningEffort: xhigh
+        fastMode: true
+
+    decomposer:
+      enabled: true
+      maxDepth: 2
+      model: claude-sonnet-4-20250514
+      requireApproval: false
+
+    agentRulesFile: ao-agent-rules.md
+
+    agentRules: |
+      You are working on NYQST Intelli — a Python/FastAPI backend with a React/Vite frontend.
+      Backend: Python 3.12+, FastAPI, SQLAlchemy 2.0 async, Alembic, Pydantic v2.
+      Frontend: React, Vite, Tailwind CSS, Radix UI (shadcn), Zustand.
+      Always run `ruff check src/ tests/` and `ruff format src/ tests/` before pushing.
+      Run `pytest` to verify tests pass.
+      Use conventional commits (feat:, fix:, chore:, docs:, refactor:, test:).
+      Link issue numbers in commit messages (e.g. "fix: resolve edge case #195").
+      Follow the repository pattern: data access in repositories/, business logic in services/.
+      All DB operations must be async. No hardcoded secrets.

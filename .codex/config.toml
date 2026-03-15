@@ -1,0 +1,26 @@
+web_search = "disabled"
+personality = "pragmatic"
+
+[analytics]
+enabled = false
+
+[features]
+shell_snapshot = true
+
+[profiles.nyqst_ao_orchestrator]
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+model_verbosity = "low"
+web_search = "disabled"
+
+[profiles.nyqst_ao_worker]
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+model_verbosity = "medium"
+web_search = "disabled"
+
+[profiles.nyqst_research]
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+model_verbosity = "medium"
+web_search = "live"
