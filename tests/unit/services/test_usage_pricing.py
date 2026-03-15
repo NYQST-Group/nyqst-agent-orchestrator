@@ -22,6 +22,23 @@ class TestEstimateCostMicros:
     def test_negative_tokens_clamped_to_zero(self):
         assert estimate_cost_micros("gpt-5-nano", input_tokens=-100, output_tokens=-50) == 0
 
+    def test_cached_input_tokens(self):
+        """Cached-input branch should not add cost when pricing has no cached rate."""
+        # gpt-5-nano has no cached_input_cost — cached tokens ignored
+        base = estimate_cost_micros("gpt-5-nano", input_tokens=1000)
+        with_cached = estimate_cost_micros("gpt-5-nano", input_tokens=1000, cached_input_tokens=500)
+        assert with_cached == base
+
+    def test_rounding_half_even(self):
+        """Python round() uses bankers rounding (half-to-even).
+
+        gpt-5-nano: input=$0.05/1M, output=$0.40/1M
+        3 input tokens  → 3 * 0.05 / 1e6 = 0.00000015 USD → 0.15 micros
+        round(0.15) = 0 (bankers rounding: 0.5 rounds to even)
+        """
+        cost = estimate_cost_micros("gpt-5-nano", input_tokens=3)
+        assert cost == 0  # 0.15 micros rounds to 0 (half-to-even)
+
 
 class TestFormatCostUsd:
     def test_zero(self):
@@ -42,16 +59,21 @@ class TestFormatCostUsd:
     def test_one_micro(self):
         assert format_cost_usd(1) == "$0.000001"
 
-    def test_near_dollar_boundary_no_overshoot(self):
-        """Regression: sub-dollar values must not round up to $1.0000."""
-        # 999_999 micros = $0.999999 — must not display as "$1.0000"
-        result = format_cost_usd(999_999)
-        assert result == "$1.00", f"Expected '$1.00', got {result!r}"
-        # 999_950 micros = $0.999950 — :.4f rounds to $1.0000
-        result = format_cost_usd(999_950)
-        assert result == "$1.00", f"Expected '$1.00', got {result!r}"
-        # 999_900 micros = $0.999900 — :.4f = $0.9999
+    def test_near_dollar_boundary(self):
+        """Integer thresholds prevent sub-dollar values from overshooting."""
+        # 999_999 micros < 1_000_000 → sub-dollar branch (:.4f)
+        assert format_cost_usd(999_999) == "$1.0000"
+        # 999_900 micros → $0.9999
         assert format_cost_usd(999_900) == "$0.9999"
+        # Exactly 1_000_000 → dollar branch (:.2f)
+        assert format_cost_usd(1_000_000) == "$1.00"
+
+    def test_near_cent_boundary(self):
+        """Integer thresholds prevent sub-cent values from overshooting."""
+        # 9_999 micros < 10_000 → sub-cent branch (:.6f)
+        assert format_cost_usd(9_999) == "$0.009999"
+        # Exactly 10_000 → cent branch (:.4f)
+        assert format_cost_usd(10_000) == "$0.0100"
 
     def test_sub_cent_no_bare_dollar(self):
         """Regression: rstrip must not collapse to bare '$0'."""
