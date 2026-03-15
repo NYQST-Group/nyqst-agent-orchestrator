@@ -28,6 +28,7 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [008](./008-mcp-tool-architecture.md) | MCP Tool Architecture | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
 | [009](./009-human-in-the-loop-governance.md) | Human-in-the-Loop and Governance Patterns | Proposed | 06_ARCHITECTURE.md, 03_PLATFORM.md |
 | [010](./010-bootstrap-infrastructure.md) | Bootstrap Infrastructure — PostgreSQL + pgvector + Neo4j | Proposed | 03_PLATFORM.md |
+| [011](./011-canvas-framework-selection.md) | Analysis Canvas Framework Selection | Proposed | 06_ARCHITECTURE.md |
 
 ## Pending ADRs (from PRD Notes)
 
@@ -61,7 +62,7 @@ The following ADRs have been flagged in the PRD documents and need to be written
 |-------|------------|---------------|--------|
 | Research UI | 06_ARCHITECTURE.md | Panel layout, source ingestion, Deep vs Fast research | Pending |
 | Workbench UI | 06_ARCHITECTURE.md | IDE framework, terminal integration, file system | Pending |
-| Analysis Canvas | 06_ARCHITECTURE.md | Canvas framework, data model, collaboration, export | Pending |
+| Analysis Canvas | 06_ARCHITECTURE.md | Canvas framework, data model, collaboration, export | **→ [ADR-011](./011-canvas-framework-selection.md)** |
 | Cross-Session Analysis | 06_ARCHITECTURE.md | Permissions, pattern detection, coaching reports, privacy | Pending |
 | Generative UI Architecture | 06_ARCHITECTURE.md | Component library, AG-UI protocol, state sync, guardrails | Pending |
 
