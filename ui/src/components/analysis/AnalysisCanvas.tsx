@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -46,7 +46,9 @@ const RELATION_OPTIONS = Object.keys(EDGE_RELATION_LABELS) as AnalysisEdgeRelati
 
 export function AnalysisCanvas() {
   const [boardMode, setBoardMode] = useState<BoardMode>('scenario')
-  const board = boardMode === 'scenario' ? createScenarioBoard() : createBenchmarkBoard(200)
+  const scenarioBoard = useMemo(() => createScenarioBoard(), [])
+  const benchmarkBoard = useMemo(() => createBenchmarkBoard(200), [])
+  const board = boardMode === 'scenario' ? scenarioBoard : benchmarkBoard
 
   return (
     <ReactFlowProvider key={boardMode}>
